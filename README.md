@@ -1,6 +1,10 @@
 # 🛰️ Gundam Boot News — Mafty Intelligence System (v2.0)
 
 <p align="center">
+  <img src="icon.png" alt="Gundam Boot News Icon" width="140" />
+</p>
+
+<p align="center">
   <img alt="Gundam Boot News Banner" src="https://img.shields.io/badge/Mafty%20Intelligence-System-111827?style=for-the-badge&logo=target&logoColor=white">
 </p>
 
@@ -65,6 +69,8 @@ Ele monitora feeds globais (**RSS/Atom** e **YouTube**) e entrega **inteligênci
 - Bandai Hobby (Global/JP)
 - The Gundam Base (News / Staff Blog)
 - Battle Operation 2 (Info / patches)
+- Video/Music (Gundam Official)
+- SUNRISE Music (releases / catálogo)
 
 ---
 
@@ -161,6 +167,7 @@ Se o log mostrar `50013`, o bot não tem permissão para postar no canal escolhi
 ├─ main.py              # núcleo + comandos + UI (dashboard)
 ├─ settings.py          # leitura do .env e configs
 ├─ sources.json         # fontes RSS/Atom/YouTube
+├─ icon.png             # ícone do projeto (usado neste README)
 ├─ config.json          # persistência por servidor (não versionar)
 ├─ .env                 # token (NÃO versionar)
 ├─ .env.example         # modelo sem segredos
@@ -208,7 +215,7 @@ Se o log mostrar `50013`, o bot não tem permissão para postar no canal escolhi
 
 ```bash
 git add .
-git commit -m "Update README (v2.0) + dashboard + multi-server notes"
+git commit -m "Update README (v2.0) + add icon"
 git push origin main
 ```
 
