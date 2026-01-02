@@ -1,8 +1,9 @@
 # 🛰️ Gundam Boot News — Mafty Intelligence System (Discord Bot)
 
 <p align="center">
-  <img alt="Gundam Boot News" src="https://raw.githubusercontent.com/SEU_USUARIO/SEU_REPO/main/docs/images/banner.png" width="900">
+  <img alt="Gundam Boot News" src="./icon.png" width="300">
 </p>
+
 
 <p align="center">
   <img src="https://img.shields.io/badge/Discord-Bot-5865F2?logo=discord&logoColor=white" />
