@@ -2,20 +2,14 @@
 import os
 from dotenv import load_dotenv
 
-# Carrega o .env
 load_dotenv()
 
-# Credenciais com tratamento básico de ausência
-TOKEN = os.getenv('DISCORD_TOKEN')
-raw_id = os.getenv('DISCORD_CHANNEL_ID')
+# Obrigatório
+TOKEN = os.getenv("DISCORD_TOKEN")
 
-# Converte o ID para int apenas se ele existir, para evitar erro de inicialização
+# Operação (opcional via env)
+COMMAND_PREFIX = os.getenv("COMMAND_PREFIX", "!")
 try:
-    ID_CANAL = int(raw_id) if raw_id else 0
+    LOOP_MINUTES = int(os.getenv("LOOP_MINUTES", "30"))
 except ValueError:
-    print("ERRO: O DISCORD_CHANNEL_ID no seu .env não é um número válido!")
-    ID_CANAL = 0
-
-# Configurações de Operação
-COMMAND_PREFIX = "!"
-LOOP_MINUTES = 30
+    LOOP_MINUTES = 30
