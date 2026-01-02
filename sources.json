@@ -1,0 +1,28 @@
+{
+  "rss_feeds": [
+    "https://www.animenewsnetwork.com/news/rss.xml?ann-edition=us",
+    "https://gundamnews.org/feed",
+    "https://gunpla101.com/feed",
+    "https://www.gunjap.net/site/?feed=rss2",
+    "https://www.usagundamstore.com/blogs/usa-gundam-blog.atom",
+    "https://www.bandai.com/blog/rss/feed",
+    "https://www.gundamkitscollection.com/feeds/posts/default?alt=rss"
+  ],
+  "youtube_feeds": [
+    "https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw",
+    "https://www.youtube.com/feeds/videos.xml?channel_id=UCbJM_Y06iuUOl3hVPqYcvng"
+  ],
+  "official_sites": [
+    "https://gundam-official.com/",
+    "https://en.gundam-official.com/news",
+    "https://www.gundam-seed.net/news/",
+    "https://bo2.ggame.jp/en/info/",
+    "https://global.bandai-hobby.net/en-us/news/",
+    "https://bandai-hobby.net/news/",
+    "https://www.gundam-base.net/news",
+    "https://www.gundam-base.net/staffblog/",
+    "https://www.bandai.com/News",
+    "https://www.sunrise-music.co.jp/",
+    "https://en.gundam-official.com/video-music"
+  ]
+}

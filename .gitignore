@@ -1,0 +1,51 @@
+# =========================
+# Segredos / Configs locais
+# =========================
+.env
+.env.*
+!.env.example
+config.json
+
+# =========================
+# Python / Venv / Build
+# =========================
+.venv/
+venv/
+ENV/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# =========================
+# Logs
+# =========================
+*.log
+
+# =========================
+# IDEs / Editores
+# =========================
+.idea/
+.vscode/
+
+# =========================
+# Sistema (Windows/macOS)
+# =========================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =========================
+# arquivos gerados do bot
+# =========================
+config/*.json
+state/*.json
+
