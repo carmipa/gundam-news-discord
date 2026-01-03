@@ -1,25 +1,40 @@
+# =========================================================
+# Gundam Intel Bot - "Mafty Sovereign"
+# main.py (corrigido / sem tradução / totalmente comentado)
+#
+# FIXES incluídos:
+# - 10062 Unknown interaction -> sempre responde slash com (defer se necessário) + followup
+# - 40060 Interaction already acknowledged -> só dá defer se response ainda não foi "done"
+#
+# Features:
+# - /dashboard abre painel persistente e configura canal
+# - /dashboard força varredura imediata (com lock anti-concorrência)
+# - loop automático a cada LOOP_MINUTES
+# - deduplicação por history.json
+# - config por guild em config.json
+# =========================================================
+
 import os
 import json
 import re
 import ssl
 import asyncio
 import logging
+from datetime import datetime, timedelta
 from typing import Any, Dict, List, Set, Tuple
 
 import discord
 import aiohttp
 import feedparser
 from discord.ext import tasks, commands
-from deep_translator import GoogleTranslator
 
-# Importa configurações do seu projeto
+# settings.py deve conter: TOKEN, COMMAND_PREFIX, LOOP_MINUTES
 from settings import TOKEN, COMMAND_PREFIX, LOOP_MINUTES
 
 
 # =========================================================
-# 1) CONFIGURAÇÃO DE LOGS
+# 1) LOGS
 # =========================================================
-# Logs em português e com formato consistente para facilitar troubleshooting na VPS
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - [%(levelname)s] - %(message)s"
@@ -28,9 +43,8 @@ log = logging.getLogger("MaftyIntel")
 
 
 # =========================================================
-# 2) CONSTANTES DE FILTRO (PRECISÃO CIRÚRGICA)
+# 2) FILTROS / CATEGORIAS
 # =========================================================
-# Termos fundamentais para garantir que é Gundam
 GUNDAM_CORE = [
     "gundam", "gunpla", "mobile suit", "universal century", "uc ",
     "rx-78", "zaku", "zeon", "char", "amuro", "hathaway", "mafty",
@@ -39,14 +53,12 @@ GUNDAM_CORE = [
     "hg ", "mg ", "rg ", "pg ", "sd ", "fm ", "re/100"
 ]
 
-# Blacklist para cortar ruído de feeds generalistas (ex.: sites de anime/game que misturam tudo)
 BLACKLIST = [
     "one piece", "dragon ball", "naruto", "bleach",
     "pokemon", "digimon", "attack on titan",
     "jujutsu", "demon slayer"
 ]
 
-# Mapa de categorias para o menu do dashboard
 CAT_MAP = {
     "gunpla":  ["gunpla", "model kit", "kit", "ver.ka", "p-bandai", "premium bandai", "hg ", "mg ", "rg ", "pg ", "sd ", "fm ", "re/100"],
     "filmes":  ["anime", "episode", "movie", "film", "pv", "trailer", "teaser", "series", "season", "seed freedom", "witch from mercury", "hathaway"],
@@ -55,7 +67,6 @@ CAT_MAP = {
     "fashion": ["fashion", "clothing", "apparel", "t-shirt", "hoodie", "jacket", "merch"],
 }
 
-# Opções do dashboard (chave -> (label, emoji))
 FILTER_OPTIONS = {
     "todos": ("TUDO", "🌟"),
     "gunpla": ("Gunpla", "🤖"),
@@ -65,39 +76,40 @@ FILTER_OPTIONS = {
     "fashion": ("Fashion", "👕"),
 }
 
-# Todas as categorias (para o toggle “TUDO”)
 ALL_CATEGORIES = ["gunpla", "filmes", "games", "musica", "fashion"]
 
 
 # =========================================================
-# 3) UTILITÁRIOS DE ARQUIVO JSON (SEGUROS)
+# 3) PATH ABSOLUTO (evita salvar JSON em lugar errado no systemd)
+# =========================================================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+def p(filename: str) -> str:
+    """Retorna caminho absoluto de um arquivo dentro da pasta do projeto."""
+    return os.path.join(BASE_DIR, filename)
+
+
+# =========================================================
+# 4) JSON SAFE
 # =========================================================
 def load_json_safe(filepath: str, default: Any) -> Any:
-    """
-    Carrega JSON sem quebrar o bot se o arquivo estiver vazio/corrompido.
-    Retorna "default" caso haja qualquer problema.
-    """
+    """Carrega JSON sem derrubar o bot se faltar / vazio / corrompido."""
     try:
         if not os.path.exists(filepath):
-            log.warning(f"Arquivo '{filepath}' não existe. Usando valor padrão.")
+            log.warning(f"Arquivo '{filepath}' não existe. Usando padrão.")
             return default
-
         if os.path.getsize(filepath) == 0:
-            log.warning(f"Arquivo '{filepath}' está vazio. Usando valor padrão.")
+            log.warning(f"Arquivo '{filepath}' está vazio. Usando padrão.")
             return default
-
         with open(filepath, "r", encoding="utf-8") as f:
             return json.load(f)
-
     except Exception as e:
-        log.error(f"Falha ao carregar '{filepath}': {e}. Usando valor padrão.")
+        log.error(f"Falha ao carregar '{filepath}': {e}. Usando padrão.")
         return default
 
 
 def save_json_safe(filepath: str, data: Any) -> None:
-    """
-    Salva JSON com indentação e sem quebrar o bot em caso de erro.
-    """
+    """Salva JSON com indentação; em erro, loga e segue."""
     try:
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
@@ -106,15 +118,13 @@ def save_json_safe(filepath: str, data: Any) -> None:
 
 
 # =========================================================
-# 4) LIMPEZA DE TEXTO / TRADUÇÃO
+# 5) LIMPEZA DE TEXTO (remove HTML e normaliza espaços)
 # =========================================================
 _HTML_RE = re.compile(r"<.*?>|&([a-z0-9]+|#[0-9]{1,6});", flags=re.IGNORECASE)
 _WS_RE = re.compile(r"\s+")
 
 def clean_html(raw_html: str) -> str:
-    """
-    Remove tags HTML e entidades para evitar resumos poluídos.
-    """
+    """Remove tags HTML e entidades; normaliza espaços."""
     if not raw_html:
         return ""
     txt = re.sub(_HTML_RE, " ", raw_html)
@@ -122,24 +132,8 @@ def clean_html(raw_html: str) -> str:
     return txt
 
 
-def translate_to_pt(text: str) -> str:
-    """
-    Traduz para PT-BR com limite de tamanho (evita erros por payload grande).
-    Em falha, retorna o texto limpo (sem HTML).
-    """
-    try:
-        if not text:
-            return ""
-        cleaned = clean_html(text)
-        # Limite para evitar falha de request muito grande
-        return GoogleTranslator(source="auto", target="pt").translate(cleaned[:1000])
-    except Exception as e:
-        log.warning(f"Falha ao traduzir texto (usando texto limpo). Motivo: {e}")
-        return clean_html(text)
-
-
 # =========================================================
-# 5) NORMALIZAÇÃO DO sources.json (ROBUSTA)
+# 6) NORMALIZAÇÃO DO sources.json
 # =========================================================
 def normalize_sources_to_urls(sources_raw: Any) -> List[str]:
     """
@@ -173,9 +167,9 @@ def normalize_sources_to_urls(sources_raw: Any) -> List[str]:
             elif isinstance(item, dict):
                 _add(item.get("url") or item.get("link"))
 
-    # Remove duplicados mantendo a ordem
+    # remove duplicados mantendo ordem
     seen = set()
-    out = []
+    out: List[str] = []
     for u in urls:
         if u not in seen:
             seen.add(u)
@@ -184,33 +178,34 @@ def normalize_sources_to_urls(sources_raw: Any) -> List[str]:
 
 
 # =========================================================
-# 6) CONFIGURAÇÃO DO BOT (INTENTS)
+# 7) BOT / INTENTS
 # =========================================================
 intents = discord.Intents.default()
 intents.guilds = True
-intents.message_content = True  # Necessário para comandos por prefixo (!dashboard, se usado)
+intents.message_content = True  # necessário se você usar prefixo (!dashboard)
 
 bot = commands.Bot(command_prefix=COMMAND_PREFIX, intents=intents)
 
+# Lock global para impedir varreduras simultâneas (loop vs dashboard)
+scan_lock = asyncio.Lock()
+
 
 # =========================================================
-# 7) FUNÇÕES DE FILTRO (ANTI-LIXO + CATEGORIAS)
+# 8) FUNÇÕES DE FILTRO
 # =========================================================
 def _contains_any(hay: str, needles: List[str]) -> bool:
-    """
-    Retorna True se qualquer termo em needles existir no texto hay.
-    """
+    """True se qualquer termo em needles existir em hay (hay já deve estar lower)."""
     return any(n in hay for n in needles)
 
 
 def match_intel(guild_id: str, title: str, summary: str, config: Dict[str, Any]) -> bool:
     """
-    Decide se uma notícia deve ser enviada para uma guild:
-      1) Precisa existir filtro configurado
-      2) Corta blacklist
-      3) Exige núcleo Gundam
-      4) Se "todos" ativo -> aceita
-      5) Caso contrário, precisa bater em alguma categoria escolhida
+    Decide se notícia deve ir para a guild:
+      - exige filtros
+      - corta blacklist
+      - exige termos Gundam core
+      - "todos" libera tudo
+      - senão, precisa bater em categoria selecionada
     """
     g = config.get(str(guild_id), {})
     filters = g.get("filters", [])
@@ -218,22 +213,17 @@ def match_intel(guild_id: str, title: str, summary: str, config: Dict[str, Any])
     if not isinstance(filters, list) or not filters:
         return False
 
-    # Limpa HTML antes de avaliar (reduz falsos positivos)
     content = f"{clean_html(title)} {clean_html(summary)}".lower()
 
-    # Corta ruído
     if _contains_any(content, BLACKLIST):
         return False
 
-    # Exige termos fundamentais de Gundam
     if not _contains_any(content, GUNDAM_CORE):
         return False
 
-    # Se "todos" ativo, passa direto
     if "todos" in filters:
         return True
 
-    # Caso contrário, precisa bater em uma categoria selecionada
     for f in filters:
         kws = CAT_MAP.get(f, [])
         if kws and _contains_any(content, kws):
@@ -243,14 +233,11 @@ def match_intel(guild_id: str, title: str, summary: str, config: Dict[str, Any])
 
 
 # =========================================================
-# 8) HISTÓRICO (PRESERVA RECÊNCIA)
+# 9) HISTÓRICO (dedupe global por link)
 # =========================================================
 def load_history() -> Tuple[List[str], Set[str]]:
-    """
-    Mantém o arquivo como lista (preserva ordem),
-    mas usa set em memória para busca rápida.
-    """
-    h = load_json_safe("history.json", [])
+    """Carrega history.json e devolve (lista, set) para dedupe rápido."""
+    h = load_json_safe(p("history.json"), [])
     if not isinstance(h, list):
         log.warning("history.json inválido. Reiniciando histórico.")
         h = []
@@ -259,20 +246,17 @@ def load_history() -> Tuple[List[str], Set[str]]:
 
 
 def save_history(history_list: List[str], limit: int = 2000) -> None:
-    """
-    Salva apenas os últimos 'limit' itens para evitar crescimento infinito.
-    """
-    save_json_safe("history.json", history_list[-limit:])
+    """Mantém histórico limitado para não crescer infinito."""
+    save_json_safe(p("history.json"), history_list[-limit:])
 
 
 # =========================================================
-# 9) DASHBOARD PERSISTENTE (VIEW)
+# 10) DASHBOARD (VIEW persistente)
 # =========================================================
 class FilterDashboard(discord.ui.View):
     """
-    Dashboard persistente:
-      - timeout=None: essencial para botões continuarem válidos
-      - custom_id estável: permite re-registrar a View após restart
+    View persistente: timeout=None.
+    Botões com custom_id estável -> funcionam após restart via add_view.
     """
 
     def __init__(self, guild_id: int):
@@ -281,12 +265,10 @@ class FilterDashboard(discord.ui.View):
         self._rebuild()
 
     def _cfg(self) -> Dict[str, Any]:
-        """
-        Carrega config.json e garante estrutura mínima para a guild.
-        """
-        cfg = load_json_safe("config.json", {})
+        """Carrega config.json e garante estrutura mínima por guild."""
+        cfg = load_json_safe(p("config.json"), {})
         if not isinstance(cfg, dict):
-            log.error("config.json inválido. Recriando estrutura.")
+            log.error("config.json inválido. Recriando.")
             cfg = {}
 
         cfg.setdefault(self.guild_id, {"filters": [], "channel_id": None})
@@ -297,7 +279,7 @@ class FilterDashboard(discord.ui.View):
         return cfg
 
     def _save(self, cfg: Dict[str, Any]) -> None:
-        save_json_safe("config.json", cfg)
+        save_json_safe(p("config.json"), cfg)
 
     def _filters(self) -> List[str]:
         cfg = self._cfg()
@@ -305,29 +287,21 @@ class FilterDashboard(discord.ui.View):
 
     def _set_filters(self, new_filters: List[str]) -> None:
         cfg = self._cfg()
-        # Remove duplicados mantendo ordem
         cfg[self.guild_id]["filters"] = list(dict.fromkeys(new_filters))
         self._save(cfg)
 
     def _is_admin(self, interaction: discord.Interaction) -> bool:
-        """
-        Apenas administradores podem alterar filtros.
-        """
+        """Somente admin altera filtros."""
         try:
             return bool(interaction.user.guild_permissions.administrator)
         except Exception:
             return False
 
     def _rebuild(self) -> None:
-        """
-        Reconstrói botões com cores:
-          - Verde (success) se estiver ativo
-          - Cinza (secondary) se estiver desligado
-        """
+        """Reconstrói botões conforme filtros ativos."""
         self.clear_items()
         active = set(self._filters())
 
-        # Botões de categorias
         for key, (label, emoji) in FILTER_OPTIONS.items():
             is_active = key in active
             style = discord.ButtonStyle.success if is_active else discord.ButtonStyle.secondary
@@ -341,7 +315,6 @@ class FilterDashboard(discord.ui.View):
             btn.callback = self._toggle_callback
             self.add_item(btn)
 
-        # Botão "Ver filtros"
         show_btn = discord.ui.Button(
             label="Ver filtros",
             emoji="📌",
@@ -351,7 +324,6 @@ class FilterDashboard(discord.ui.View):
         show_btn.callback = self._show_callback
         self.add_item(show_btn)
 
-        # Botão "Reset"
         reset_btn = discord.ui.Button(
             label="Reset",
             emoji="🔄",
@@ -362,9 +334,7 @@ class FilterDashboard(discord.ui.View):
         self.add_item(reset_btn)
 
     async def _toggle_callback(self, interaction: discord.Interaction):
-        """
-        Alterna um filtro e atualiza visualmente o menu.
-        """
+        """Alterna um filtro."""
         if not self._is_admin(interaction):
             await interaction.response.send_message("❌ Apenas administradores podem alterar filtros.", ephemeral=True)
             return
@@ -375,10 +345,8 @@ class FilterDashboard(discord.ui.View):
         current = set(self._filters())
 
         if key == "todos":
-            # Toggle geral
             current = set() if "todos" in current else {"todos", *ALL_CATEGORIES}
         else:
-            # Mudança manual remove "todos"
             current.discard("todos")
             if key in current:
                 current.remove(key)
@@ -390,9 +358,7 @@ class FilterDashboard(discord.ui.View):
         await interaction.response.edit_message(view=self)
 
     async def _show_callback(self, interaction: discord.Interaction):
-        """
-        Mostra filtros ativos em mensagem ephemeral.
-        """
+        """Mostra filtros ativos (ephemeral)."""
         if not self._is_admin(interaction):
             await interaction.response.send_message("❌ Apenas administradores podem ver os filtros.", ephemeral=True)
             return
@@ -405,9 +371,7 @@ class FilterDashboard(discord.ui.View):
         await interaction.response.send_message(f"📌 Filtros ativos: {', '.join(active)}", ephemeral=True)
 
     async def _reset_callback(self, interaction: discord.Interaction):
-        """
-        Reseta todos os filtros.
-        """
+        """Reseta filtros."""
         if not self._is_admin(interaction):
             await interaction.response.send_message("❌ Apenas administradores podem resetar os filtros.", ephemeral=True)
             return
@@ -418,145 +382,161 @@ class FilterDashboard(discord.ui.View):
 
 
 # =========================================================
-# 10) LOOP DE INTELIGÊNCIA (SCANNER)
+# 11) VARREDURA ÚNICA (reutilizável)
 # =========================================================
-@tasks.loop(minutes=LOOP_MINUTES)
-async def intelligence_gathering():
-    """
-    Varre feeds e posta notícias relevantes no canal configurado de cada guild.
-    """
-    log.info("🔎 Iniciando varredura de inteligência...")
+def _log_next_run() -> None:
+    """Log explícito do próximo horário de varredura."""
+    nxt = datetime.now() + timedelta(minutes=LOOP_MINUTES)
+    log.info(f"⏳ Aguardando próxima varredura às {nxt:%Y-%m-%d %H:%M:%S} (em {LOOP_MINUTES} min)...")
 
-    config = load_json_safe("config.json", {})
-    if not isinstance(config, dict) or not config:
-        log.info("Nenhuma guild configurada em config.json. Nada para processar.")
+
+async def run_scan_once(trigger: str = "manual") -> None:
+    """
+    Executa UMA varredura completa.
+    - trigger: "loop" | "dashboard" | "manual" (apenas para log)
+    - lock impede varreduras simultâneas
+    """
+    if scan_lock.locked():
+        log.info(f"⏭️ Varredura ignorada (já existe uma em execução). Trigger: {trigger}")
         return
 
-    sources_raw = load_json_safe("sources.json", {})
-    urls = normalize_sources_to_urls(sources_raw)
+    async with scan_lock:
+        log.info(f"🔎 Iniciando varredura de inteligência... (trigger={trigger})")
 
-    if not urls:
-        log.warning("Nenhuma URL válida encontrada em sources.json. Verifique seu arquivo.")
-        return
+        config = load_json_safe(p("config.json"), {})
+        if not isinstance(config, dict) or not config:
+            log.info("Nenhuma guild configurada em config.json. Nada para processar.")
+            _log_next_run()
+            return
 
-    history_list, history_set = load_history()
+        sources_raw = load_json_safe(p("sources.json"), {})
+        urls = normalize_sources_to_urls(sources_raw)
+        if not urls:
+            log.warning("Nenhuma URL válida em sources.json.")
+            _log_next_run()
+            return
 
-    # SSL tolerante (alguns feeds antigos falham handshake)
-    ssl_ctx = ssl.create_default_context()
-    ssl_ctx.check_hostname = False
-    ssl_ctx.verify_mode = ssl.CERT_NONE
+        history_list, history_set = load_history()
 
-    # User-Agent ajuda em sites que bloqueiam requests genéricas
-    headers = {"User-Agent": "Mozilla/5.0 MaftyIntel/1.0"}
+        # SSL tolerante para feeds antigos/quebrados
+        ssl_ctx = ssl.create_default_context()
+        ssl_ctx.check_hostname = False
+        ssl_ctx.verify_mode = ssl.CERT_NONE
 
-    # Timeout total do request (evita travar o loop)
-    timeout = aiohttp.ClientTimeout(total=25)
-    connector = aiohttp.TCPConnector(ssl=ssl_ctx)
+        headers = {"User-Agent": "Mozilla/5.0 MaftyIntel/1.0"}
+        timeout = aiohttp.ClientTimeout(total=25)
+        connector = aiohttp.TCPConnector(ssl=ssl_ctx)
 
-    async with aiohttp.ClientSession(connector=connector, headers=headers, timeout=timeout) as session:
-        for url in urls:
-            try:
-                async with session.get(url) as resp:
-                    text = await resp.text(errors="ignore")
-            except Exception as e:
-                log.error(f"Falha ao baixar feed '{url}': {e}")
-                continue
+        sent_count = 0
 
-            feed = feedparser.parse(text)
-            entries = getattr(feed, "entries", []) or []
-
-            for entry in entries:
-                link = entry.get("link") or ""
-                if not link:
+        async with aiohttp.ClientSession(connector=connector, headers=headers, timeout=timeout) as session:
+            for url in urls:
+                try:
+                    async with session.get(url) as resp:
+                        text = await resp.text(errors="ignore")
+                except Exception as e:
+                    log.error(f"Falha ao baixar feed '{url}': {e}")
                     continue
 
-                # Deduplicação
-                if link in history_set:
-                    continue
+                feed = feedparser.parse(text)
+                entries = getattr(feed, "entries", []) or []
 
-                title = entry.get("title") or ""
-                summary = entry.get("summary") or entry.get("description") or ""
-
-                # Avalia para cada guild configurada
-                for gid, gdata in config.items():
-                    if not isinstance(gdata, dict):
-                        log.warning(f"Config inválida para guild '{gid}'. Ignorando.")
+                for entry in entries:
+                    link = entry.get("link") or ""
+                    if not link or link in history_set:
                         continue
 
-                    channel_id = gdata.get("channel_id")
-                    if not isinstance(channel_id, int):
-                        # Sem canal configurado, não posta
-                        continue
+                    title = entry.get("title") or ""
+                    summary = entry.get("summary") or entry.get("description") or ""
 
-                    # Aplica filtros
-                    if not match_intel(str(gid), title, summary, config):
-                        continue
+                    posted_anywhere = False
 
-                    channel = bot.get_channel(channel_id)
-                    if channel is None:
-                        log.warning(f"Canal {channel_id} não encontrado na guild {gid}. Verifique permissões/ID.")
-                        continue
+                    # Para cada guild configurada
+                    for gid, gdata in config.items():
+                        if not isinstance(gdata, dict):
+                            continue
 
-                    # Monta mensagem traduzida
-                    t_pt = translate_to_pt(title)
-                    s_pt = translate_to_pt(summary)[:350]
+                        channel_id = gdata.get("channel_id")
+                        if not isinstance(channel_id, int):
+                            continue
 
-                    try:
-                        await channel.send(
-                            f"🛰️ **INTEL MAFTY**\n"
-                            f"**{t_pt}**\n"
-                            f"{s_pt}\n"
-                            f"🔗 {link}"
-                        )
-                        # Marca como enviado
+                        if not match_intel(str(gid), title, summary, config):
+                            continue
+
+                        channel = bot.get_channel(channel_id)
+                        if channel is None:
+                            log.warning(f"Canal {channel_id} não encontrado na guild {gid}.")
+                            continue
+
+                        t_clean = clean_html(title).strip()
+                        s_clean = clean_html(summary).strip()[:350]
+
+                        try:
+                            await channel.send(
+                                f"🛰️ **INTEL MAFTY**\n"
+                                f"**{t_clean}**\n"
+                                f"{s_clean}\n"
+                                f"🔗 {link}"
+                            )
+                            posted_anywhere = True
+                            sent_count += 1
+                            await asyncio.sleep(1)  # anti rate-limit
+
+                        except Exception as e:
+                            log.error(f"Falha ao enviar no canal {channel_id}: {e}")
+
+                    # Só marca no histórico se foi postado em algum lugar
+                    if posted_anywhere:
                         history_set.add(link)
                         history_list.append(link)
 
-                        # Pequena pausa para evitar rate limit
-                        await asyncio.sleep(1)
+        save_history(history_list, limit=2000)
+        log.info(f"✅ Varredura concluída. (enviadas={sent_count}, trigger={trigger})")
+        _log_next_run()
 
-                    except Exception as e:
-                        log.error(f"Falha ao enviar mensagem no canal {channel_id}: {e}")
 
-    # Salva histórico com limite para não crescer infinito
-    save_history(history_list, limit=2000)
-    log.info("✅ Varredura concluída com sucesso.")
+# =========================================================
+# 12) LOOP AUTOMÁTICO
+# =========================================================
+@tasks.loop(minutes=LOOP_MINUTES)
+async def intelligence_gathering():
+    await run_scan_once(trigger="loop")
 
 
 @intelligence_gathering.before_loop
 async def _before_loop():
-    """
-    Garante que o bot está pronto antes de iniciar o loop.
-    """
     await bot.wait_until_ready()
 
 
 # =========================================================
-# 11) COMANDO DASHBOARD (HYBRID CORRETO)
+# 13) /dashboard (abre painel + força varredura)
 # =========================================================
 @bot.hybrid_command(name="dashboard", description="Abre o painel Mafty.")
 @commands.has_permissions(administrator=True)
 async def dashboard(ctx: commands.Context):
     """
-    - Se for slash: responde ephemeral
-    - Se for prefixo: responde normal
-    Também registra o canal atual como canal do bot nesta guild.
+    Abre o painel Mafty e configura o canal atual.
+    Em seguida, dispara uma varredura imediata.
+
+    FIX 40060:
+    - só chama defer se response ainda não foi done
+    FIX 10062:
+    - sempre responde via followup (defer se possível)
     """
     gid = str(ctx.guild.id)
 
-    cfg = load_json_safe("config.json", {})
+    cfg = load_json_safe(p("config.json"), {})
     if not isinstance(cfg, dict):
         log.error("config.json inválido. Recriando estrutura.")
         cfg = {}
 
-    # Mantém filtros antigos, se existirem
-    old_filters = []
+    old_filters: List[str] = []
     if isinstance(cfg.get(gid), dict) and isinstance(cfg[gid].get("filters"), list):
         old_filters = cfg[gid]["filters"]
 
-    # Define o canal atual como destino das notícias
+    # define canal atual como destino
     cfg[gid] = {"filters": old_filters, "channel_id": ctx.channel.id}
-    save_json_safe("config.json", cfg)
+    save_json_safe(p("config.json"), cfg)
 
     view = FilterDashboard(ctx.guild.id)
     active = old_filters if old_filters else ["(nenhum)"]
@@ -568,30 +548,67 @@ async def dashboard(ctx: commands.Context):
         "Selecione as categorias para monitorar:"
     )
 
-    # Se for slash command (Interaction), usamos defer + followup com ephemeral
+    # -----------------------------
+    # SLASH (/dashboard)
+    # -----------------------------
     if ctx.interaction is not None:
-        await ctx.interaction.response.defer(ephemeral=True)
-        await ctx.interaction.followup.send(msg, view=view, ephemeral=True)
+        try:
+            # Só dá defer se ainda não foi ack
+            if not ctx.interaction.response.is_done():
+                await ctx.interaction.response.defer(ephemeral=True)
+
+            # Sempre envia via followup (seguro com ou sem defer)
+            await ctx.interaction.followup.send(msg, view=view, ephemeral=True)
+
+        except discord.HTTPException as e:
+            log.error(f"Falha ao responder /dashboard: {e}")
+            try:
+                await ctx.interaction.followup.send("❌ Falha ao abrir o painel. Tente novamente.", ephemeral=True)
+            except Exception:
+                pass
+            return
+
+        # força varredura
+        await run_scan_once(trigger="dashboard")
         return
 
-    # Se for comando por prefixo, não existe ephemeral
+    # -----------------------------
+    # PREFIXO (!dashboard)
+    # -----------------------------
     await ctx.send(msg, view=view)
+    await run_scan_once(trigger="dashboard")
+
+
+@dashboard.error
+async def dashboard_error(ctx: commands.Context, error: Exception):
+    """Trata falta de permissão e evita stack trace inútil."""
+    if isinstance(error, commands.MissingPermissions):
+        msg = "❌ Você precisa ter **Administrador** para usar este comando."
+
+        if ctx.interaction is not None:
+            try:
+                if not ctx.interaction.response.is_done():
+                    await ctx.interaction.response.send_message(msg, ephemeral=True)
+                else:
+                    await ctx.interaction.followup.send(msg, ephemeral=True)
+            except discord.NotFound:
+                pass
+        else:
+            await ctx.send(msg)
+        return
+
+    log.exception("Erro no comando /dashboard", exc_info=error)
 
 
 # =========================================================
-# 12) EVENTO on_ready (PERSISTÊNCIA + SYNC POR GUILD)
+# 14) on_ready (views persistentes + sync + start loop)
 # =========================================================
 @bot.event
 async def on_ready():
-    """
-    - Re-registra Views persistentes após restart
-    - Sincroniza comandos por guild (rápido e evita CommandNotFound)
-    - Inicia o loop de inteligência
-    """
     log.info(f"✅ Bot conectado como: {bot.user}")
 
-    # 1) Re-registra Views persistentes para guilds do config.json
-    cfg = load_json_safe("config.json", {})
+    # Re-registra views persistentes
+    cfg = load_json_safe(p("config.json"), {})
     if isinstance(cfg, dict):
         for gid in cfg.keys():
             try:
@@ -600,24 +617,23 @@ async def on_ready():
             except Exception as e:
                 log.error(f"Falha ao registrar view persistente para guild {gid}: {e}")
 
-    # 2) Sincronização por guild (propaga rápido e reduz erros)
+    # Sync por guild (rápido)
     try:
         for g in bot.guilds:
-            guild_obj = discord.Object(id=g.id)
-            bot.tree.clear_commands(guild=guild_obj)
-            await bot.tree.sync(guild=guild_obj)
+            await bot.tree.sync(guild=discord.Object(id=g.id))
             log.info(f"Comandos sincronizados na guild: {g.name} ({g.id})")
     except Exception as e:
         log.error(f"Falha ao sincronizar comandos: {e}")
 
-    # 3) Inicia loop de inteligência se ainda não estiver rodando
+    # Inicia loop se ainda não estiver rodando
     if not intelligence_gathering.is_running():
         intelligence_gathering.start()
         log.info("Loop de inteligência iniciado com sucesso.")
+        _log_next_run()
 
 
 # =========================================================
-# 13) START
+# 15) START
 # =========================================================
 if __name__ == "__main__":
     bot.run(TOKEN)
