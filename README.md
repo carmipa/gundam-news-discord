@@ -1,61 +1,88 @@
-# 🛰️ Gundam Boot News — Mafty Intelligence System (Discord Bot)
+# 🛰️ Gundam News Bot — Mafty Intelligence System
 
 <p align="center">
-  <img alt="Gundam Boot News" src="./icon.png" width="300">
+  <img alt="Gundam News Bot" src="./icon.png" width="300">
 </p>
-
 
 <p align="center">
-  <img src="https://img.shields.io/badge/Discord-Bot-5865F2?logo=discord&logoColor=white" />
-  <img src="https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white" />
-  <img src="https://img.shields.io/badge/discord.py-2.x-00B0F4" />
-  <img src="https://img.shields.io/badge/Status-Produ%C3%A7%C3%A3o-success" />
-  <img src="https://img.shields.io/badge/License-MIT-green" />
+  <a href="https://github.com/carmipa/gundam-news-discord/actions/workflows/python-app.yml">
+    <img src="https://github.com/carmipa/gundam-news-discord/actions/workflows/python-app.yml/badge.svg" alt="CI Status" />
+  </a>
+  <img src="https://img.shields.io/badge/Discord-Bot-5865F2?logo=discord&logoColor=white" alt="Discord Bot" />
+  <img src="https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white" alt="Python 3.10+" />
+  <img src="https://img.shields.io/badge/discord.py-2.x-00B0F4?logo=python&logoColor=white" alt="discord.py 2.x" />
+  <img src="https://img.shields.io/badge/Status-Produção-success" alt="Status" />
+  <img src="https://img.shields.io/badge/License-MIT-green" alt="License MIT" />
 </p>
 
-> **Objetivo:** Monitorar feeds (RSS/Atom/YouTube Atom), filtrar **apenas** conteúdo do universo **Gundam**, traduzir para PT-BR e postar automaticamente no canal configurado — com **painel interativo persistente** e **filtros cirúrgicos**.
+<p align="center">
+  <b>Monitoramento inteligente de feeds RSS/Atom/YouTube sobre o universo Gundam</b><br>
+  Filtragem cirúrgica • Dashboard interativo • Postagem automática no Discord
+</p>
 
 ---
 
-## ✅ O que este bot entrega (produção)
+## 📋 Índice
 
-- ✅ **Scanner periódico** de feeds (RSS/Atom/YouTube Atom) via `aiohttp` + `feedparser`
-- ✅ **Dashboard persistente** com botões (funciona mesmo após restart)
-- ✅ **Filtros por categoria** + “TUDO” + “Reset” + “Ver filtros”
-- ✅ **Anti-lixo**: exige termos do núcleo Gundam + **BLACKLIST** para bloquear animes/jogos não relacionados
-- ✅ **Tradução PT-BR** (título e resumo) com fallback seguro (nunca quebra o bot)
-- ✅ **Deduplicação rápida** (`set` em memória + `history.json` em disco)
-- ✅ **Sincronização por guild** (propaga rápido e evita `CommandNotFound`)
-- ✅ Logs e mensagens **100% em português**
-- ✅ Código **100% comentado**
-- ✅ Arquivo único principal: `main_mafty_producao.py`
+- [✨ Funcionalidades](#-funcionalidades)
+- [🧱 Arquitetura](#-arquitetura)
+- [🚀 Instalação](#-instalação)
+- [⚙️ Configuração](#️-configuração)
+- [🧰 Comandos](#-comandos)
+- [🎛️ Dashboard](#️-dashboard)
+- [🧠 Sistema de Filtros](#-sistema-de-filtros)
+- [🖥️ Deploy](#️-deploy)
+- [🧩 Troubleshooting](#-troubleshooting)
+- [📜 Licença](#-licença)
+
+---
+
+## ✨ Funcionalidades
+
+| Feature | Descrição |
+|---------|-----------|
+| 📡 **Scanner Periódico** | Varredura de feeds RSS/Atom/YouTube a cada 30 minutos (configurável) |
+| 🎛️ **Dashboard Persistente** | Painel interativo com botões que funciona mesmo após restart |
+| 🎯 **Filtros por Categoria** | Gunpla, Filmes, Games, Música, Fashion + opção "TUDO" |
+| 🛡️ **Anti-Spam** | Blacklist para bloquear animes/jogos não relacionados a Gundam |
+| 🔄 **Deduplicação** | Nunca repete notícias (histórico em `history.json`) |
+| 🌐 **Multi-Guild** | Configuração independente por servidor Discord |
+| 📝 **Logs em PT-BR** | Mensagens claras para debug e monitoramento |
 
 ---
 
 ## 🧱 Arquitetura
 
-### 1) Visão macro
+### 1) Visão Macro — Fluxo Completo de Dados
 
 ```mermaid
 flowchart LR
-  A[sources.json<br/>Feeds RSS/Atom/YouTube] --> B[Scanner<br/>aiohttp + feedparser]
-  B --> C[Normalização<br/>URL + entries]
-  C --> D[Filtros Mafty<br/>GUNDAM_CORE + BLACKLIST + Categoria]
-  D -->|Aprovado| E[Tradução PT-BR<br/>deep-translator]
-  E --> F[Postagem no Discord<br/>Canal por guild]
-  D -->|Reprovado| G[Ignora / Descarta]
+  A["sources.json<br>Feeds RSS/Atom/YouTube"] --> B["Scanner<br>aiohttp + feedparser"]
+  B --> C["Normalização<br>URL + entries"]
+  C --> D["Filtros Mafty<br>GUNDAM_CORE + BLACKLIST + Categoria"]
+  D -->|Aprovado| E["Tradução PT-BR<br>deep-translator"]
+  E --> F["Postagem no Discord<br>Canal por guild"]
+  D -->|Reprovado| G["Ignora / Descarta"]
 
-  H[config.json<br/>canal + filtros por guild] --> D
-  I[history.json<br/>links enviados] --> D
+  H["config.json<br>canal + filtros por guild"] --> D
+  I["history.json<br>links enviados"] --> D
   F --> I
 ```
 
-### 2) Fluxo do comando `/dashboard` e persistência de UI
+> **Legenda:**
+>
+> - `sources.json` — Lista de feeds monitorados
+> - `config.json` — Configuração de canal e filtros por servidor
+> - `history.json` — Links já enviados (deduplicação)
+
+---
+
+### 2) Fluxo do Comando `/dashboard` e Persistência de UI
 
 ```mermaid
 sequenceDiagram
-  participant Admin as Admin (Discord)
-  participant Bot as Gundam Boot News
+  participant Admin as Admin Discord
+  participant Bot as Gundam News Bot
   participant Disk as config.json / history.json
 
   Admin->>Bot: /dashboard (no canal desejado)
@@ -72,7 +99,15 @@ sequenceDiagram
   Bot-->>Admin: funciona (não quebra após restart)
 ```
 
-### 3) Estados principais do bot
+> **Destaques:**
+>
+> - O painel é **ephemeral** (só você vê)
+> - Botões funcionam **mesmo após restart** do bot
+> - Configuração é **salva em disco** automaticamente
+
+---
+
+### 3) Estados Principais do Bot
 
 ```mermaid
 stateDiagram-v2
@@ -85,221 +120,308 @@ stateDiagram-v2
   ScannerAtivo --> Online: erro em feed (tratado / log PT)
 ```
 
----
-
-## 🗂️ Estrutura do repositório (GitHub)
-
-Recomendação de estrutura para ficar “padrão GitHub” e organizado:
-
-```text
-.
-├── main_mafty_producao.py        # ✅ Bot principal (produção)
-├── settings.py                  # TOKEN, COMMAND_PREFIX, LOOP_MINUTES
-├── sources.json                 # ✅ Feeds monitorados
-├── config.json                  # (gerado) canal + filtros por guild
-├── history.json                 # (gerado) links já enviados
-├── requirements.txt             # dependências
-├── docs/
-│   ├── images/
-│   │   ├── banner.png
-│   │   └── mafty_dashboard.png
-│   └── architecture.md          # opcional (docs extras)
-└── README.md
-```
-
-> **Dica:** `config.json` e `history.json` geralmente entram no `.gitignore` (são runtime).
+> **Ciclo de vida:**
+>
+> 1. **Conectando** — Validando token
+> 2. **Online** — Conectado ao Discord
+> 3. **SyncGuild** — Sincronizando comandos slash
+> 4. **ViewsPersistentes** — Restaurando botões do dashboard
+> 5. **ScannerAtivo** — Loop de varredura rodando
 
 ---
 
-## ⚙️ Configuração (rápida e objetiva)
+## 🚀 Instalação
 
-### 1) `settings.py`
+### Pré-requisitos
 
-Crie/edite o arquivo `settings.py` com:
+- Python 3.10 ou superior
+- Token de bot do Discord ([Portal de Desenvolvedores](https://discord.com/developers/applications))
 
-```python
-TOKEN = "SEU_TOKEN_DO_DISCORD"
-COMMAND_PREFIX = "!"
-LOOP_MINUTES = 15
+### Passo a passo
+
+```bash
+# 1. Clone o repositório
+git clone https://github.com/carmipa/gundam-news-discord.git
+cd gundam-news-discord
+
+# 2. Crie ambiente virtual
+python -m venv .venv
+
+# Windows
+.venv\Scripts\activate
+
+# Linux/macOS
+source .venv/bin/activate
+
+# 3. Instale dependências
+pip install -r requirements.txt
+
+# 4. Configure o ambiente
+cp .env.example .env
+# Edite o .env com seu token
 ```
 
-### 2) `sources.json`
+---
 
-O bot aceita **dois formatos** (para evitar o erro antigo de “str não tem get”):
+## ⚙️ Configuração
 
-#### ✅ Formato recomendado (dict com categorias)
+### Variáveis de Ambiente (`.env`)
+
+```env
+# Obrigatório
+DISCORD_TOKEN=seu_token_aqui
+
+# Opcional
+COMMAND_PREFIX=!
+LOOP_MINUTES=30
+```
+
+### Fontes de Feeds (`sources.json`)
+
+O bot aceita dois formatos:
+
+<details>
+<summary><b>📁 Formato com categorias (recomendado)</b></summary>
 
 ```json
 {
   "rss_feeds": [
-    "https://www.gundam.info/rss/news.xml"
+    "https://www.animenewsnetwork.com/news/rss.xml",
+    "https://gundamnews.org/feed"
   ],
   "youtube_feeds": [
-    "https://www.youtube.com/feeds/videos.xml?channel_id=SEU_CHANNEL_ID"
-  ],
-  "official_sites": [
-    "https://www.gundam.info/"
+    "https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw"
   ]
 }
 ```
 
-#### ✅ Formato simples (lista de URLs)
+</details>
+
+<details>
+<summary><b>📁 Formato lista simples</b></summary>
 
 ```json
 [
-  "https://www.gundam.info/rss/news.xml",
-  "https://www.youtube.com/feeds/videos.xml?channel_id=SEU_CHANNEL_ID"
+  "https://www.animenewsnetwork.com/news/rss.xml",
+  "https://gundamnews.org/feed"
 ]
 ```
 
----
-
-## 🧰 Comandos (Discord)
-
-### `/dashboard` (Slash) — recomendado
-- Mostra o painel em **ephemeral**
-- Configura **o canal atual** como destino de postagem
-- Permite selecionar categorias com botões
-
-### `!dashboard` (Prefixo)
-- Mesma função, mas responde como mensagem normal (Discord não suporta ephemeral em comando de prefixo)
-
-> 🔒 Apenas administradores podem usar e alterar filtros.
+</details>
 
 ---
 
-## 🎛️ Dashboard (filtros e botões)
+## 🧰 Comandos
 
-O painel tem:
+| Comando | Tipo | Descrição |
+|---------|------|-----------|
+| `/dashboard` | Slash | Abre painel de configuração (ephemeral) |
+| `!dashboard` | Prefixo | Mesma função, resposta pública |
 
-| Botão             | O que faz                                   |
-| ----------------- | ------------------------------------------- |
-| 🌟 **TUDO**        | Liga/desliga todas as categorias de uma vez |
-| 🤖 **Gunpla**      | Kits, P-Bandai, Ver.Ka, HG/MG/RG/PG...      |
-| 🎬 **Filmes**      | Anime, trailer, séries, Hathaway, SEED...   |
-| 🎮 **Games**       | Jogos e updates relacionados a Gundam       |
-| 🎵 **Música**      | OST, álbum, opening/ending                  |
-| 👕 **Fashion**     | Roupa, merch, apparel                       |
-| 📌 **Ver filtros** | Mostra filtros ativos (ephemeral)           |
-| 🔄 **Reset**       | Limpa todos os filtros                      |
-
-### Como funciona a cor dos botões?
-- **Verde (success)** = filtro ativo
-- **Cinza (secondary)** = filtro inativo
+> **🔒 Permissão:** Apenas administradores podem usar estes comandos.
 
 ---
 
-## 🧠 Como a filtragem “cirúrgica” funciona (sem chute)
+## 🎛️ Dashboard
 
-A decisão **não é “categoria = game então manda qualquer game”**.  
-O bot faz **camadas** de validação:
+O painel interativo permite configurar quais categorias monitorar:
 
-### ✅ Regras (ordem real)
-1) Junta texto: `title + summary`
-2) Limpa HTML e normaliza
-3) **BLACKLIST**: se aparecer algo (ex.: *One Piece*, *Pokémon*), bloqueia na hora
-4) **GUNDAM_CORE**: se não houver termos centrais do universo Gundam, bloqueia
-5) Se filtro `todos` estiver ativo: libera
-6) Se não: precisa bater com **palavras-chave da(s) categoria(s)** selecionada(s)
-7) Deduplicação: se o link já está em `history.json`, ignora
+| Botão | Função |
+|-------|--------|
+| 🌟 **TUDO** | Liga/desliga todas as categorias |
+| 🤖 **Gunpla** | Kits, P-Bandai, Ver.Ka, HG/MG/RG/PG |
+| 🎬 **Filmes** | Anime, trailers, séries, Hathaway, SEED |
+| 🎮 **Games** | Jogos Gundam (GBO2, Breaker, etc.) |
+| 🎵 **Música** | OST, álbuns, openings/endings |
+| 👕 **Fashion** | Roupas e merchandise |
+| 📌 **Ver filtros** | Mostra filtros ativos |
+| 🔄 **Reset** | Limpa todos os filtros |
 
-### Onde ajustar precisão?
-- `GUNDAM_CORE` → reforça o “é Gundam”
-- `BLACKLIST` → corta ruído de feeds generalistas
-- `CAT_MAP` → ajusta gatilhos por categoria
+### Indicadores visuais
 
----
-
-## 🔁 Scanner (loop) — como ele evita travar e não “silencia”
-
-O loop (`intelligence_gathering`) foi desenhado para VPS:
-
-- Timeout total do request (`ClientTimeout(total=25)`)
-- SSL tolerante (feeds antigos)
-- `User-Agent` para reduzir bloqueios
-- Try/except por feed e por envio
-- Logs claros em PT-BR para `journalctl` e console
-- `history.json` limitado (por padrão, 2000 links) para não crescer infinito
+- 🟢 **Verde** = Filtro ativo
+- ⚪ **Cinza** = Filtro inativo
 
 ---
 
-## 🖥️ Execução (PC / VPS)
+## 🧠 Sistema de Filtros
 
-### PC (Windows/macOS/Linux)
-```bash
-python main_mafty_producao.py
+A filtragem **não é simples** — o bot usa um sistema em **camadas** para garantir precisão cirúrgica:
+
+### Fluxo de Decisão
+
+```mermaid
+flowchart TD
+    A["📰 Notícia Recebida"] --> B{"🚫 Está na BLACKLIST?"}
+    B -->|Sim| C["❌ Descartada"]
+    B -->|Não| D{"🎯 Contém termo GUNDAM_CORE?"}
+    D -->|Não| C
+    D -->|Sim| E{"🌟 Filtro 'todos' ativo?"}
+    E -->|Sim| F["✅ Aprovada para postagem"]
+    E -->|Não| G{"📂 Bate com categoria selecionada?"}
+    G -->|Sim| F
+    G -->|Não| C
+    F --> H{"🔄 Link já está no histórico?"}
+    H -->|Sim| C
+    H -->|Não| I["📤 Envia para o Discord"]
 ```
 
-### VPS (systemd) — opcional (produção)
-> Se você usa systemd, este é o padrão recomendado.
+### ✅ Regras de Filtragem (ordem real)
 
-Crie `/etc/systemd/system/gundam-bot.service`:
+| Etapa | Verificação | Ação |
+|-------|-------------|------|
+| 1️⃣ | Junta `title + summary` | Concatena texto |
+| 2️⃣ | Limpa HTML e normaliza | Remove tags, espaços extras |
+| 3️⃣ | **BLACKLIST** | Se aparecer (ex: *One Piece*), bloqueia |
+| 4️⃣ | **GUNDAM_CORE** | Se não houver termos Gundam, bloqueia |
+| 5️⃣ | Filtro `todos` ativo? | Libera tudo se sim |
+| 6️⃣ | Categoria selecionada | Precisa bater com palavras-chave |
+| 7️⃣ | **Deduplicação** | Se link já está em `history.json`, ignora |
+
+### 🎯 Termos do GUNDAM_CORE
+
+```
+gundam, gunpla, mobile suit, universal century, rx-78, zaku, zeon, 
+char, amuro, hathaway, mafty, seed, seed freedom, witch from mercury, 
+g-witch, p-bandai, premium bandai, ver.ka, hg, mg, rg, pg, sd, fm, re/100
+```
+
+### 🚫 BLACKLIST (bloqueados)
+
+```
+one piece, dragon ball, naruto, bleach, pokemon, digimon, 
+attack on titan, jujutsu, demon slayer
+```
+
+### 🔧 Onde ajustar precisão?
+
+| Constante | Propósito |
+|-----------|-----------|
+| `GUNDAM_CORE` | Reforça o "é Gundam" — adicione termos aqui |
+| `BLACKLIST` | Corta ruído de feeds generalistas |
+| `CAT_MAP` | Ajusta gatilhos por categoria |
+
+---
+
+## 🖥️ Deploy
+
+### Local (desenvolvimento)
+
+```bash
+python main.py
+```
+
+### VPS com systemd (produção)
+
+Crie o arquivo `/etc/systemd/system/gundam-bot.service`:
 
 ```ini
 [Unit]
-Description=Gundam Intel Bot - Mafty Sovereign
+Description=Gundam News Bot - Mafty Intel
 After=network.target
 
 [Service]
 Type=simple
 WorkingDirectory=/opt/gundam-bot
-ExecStart=/opt/gundam-bot/venv/bin/python /opt/gundam-bot/main_mafty_producao.py
+ExecStart=/opt/gundam-bot/.venv/bin/python main.py
 Restart=always
 RestartSec=5
-User=root
+User=gundam
 
 [Install]
 WantedBy=multi-user.target
 ```
 
-Comandos:
+Comandos úteis:
+
 ```bash
+# Ativar e iniciar
 sudo systemctl daemon-reload
 sudo systemctl enable gundam-bot
-sudo systemctl restart gundam-bot
+sudo systemctl start gundam-bot
+
+# Verificar status
+sudo systemctl status gundam-bot
+
+# Ver logs em tempo real
 journalctl -u gundam-bot -f
 ```
 
 ---
 
-## 📸 Screenshots
+## 🗂️ Estrutura do Projeto
 
-> Coloque suas imagens em `docs/images/` e ajuste os links abaixo.
+```
+gundam-news-discord/
+├── 📄 main.py              # Bot principal
+├── 📄 settings.py          # Carrega configurações do .env
+├── 📄 sources.json         # Lista de feeds monitorados
+├── 📄 requirements.txt     # Dependências Python
+├── 📄 .env.example         # Exemplo de configuração
+├── 📄 .gitignore           # Arquivos ignorados pelo Git
+├── 🖼️ icon.png             # Ícone do bot
+├── 📁 .github/
+│   └── 📁 workflows/
+│       └── 📄 python-app.yml  # CI do GitHub Actions
+└── 📄 README.md            # Esta documentação
+```
 
-<p align="center">
-  <img alt="Dashboard Mafty" src="https://raw.githubusercontent.com/SEU_USUARIO/SEU_REPO/main/docs/images/mafty_dashboard.png" width="850">
-</p>
+> **Nota:** Os arquivos `config.json` e `history.json` são gerados automaticamente em runtime e estão no `.gitignore`.
 
 ---
 
-## 🧩 Troubleshooting (erros que já foram eliminados)
+## 🧩 Troubleshooting
 
-### ✅ `AttributeError: 'Context' object has no attribute 'followup'`
-**Causa:** usar `ctx.followup` quando o comando roda como prefixo.  
-**Correção aplicada:** o bot detecta `ctx.interaction` e usa `followup` apenas em slash.
+<details>
+<summary><b>❌ CommandNotFound: Application command 'dashboard' not found</b></summary>
 
-### ✅ `CommandNotFound: Application command 'dashboard' not found`
-**Causa:** sync global lento/instável.  
-**Correção aplicada:** sync **por guild** no `on_ready()`.
+**Causa:** Sincronização global lenta do Discord.
 
-### ✅ `AttributeError: 'str' object has no attribute 'get'`
-**Causa:** `sources.json` em formato diferente do esperado.  
-**Correção aplicada:** normalizador aceita **lista** e **dict**.
+**Solução:** O bot já faz sync por guild no `on_ready()`. Aguarde alguns segundos após o bot conectar.
 
-### ⚠️ “PyNaCl is not installed… voice will NOT be supported”
-**Isso não é erro.** É aviso de voz — pode ignorar (bot não usa voz).
+</details>
+
+<details>
+<summary><b>❌ AttributeError: 'str' object has no attribute 'get'</b></summary>
+
+**Causa:** Formato incorreto do `sources.json`.
+
+**Solução:** Verifique se o arquivo está em um dos formatos aceitos (lista ou dicionário com categorias).
+
+</details>
+
+<details>
+<summary><b>⚠️ "PyNaCl is not installed… voice will NOT be supported"</b></summary>
+
+**Isso não é erro!** É apenas um aviso. O bot não usa recursos de voz, pode ignorar com segurança.
+
+</details>
+
+---
+
+## 🤝 Contribuindo
+
+1. Faça um Fork do projeto
+2. Crie sua feature branch (`git checkout -b feature/MinhaFeature`)
+3. Commit suas mudanças (`git commit -m 'Adiciona MinhaFeature'`)
+4. Push para a branch (`git push origin feature/MinhaFeature`)
+5. Abra um Pull Request
 
 ---
 
 ## 📜 Licença
-MIT — use, modifique e distribua à vontade.
+
+Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](LICENSE) para detalhes.
 
 ---
 
-## 🧑‍💻 Autor
+## 👨‍💻 Autor
+
 **Paulo André Carminati**  
-Bot em produção (PCAR Squad)
+[![GitHub](https://img.shields.io/badge/GitHub-carmipa-181717?logo=github)](https://github.com/carmipa)
 
 ---
 
-🛰️ *Mafty Intelligence System — Vigilância contínua do Universal Century*
+<p align="center">
+  🛰️ <i>Mafty Intelligence System — Vigilância contínua do Universal Century</i>
+</p>
