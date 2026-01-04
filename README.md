@@ -49,7 +49,8 @@
 | 🌐 **Multi-Guild** | Configuração independente por servidor Discord |
 | 📝 **Logs em PT-BR** | Mensagens claras para debug e monitoramento |
 | 🎨 **Embeds Ricos** | Notícias com visual premium (cor Gundam, thumbnails, timestamps) |
-| 🌍 **Tradução Automática** | Conteúdo traduzido para PT-BR usando Google Translator |
+| 🌍 **Multi-Idioma** | Suporte a EN, PT, ES, IT (detecção automática + `/setlang`) |
+| 🖥️ **Web Dashboard** | Painel visual em <http://host:8080> com status em tempo real |
 | 🔐 **SSL Seguro** | Conexões verificadas com certifi (proteção contra MITM) |
 
 ---
@@ -60,16 +61,20 @@
 
 ```mermaid
 flowchart LR
-  A["sources.json<br>Feeds RSS/Atom/YouTube"] --> B["Scanner<br>aiohttp + feedparser"]
+  A["sources.json<br>Feeds RSS/Atom/YouTube"] --> B["Scanner<br>core/scanner.py"]
   B --> C["Normalização<br>URL + entries"]
-  C --> D["Filtros Mafty<br>GUNDAM_CORE + BLACKLIST + Categoria"]
-  D -->|Aprovado| E["Tradução PT-BR<br>deep-translator"]
+  C --> D["Filtros Mafty<br>core/filters.py"]
+  D -->|Aprovado| E["Tradutor (Auto)<br>utils/translator.py"]
   E --> F["Postagem no Discord<br>Canal por guild"]
   D -->|Reprovado| G["Ignora / Descarta"]
 
-  H["config.json<br>canal + filtros por guild"] --> D
+  H["config.json<br>canal + filtros + idioma"] --> D
+  H --> E
   I["history.json<br>links enviados"] --> D
   F --> I
+
+  W["Web Dashboard<br>aiohttp (Port 8080)"] .-> H
+  W .-> I
 ```
 
 > **Legenda:**
@@ -218,8 +223,14 @@ O bot aceita dois formatos:
 
 | Comando | Tipo | Descrição |
 |---------|------|-----------|
-| `/dashboard` | Slash | Abre painel de configuração (ephemeral) |
-| `!dashboard` | Prefixo | Mesma função, resposta pública |
+| `/dashboard` | Slash | Abre painel de configuração de filtros (Admin) |
+| `/setlang` | Slash | Define o idioma do bot para o servidor (Admin) |
+| `/forcecheck` | Slash | Força uma varredura imediata (Admin) |
+| `/status` | Slash | Mostra estatísticas do bot (Uptime, Scans, etc) |
+| `/feeds` | Slash | Lista todas as fontes monitoradas |
+| `/help` | Slash | Mostra manual de ajuda |
+| `/invite` | Slash | Link para convidar o bot |
+| `!dashboard` | Prefixo | Legado: Mesma função do /dashboard |
 
 > **🔒 Permissão:** Apenas administradores podem usar estes comandos.
 

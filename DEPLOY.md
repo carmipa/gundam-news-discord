@@ -434,23 +434,20 @@ docker-compose logs -f
 │   └── .dockerignore           # Otimização
 │
 ├── 🤖 Bot
-│   ├── main.py                 # Código principal
+│   ├── main.py                 # Entry point
 │   ├── settings.py             # Configurações
-│   └── sources.json            # Feeds RSS
-│
-├── 🗂️ Dados (gerados automaticamente)
-│   ├── config.json            # Configurações por guild
-│   ├── history.json           # Histórico de posts
-│   └── state.json             # Cache HTTP (ETag)
-│
-├── 🔐 Segredos
-│   └── .env                   # Token Discord (NUNCA commitar!)
-│
-├── 📝 Logs
-│   └── logs/                  # Logs do Docker (rotação automática)
-│
-└── 🧪 Testes
-    └── tests/                 # Testes unitários
+│   ├── sources.json            # Feeds RSS
+│   ├── requirements.txt        # Dependências
+│   │
+│   ├── 📁 bot/                 # Cogs e Views
+│   │   ├── cogs/
+│   │   └── views/
+│   ├── 📁 core/                # Lógica (Scanner, Stats, Filters)
+│   ├── 📁 utils/               # Utilitários (Cache, HTML, Tradutor)
+│   ├── 📁 web/                 # Web Dashboard (aiohttp)
+│   │   ├── server.py
+│   │   └── templates/
+│   └── 📁 translations/        # Arquivos JSON (en_US, pt_BR, etc)
 ```
 
 ---

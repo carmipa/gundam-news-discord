@@ -1,0 +1,54 @@
+{
+    "bot": {
+        "name": "Mafty Intelligence System",
+        "description": "Gundam News Bot"
+    },
+    "commands": {
+        "help": {
+            "title": "📖 Operations Manual - Mafty Intel",
+            "config": "🛠️ Configuration (Admin)",
+            "dashboard": "**/dashboard** - Visual panel to configure filters",
+            "forcecheck": "**/forcecheck** - Force immediate scan",
+            "info": "📊 Information",
+            "status": "**/status** - Uptime and performance stats",
+            "feeds": "**/feeds** - List monitored sources",
+            "about": "**/about** - About the bot",
+            "ping": "**/ping** - Latency"
+        },
+        "ping": {
+            "response": "🏓 **Pong!** Latency: `{latency}ms`"
+        },
+        "about": {
+            "description": "Bot specialized in monitoring Gundam news.\nCollects info from RSS, YouTube, and official sites, translates to your language, and posts to configured channels.",
+            "developer": "👨‍💻 Developer",
+            "version": "📦 Version",
+            "stack": "🛠️ Stack",
+            "footer": "Mankind has to change... or be changed."
+        },
+        "feeds": {
+            "title": "📡 Monitored Feeds ({total})",
+            "more": "\n... and {count} more feeds."
+        },
+        "dashboard": {
+            "title": "🛰️ **MAFTY INTELLIGENCE DASHBOARD**\nConfigure news filters below:",
+            "created": "✅ Dashboard created! Channel configured: <#{channel}>",
+            "error": "❌ Failed to open dashboard."
+        },
+        "forcecheck": {
+            "starting": "🔎 Starting forced scan...",
+            "success": "✅ Forced scan completed!",
+            "fail": "❌ Failed to execute scan.",
+            "error_admin": "❌ You need **Administrator** permission to use this command."
+        }
+    },
+    "scanner": {
+        "starting": "🔎 Starting intelligence scan... (trigger={trigger})",
+        "completed": "✅ Scan completed. (sent={sent}, cache={hits}/{total}, trigger={trigger})",
+        "no_guilds": "⚠️ No guilds configured with 'channel_id'. Use /dashboard to configure.",
+        "new_news": "📰 New Intelligence"
+    },
+    "embed": {
+        "author": "🛰️ INTEL MAFTY",
+        "source": "Source: {source}"
+    }
+}

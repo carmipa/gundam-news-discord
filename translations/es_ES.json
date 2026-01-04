@@ -1,0 +1,54 @@
+{
+    "bot": {
+        "name": "Sistema de Inteligencia Mafty",
+        "description": "Bot de Noticias Gundam"
+    },
+    "commands": {
+        "help": {
+            "title": "📖 Manual de Operaciones - Mafty Intel",
+            "config": "🛠️ Configuración (Admin)",
+            "dashboard": "**/dashboard** - Panel visual para configurar filtros",
+            "forcecheck": "**/forcecheck** - Fuerza un escaneo inmediato",
+            "info": "📊 Información",
+            "status": "**/status** - Estadísticas de uptime y rendimiento",
+            "feeds": "**/feeds** - Lista fuentes monitoreadas",
+            "about": "**/about** - Sobre el bot",
+            "ping": "**/ping** - Latencia"
+        },
+        "ping": {
+            "response": "🏓 **Pong!** Latencia: `{latency}ms`"
+        },
+        "about": {
+            "description": "Bot especializado en monitoreo de noticias Gundam.\nRecopila información de RSS, YouTube y sitios oficiales, traduce a su idioma y publica en canales configurados.",
+            "developer": "👨‍💻 Desarrollador",
+            "version": "📦 Versión",
+            "stack": "🛠️ Stack",
+            "footer": "La humanidad tiene que cambiar... o ser cambiada."
+        },
+        "feeds": {
+            "title": "📡 Feeds Monitoreados ({total})",
+            "more": "\n... y más {count} feeds."
+        },
+        "dashboard": {
+            "title": "🛰️ **PANEL DE INTELIGENCIA MAFTY**\nConfigure los filtros de noticias abajo:",
+            "created": "✅ Dashboard creado! Canal configurado: <#{channel}>",
+            "error": "❌ Fallo al abrir el panel."
+        },
+        "forcecheck": {
+            "starting": "🔎 Iniciando escaneo forzado...",
+            "success": "✅ Escaneo forzado completado!",
+            "fail": "❌ Fallo al ejecutar escaneo.",
+            "error_admin": "❌ Necesitas permiso de **Administrador** para usar este comando."
+        }
+    },
+    "scanner": {
+        "starting": "🔎 Iniciando escaneo de inteligencia... (trigger={trigger})",
+        "completed": "✅ Escaneo completado. (enviadas={sent}, cache={hits}/{total}, trigger={trigger})",
+        "no_guilds": "⚠️ Ninguna guild configurada con 'channel_id'. Use /dashboard para configurar.",
+        "new_news": "📰 Nueva Inteligencia"
+    },
+    "embed": {
+        "author": "🛰️ INTEL MAFTY",
+        "source": "Fuente: {source}"
+    }
+}
