@@ -404,9 +404,13 @@ gundam-news-discord/
 ├── 📄 .env.example         # Exemplo de configuração
 ├── 📄 .gitignore           # Arquivos ignorados pelo Git
 ├── 🖼️ icon.png             # Ícone do bot
-├── 📁 .github/
-│   └── 📁 workflows/
-│       └── 📄 python-app.yml  # CI do GitHub Actions
+├── 📁 .github/             # Workflows do GitHub Actions
+├── 📁 bot/                 # Lógica do bot (Cogs, Views)
+├── 📁 core/                # Core do sistema (Scanner, Filtros)
+├── 📁 tests/               # Testes automatizados
+├── 📁 translations/        # Internacionalização (i18n)
+├── 📁 utils/               # Utilitários (Logger, Helpers)
+├── 📁 web/                 # Web Dashboard
 └── 📄 README.md            # Esta documentação
 ```
 
