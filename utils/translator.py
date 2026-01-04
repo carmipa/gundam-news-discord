@@ -51,8 +51,10 @@ class Translator:
         
         # 2. Locale do Discord (ex: 'pt-BR' -> 'pt_BR')
         if guild_locale:
-            # Normaliza pt-BR para pt_BR
-            normalized = guild_locale.replace('-', '_')
+            # Converte enum para string e normaliza
+            locale_str = str(guild_locale)
+            normalized = locale_str.replace('-', '_')
+            
             if normalized in self.supported_langs:
                 return normalized
             
@@ -62,7 +64,7 @@ class Translator:
                 'es-419': 'es_ES',
                 'pt-BR': 'pt_BR'
             }
-            return maps.get(guild_locale, self.default_lang)
+            return maps.get(locale_str, self.default_lang)
             
         return self.default_lang
 
