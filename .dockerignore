@@ -1,0 +1,59 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+.mypy_cache/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs (não precisa no build)
+*.log
+logs/
+
+# Dados que serão volumes (não precisa no build)
+config.json
+history.json
+state.json
+
+# Documentação
+README.md
+readme.md
+*.md
+
+# Testes
+tests/
+*.pytest_cache/
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Outros
+icon.png
+LICENSE

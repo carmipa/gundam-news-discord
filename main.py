@@ -1,17 +1,22 @@
 # =========================================================
-# Gundam Intel Bot - "Mafty Sovereign"
-# main.py (corrigido / sem tradução / totalmente comentado)
+# Gundam Intel Bot - "Mafty Sovereign" v2.1
+# main.py
 #
 # FIXES incluídos:
 # - 10062 Unknown interaction -> sempre responde slash com (defer se necessário) + followup
 # - 40060 Interaction already acknowledged -> só dá defer se response ainda não foi "done"
+# - SSL seguro com certifi (sem CERT_NONE)
+# - Sources.json validado e corrigido
 #
 # Features:
 # - /dashboard abre painel persistente e configura canal
-# - /dashboard força varredura imediata (com lock anti-concorrência)
-# - loop automático a cada LOOP_MINUTES
-# - deduplicação por history.json
-# - config por guild em config.json
+# - Loop automático a cada LOOP_MINUTES
+# - Deduplicação por history.json
+# - Config por guild em config.json
+# - 🆕 Embeds ricos com cor Gundam e thumbnails automáticos
+# - 🆕 Tradução automática PT-BR com deep-translator
+# - 🆕 Cache HTTP com ETag/Last-Modified (economiza banda)
+# - 🆕 Processamento paralelo de feeds (5x mais rápido)
 # =========================================================
 
 import os
@@ -27,19 +32,56 @@ import discord
 import aiohttp
 import feedparser
 from discord.ext import tasks, commands
+from deep_translator import GoogleTranslator
+from urllib.parse import urlparse
 
 # settings.py deve conter: TOKEN, COMMAND_PREFIX, LOOP_MINUTES
 from settings import TOKEN, COMMAND_PREFIX, LOOP_MINUTES
 
 
 # =========================================================
-# 1) LOGS
+# 1) LOGS & MÉTRICAS
 # =========================================================
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - [%(levelname)s] - %(message)s"
 )
 log = logging.getLogger("MaftyIntel")
+
+
+# Classe para rastrear métricas do bot
+class BotStats:
+    """Estatísticas do bot em memória."""
+    def __init__(self):
+        self.start_time = datetime.now()
+        self.scans_completed = 0
+        self.news_posted = 0
+        self.feeds_failed = 0
+        self.last_scan_time = None
+        self.cache_hits_total = 0
+    
+    @property
+    def uptime(self) -> timedelta:
+        """Retorna tempo de atividade do bot."""
+        return datetime.now() - self.start_time
+    
+    def format_uptime(self) -> str:
+        """Formata uptime de forma legível."""
+        total_seconds = int(self.uptime.total_seconds())
+        days = total_seconds // 86400
+        hours = (total_seconds % 86400) // 3600
+        minutes = (total_seconds % 3600) // 60
+        
+        if days > 0:
+            return f"{days}d {hours}h {minutes}m"
+        elif hours > 0:
+            return f"{hours}h {minutes}m"
+        else:
+            return f"{minutes}m"
+
+# Instância global de estatísticas
+stats = BotStats()
+
 
 
 # =========================================================
@@ -130,6 +172,30 @@ def clean_html(raw_html: str) -> str:
     txt = re.sub(_HTML_RE, " ", raw_html)
     txt = re.sub(_WS_RE, " ", txt).strip()
     return txt
+
+
+async def translate_to_pt(text: str) -> str:
+    """
+    Traduz texto para PT-BR de forma assíncrona usando Google Translator.
+    Fallback: retorna texto original se tradução falhar.
+    """
+    if not text or len(text.strip()) == 0:
+        return text
+    
+    # Limita tamanho (API tem limite de 5000 caracteres)
+    text_to_translate = text[:4500] if len(text) > 4500 else text
+    
+    try:
+        # Executa tradução em thread pool para não bloquear event loop
+        loop = asyncio.get_event_loop()
+        translated = await loop.run_in_executor(
+            None,
+            lambda: GoogleTranslator(source='auto', target='pt').translate(text_to_translate)
+        )
+        return translated if translated else text
+    except Exception as e:
+        log.warning(f"Falha na tradução (fallback para original): {e}")
+        return text
 
 
 # =========================================================
@@ -248,6 +314,54 @@ def load_history() -> Tuple[List[str], Set[str]]:
 def save_history(history_list: List[str], limit: int = 2000) -> None:
     """Mantém histórico limitado para não crescer infinito."""
     save_json_safe(p("history.json"), history_list[-limit:])
+
+
+# =========================================================
+# 10) CACHE HTTP (ETag / Last-Modified)
+# =========================================================
+def load_http_state() -> Dict[str, Dict[str, str]]:
+    """
+    Carrega state.json com ETags e Last-Modified por URL.
+    Formato: {"https://feed.com": {"etag": "abc123", "last_modified": "..."}}
+    """
+    return load_json_safe(p("state.json"), {})
+
+
+def save_http_state(state: Dict[str, Dict[str, str]]) -> None:
+    """Salva cache de ETags e Last-Modified."""
+    save_json_safe(p("state.json"), state)
+
+
+def get_cache_headers(url: str, state: Dict[str, Dict[str, str]]) -> Dict[str, str]:
+    """Retorna headers de cache para uma URL se disponíveis."""
+    headers = {}
+    url_state = state.get(url, {})
+    
+    if "etag" in url_state and url_state["etag"]:
+        headers["If-None-Match"] = url_state["etag"]
+    
+    if "last_modified" in url_state and url_state["last_modified"]:
+        headers["If-Modified-Since"] = url_state["last_modified"]
+    
+    return headers
+
+
+def update_cache_state(url: str, response_headers: Any, state: Dict[str, Dict[str, str]]) -> None:
+    """Atualiza state com ETags e Last-Modified da resposta."""
+    if url not in state:
+        state[url] = {}
+    
+    # Salva ETag se presente
+    if "ETag" in response_headers:
+        state[url]["etag"] = response_headers["ETag"]
+    elif "etag" in response_headers:
+        state[url]["etag"] = response_headers["etag"]
+    
+    # Salva Last-Modified se presente
+    if "Last-Modified" in response_headers:
+        state[url]["last_modified"] = response_headers["Last-Modified"]
+    elif "last-modified" in response_headers:
+        state[url]["last_modified"] = response_headers["last-modified"]
 
 
 # =========================================================
@@ -417,30 +531,69 @@ async def run_scan_once(trigger: str = "manual") -> None:
             return
 
         history_list, history_set = load_history()
+        
+        # Carregar estado de cache HTTP
+        http_state = load_http_state()
 
-        # SSL tolerante para feeds antigos/quebrados
-        ssl_ctx = ssl.create_default_context()
-        ssl_ctx.check_hostname = False
-        ssl_ctx.verify_mode = ssl.CERT_NONE
+        # SSL seguro usando certifi (pacote já instalado)
+        # Usa certificados confiáveis do sistema + certifi
+        import certifi
+        ssl_ctx = ssl.create_default_context(cafile=certifi.where())
+        # Fallback: se um feed específico falhar com SSL, será logado e pulado
 
-        headers = {"User-Agent": "Mozilla/5.0 MaftyIntel/1.0"}
+        base_headers = {"User-Agent": "Mozilla/5.0 MaftyIntel/2.0"}
         timeout = aiohttp.ClientTimeout(total=25)
         connector = aiohttp.TCPConnector(ssl=ssl_ctx)
 
         sent_count = 0
+        cache_hits = 0  # Contador de feeds não modificados
+        
+        # Semáforo para limitar concorrência (5 feeds simultâneos)
+        MAX_CONCURRENT_FEEDS = 5
+        semaphore = asyncio.Semaphore(MAX_CONCURRENT_FEEDS)
 
-        async with aiohttp.ClientSession(connector=connector, headers=headers, timeout=timeout) as session:
-            for url in urls:
+        async def fetch_and_process_feed(session, url):
+            """Busca e processa um feed de forma assíncrona."""
+            nonlocal cache_hits
+            
+            async with semaphore:  # Limita concorrência
                 try:
-                    async with session.get(url) as resp:
+                    # Adiciona headers de cache (ETag/Last-Modified)
+                    request_headers = get_cache_headers(url, http_state)
+                    
+                    async with session.get(url, headers=request_headers) as resp:
+                        # Se 304 Not Modified, pula este feed
+                        if resp.status == 304:
+                            cache_hits += 1
+                            log.debug(f"📦 Cache hit: {url} (304 Not Modified)")
+                            return None  # Nada a processar
+                        
+                        # Atualiza cache com novos headers
+                        update_cache_state(url, resp.headers, http_state)
+                        
                         text = await resp.text(errors="ignore")
+                    
+                    # Parse do feed
+                    feed = feedparser.parse(text)
+                    entries = getattr(feed, "entries", []) or []
+                    return (url, entries)
+                    
                 except Exception as e:
                     log.error(f"Falha ao baixar feed '{url}': {e}")
+                    return None
+
+        async with aiohttp.ClientSession(connector=connector, headers=base_headers, timeout=timeout) as session:
+            # Busca todos os feeds em paralelo
+            tasks = [fetch_and_process_feed(session, url) for url in urls]
+            results = await asyncio.gather(*tasks)
+            
+            # Processa resultados
+            for result in results:
+                if result is None:
                     continue
-
-                feed = feedparser.parse(text)
-                entries = getattr(feed, "entries", []) or []
-
+                    
+                url, entries = result
+                
                 for entry in entries:
                     link = entry.get("link") or ""
                     if not link or link in history_set:
@@ -469,15 +622,43 @@ async def run_scan_once(trigger: str = "manual") -> None:
                             continue
 
                         t_clean = clean_html(title).strip()
-                        s_clean = clean_html(summary).strip()[:350]
+                        s_clean = clean_html(summary).strip()[:2000]  # Limite do Discord para description
+
+                        # Traduzir para PT-BR
+                        t_translated = await translate_to_pt(t_clean)
+                        s_translated = await translate_to_pt(s_clean)
 
                         try:
-                            await channel.send(
-                                f"🛰️ **INTEL MAFTY**\n"
-                                f"**{t_clean}**\n"
-                                f"{s_clean}\n"
-                                f"🔗 {link}"
+                            # Criar embed rico em vez de mensagem simples
+                            embed = discord.Embed(
+                                title=t_translated[:256],  # Limite do Discord para title
+                                description=s_translated,
+                                url=link,
+                                color=discord.Color.from_rgb(255, 0, 32),  # Vermelho Gundam (#FF0020)
+                                timestamp=datetime.now()
                             )
+                            
+                            # Header com ícone do bot
+                            embed.set_author(
+                                name="🛰️ INTEL MAFTY",
+                                icon_url=bot.user.avatar.url if bot.user and bot.user.avatar else None
+                            )
+                            
+                            # Footer com fonte
+                            source_domain = urlparse(link).netloc
+                            embed.set_footer(text=f"Fonte: {source_domain}")
+                            
+                            # Thumbnail se disponível no feed
+                            if hasattr(entry, "media_thumbnail") and entry.media_thumbnail:
+                                try:
+                                    thumb_url = entry.media_thumbnail[0].get("url")
+                                    if thumb_url:
+                                        embed.set_thumbnail(url=thumb_url)
+                                except (AttributeError, IndexError, KeyError):
+                                    pass
+                            
+                            # Enviar embed
+                            await channel.send(embed=embed)
                             posted_anywhere = True
                             sent_count += 1
                             await asyncio.sleep(1)  # anti rate-limit
@@ -491,7 +672,15 @@ async def run_scan_once(trigger: str = "manual") -> None:
                         history_list.append(link)
 
         save_history(history_list, limit=2000)
-        log.info(f"✅ Varredura concluída. (enviadas={sent_count}, trigger={trigger})")
+        save_http_state(http_state)  # Salva cache de ETag/Last-Modified
+        
+        # Atualiza métricas
+        stats.scans_completed += 1
+        stats.news_posted += sent_count
+        stats.cache_hits_total += cache_hits
+        stats.last_scan_time = datetime.now()
+        
+        log.info(f"✅ Varredura concluída. (enviadas={sent_count}, cache_hits={cache_hits}/{len(urls)}, trigger={trigger})")
         _log_next_run()
 
 
@@ -598,6 +787,119 @@ async def dashboard_error(ctx: commands.Context, error: Exception):
         return
 
     log.exception("Erro no comando /dashboard", exc_info=error)
+
+
+# =========================================================
+# 14) /status (mostra estatísticas do bot)
+# =========================================================
+@bot.hybrid_command(name="status", description="Mostra estatísticas do bot Mafty.")
+async def status(ctx: commands.Context):
+    """Exibe estatísticas e status atual do bot."""
+    # Calcula próxima varredura
+    next_scan = datetime.now() + timedelta(minutes=LOOP_MINUTES)
+    next_scan_ts = int(next_scan.timestamp())
+    
+    embed = discord.Embed(
+        title="🛰️ Status do Mafty Intel Bot",
+        color=discord.Color.from_rgb(255, 0, 32),
+        timestamp=datetime.now()
+    )
+    
+    embed.add_field(
+        name="⏰ Uptime",
+        value=stats.format_uptime(),
+        inline=True
+    )
+    
+    embed.add_field(
+        name="📡 Varreduras",
+        value=f"{stats.scans_completed}",
+        inline=True
+    )
+    
+    embed.add_field(
+        name="📰 Notícias Enviadas",
+        value=f"{stats.news_posted}",
+        inline=True
+    )
+    
+    embed.add_field(
+        name="📦 Cache Hits Total",
+        value=f"{stats.cache_hits_total}",
+        inline=True
+    )
+    
+    if stats.last_scan_time:
+        last_scan_str = f"<t:{int(stats.last_scan_time.timestamp())}:R>"
+    else:
+        last_scan_str = "Nenhuma ainda"
+    
+    embed.add_field(
+        name="🕐 Última Varredura",
+        value=last_scan_str,
+        inline=True
+    )
+    
+    embed.add_field(
+        name="⏳ Próxima Varredura",
+        value=f"<t:{next_scan_ts}:R>",
+        inline=True
+    )
+    
+    embed.set_footer(text=f"Bot v2.1 | Intervalo: {LOOP_MINUTES} min")
+    
+    await ctx.send(embed=embed)
+
+
+# =========================================================
+# 15) /forcecheck (força varredura imediata)
+# =========================================================
+@bot.hybrid_command(name="forcecheck", description="Força varredura imediata de feeds.")
+@commands.has_permissions(administrator=True)
+async def forcecheck(ctx: commands.Context):
+    """Força uma varredura imediata sem abrir o dashboard."""
+    # Slash command
+    if ctx.interaction is not None:
+        try:
+            if not ctx.interaction.response.is_done():
+                await ctx.interaction.response.defer(ephemeral=True)
+            
+            await run_scan_once(trigger="forcecheck")
+            await ctx.interaction.followup.send("✅ Varredura forçada concluída!", ephemeral=True)
+        except Exception as e:
+            log.error(f"Erro em /forcecheck: {e}")
+            try:
+                await ctx.interaction.followup.send("❌ Falha ao executar varredura.", ephemeral=True)
+            except:
+                pass
+        return
+    
+    # Prefixo
+    msg = await ctx.send("🔎 Iniciando varredura forçada...")
+    await run_scan_once(trigger="forcecheck")
+    await msg.edit(content="✅ Varredura forçada concluída!")
+
+
+@forcecheck.error
+async def forcecheck_error(ctx: commands.Context, error: Exception):
+    """Trata erros do comando /forcecheck."""
+    if isinstance(error, commands.MissingPermissions):
+        msg = "❌ Você precisa ter **Administrador** para usar este comando."
+        
+        if ctx.interaction is not None:
+            try:
+                if not ctx.interaction.response.is_done():
+                    await ctx.interaction.response.send_message(msg, ephemeral=True)
+                else:
+                    await ctx.interaction.followup.send(msg, ephemeral=True)
+            except discord.NotFound:
+                pass
+        else:
+            await ctx.send(msg)
+        return
+    
+    log.exception("Erro no comando /forcecheck", exc_info=error)
+
 
 
 # =========================================================

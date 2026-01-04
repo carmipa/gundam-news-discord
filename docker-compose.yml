@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  gundam-bot:
+    build: .
+    container_name: gundam-news-bot
+    restart: unless-stopped
+
+    # Variáveis de ambiente (do arquivo .env)
+    env_file:
+      - .env
+
+    # Volumes para persistir dados
+    volumes:
+      # Arquivos de configuração e histórico
+      - ./config.json:/app/config.json
+      - ./history.json:/app/history.json
+      - ./state.json:/app/state.json
+
+      # Logs persistentes (opcional)
+      - ./logs:/app/logs
+
+    # Configuração de logs
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    # Política de restart
+    # unless-stopped: reinicia sempre, exceto se parado manualmente
+
+    # Healthcheck (herda do Dockerfile)
+
+    # Labels para organização
+    labels:
+      com.gundam-bot.description: "Mafty Intelligence System"
+      com.gundam-bot.version: "2.1"

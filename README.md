@@ -48,6 +48,9 @@
 | 🔄 **Deduplicação** | Nunca repete notícias (histórico em `history.json`) |
 | 🌐 **Multi-Guild** | Configuração independente por servidor Discord |
 | 📝 **Logs em PT-BR** | Mensagens claras para debug e monitoramento |
+| 🎨 **Embeds Ricos** | Notícias com visual premium (cor Gundam, thumbnails, timestamps) |
+| 🌍 **Tradução Automática** | Conteúdo traduzido para PT-BR usando Google Translator |
+| 🔐 **SSL Seguro** | Conexões verificadas com certifi (proteção contra MITM) |
 
 ---
 
@@ -346,6 +349,36 @@ sudo systemctl status gundam-bot
 # Ver logs em tempo real
 journalctl -u gundam-bot -f
 ```
+
+### 🐳 VPS com Docker (recomendado para produção)
+
+**Instalação rápida:**
+
+```bash
+# Clone o repositório
+git clone https://github.com/carmipa/gundam-news-discord.git
+cd gundam-news-discord
+
+# Configure .env com seu token
+cp .env.example .env
+nano .env
+
+# Inicie com Docker Compose
+docker-compose up -d
+
+# Ver logs
+docker-compose logs -f
+```
+
+**Vantagens do Docker:**
+
+- ✅ Reinício automático se crashar
+- ✅ Isolamento completo do sistema
+- ✅ Fácil atualização (`git pull && docker-compose restart`)
+- ✅ Logs com rotação automática
+- ✅ Portável entre servidores
+
+📖 **Guia completo:** Veja [DEPLOY.md](DEPLOY.md) para instruções detalhadas.
 
 ---
 
