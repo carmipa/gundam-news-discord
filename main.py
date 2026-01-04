@@ -38,6 +38,24 @@ async def main():
     # =========================================================
     # EVENTOS
     # =========================================================
+    
+    @bot.command()
+    @commands.is_owner()
+    async def sync(ctx):
+        """Comando manual para sincronizar comandos Slash."""
+        try:
+            # Sync global
+            synced = await bot.tree.sync()
+            await ctx.send(f"✅ Sincronizado {len(synced)} comandos globalmente.")
+            
+            # Sync na guild atual também (garantia)
+            if ctx.guild:
+                ctx.bot.tree.copy_global_to(guild=ctx.guild)
+                synced_guild = await ctx.bot.tree.sync(guild=ctx.guild)
+                await ctx.send(f"✅ Sincronizado {len(synced_guild)} comandos na guild: {ctx.guild.name}")
+        except Exception as e:
+            await ctx.send(f"❌ Erro ao sincronizar: {e}")
+
     @bot.event
     async def on_ready():
         log.info(f"✅ Bot conectado como: {bot.user}")
@@ -58,11 +76,12 @@ async def main():
         # 2. Sync Comandos (Slash)
         try:
             # Sincroniza global (pode demorar) ou por guild
-            # Para dev, sync por guild é mais rápido. Para prod, global.
-            # Aqui sincronizamos por guild para garantir atualização imediata
+            # Para dev, sync por guild é mais rápido e garante update imediato
+            # IMPORTANTE: É necessário copiar os globais para a guild antes de syncar a guild
             for guild in bot.guilds:
+                bot.tree.copy_global_to(guild=discord.Object(id=guild.id))
                 await bot.tree.sync(guild=discord.Object(id=guild.id))
-                log.info(f"Comandos sincronizados em: {guild.name}")
+                log.info(f"Comandos sincronizados (copy_global) em: {guild.name}")
         except Exception as e:
             log.error(f"Falha no sync de comandos: {e}")
 
