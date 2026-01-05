@@ -49,6 +49,7 @@
 | 🌐 **Multi-Guild** | Configuração independente por servidor Discord |
 | 📝 **Logs em PT-BR** | Mensagens claras para debug e monitoramento |
 | 🎨 **Embeds Ricos** | Notícias com visual premium (cor Gundam, thumbnails, timestamps) |
+| 🎞️ **Player Nativo** | Vídeos do YouTube/Twitch tocam direto no chat (sem abrir navegador) |
 | 🌍 **Multi-Idioma** | Suporte a EN, PT, ES, IT (detecção automática + `/setlang`) |
 | 🖥️ **Web Dashboard** | Painel visual em <http://host:8080> com status em tempo real |
 | 🔐 **SSL Seguro** | Conexões verificadas com certifi (proteção contra MITM) |
