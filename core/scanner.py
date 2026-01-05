@@ -229,37 +229,53 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         t_translated = await translate_to_target(t_clean, target_lang)
                         s_translated = await translate_to_target(s_clean, target_lang)
 
+                        # Detecta se é link de mídia (YouTube, etc) para exibir player nativo
+                        media_domains = ("youtube.com", "youtu.be", "twitch.tv", "soundcloud.com", "spotify.com")
+                        is_media = False
                         try:
-                            embed = discord.Embed(
-                                title=t_translated[:256],
-                                description=s_translated,
-                                url=link,
-                                color=discord.Color.from_rgb(255, 0, 32),
-                                timestamp=datetime.now()
-                            )
-                            
-                            # Strings localizadas
-                            # Usa t.get com o idioma alvo
-                            from utils.translator import t
-                            
-                            author_name = t.get('embed.author', lang=target_lang)
-                            embed.set_author(
-                                name=author_name,
-                                icon_url=bot.user.avatar.url if bot.user and bot.user.avatar else None
-                            )
-                            
-                            source_domain = urlparse(link).netloc
-                            footer_text = t.get('embed.source', lang=target_lang, source=source_domain)
-                            embed.set_footer(text=footer_text)
-                            
-                            if hasattr(entry, "media_thumbnail") and entry.media_thumbnail:
-                                try:
-                                    thumb_url = entry.media_thumbnail[0].get("url")
-                                    if thumb_url:
-                                        embed.set_thumbnail(url=thumb_url)
-                                except: pass
-                            
-                            await channel.send(embed=embed)
+                            if any(d in link for d in media_domains):
+                                is_media = True
+                        except: pass
+
+                        try:
+                            if is_media:
+                                # Para mídia, enviamos o link no content para o Discord gerar o player
+                                # Adicionamos o título traduzido para contexto
+                                msg_content = f"**{t_translated}**\n{link}"
+                                await channel.send(content=msg_content)
+                            else:
+                                # Para notícias normais, mantemos o Embed bonito
+                                embed = discord.Embed(
+                                    title=t_translated[:256],
+                                    description=s_translated,
+                                    url=link,
+                                    color=discord.Color.from_rgb(255, 0, 32),
+                                    timestamp=datetime.now()
+                                )
+                                
+                                # Strings localizadas
+                                # Usa t.get com o idioma alvo
+                                from utils.translator import t
+                                
+                                author_name = t.get('embed.author', lang=target_lang)
+                                embed.set_author(
+                                    name=author_name,
+                                    icon_url=bot.user.avatar.url if bot.user and bot.user.avatar else None
+                                )
+                                
+                                source_domain = urlparse(link).netloc
+                                footer_text = t.get('embed.source', lang=target_lang, source=source_domain)
+                                embed.set_footer(text=footer_text)
+                                
+                                if hasattr(entry, "media_thumbnail") and entry.media_thumbnail:
+                                    try:
+                                        thumb_url = entry.media_thumbnail[0].get("url")
+                                        if thumb_url:
+                                            embed.set_thumbnail(url=thumb_url)
+                                    except: pass
+                                
+                                await channel.send(embed=embed)
+
                             posted_anywhere = True
                             sent_count += 1
                             await asyncio.sleep(1)
