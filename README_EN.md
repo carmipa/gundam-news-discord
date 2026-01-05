@@ -47,7 +47,9 @@
 | 🛡️ **Anti-Spam** | Blacklist to block non-Gundam related anime/games |
 | 🔄 **Deduplication** | Never repeats news (history in `history.json`) |
 | 🌐 **Multi-Guild** | Independent configuration per Discord server |
+| 📝 **Logs in PT-BR** | Clear messages for debugging and monitoring |
 | 🎨 **Rich Embeds** | Premium looking news (Gundam color, thumbnails, timestamps) |
+| 🎞️ **Native Player** | YouTube/Twitch videos play directly in chat (no browser needed) |
 | 🌍 **Multi-Language** | Support for EN, PT, ES, IT (auto-detect + `/setlang`) |
 | 🖥️ **Web Dashboard** | Visual panel at <http://host:8080> with real-time status |
 | 🔐 **Secure SSL** | Verified connections with certifi (MITM protection) |
@@ -75,6 +77,65 @@ flowchart LR
   W["Web Dashboard<br>aiohttp (Port 8080)"] .-> H
   W .-> I
 ```
+
+> **Legend:**
+>
+> - `sources.json` — List of monitored feeds
+> - `config.json` — Channel and filter configuration per server
+> - `history.json` — Sent links (deduplication)
+
+---
+
+### 2) `/dashboard` Command Flow and UI Persistence
+
+```mermaid
+sequenceDiagram
+  participant Admin as Discord Admin
+  participant Bot as Gundam News Bot
+  participant Disk as config.json / history.json
+
+  Admin->>Bot: /dashboard (in desired channel)
+  Bot->>Disk: saves guild channel_id (current channel)
+  Bot-->>Admin: sends panel (ephemeral) with buttons
+  Admin->>Bot: clicks filters (Gunpla/Movies/Games...)
+  Bot->>Disk: updates guild filters
+  Bot-->>Admin: updates button colors (active/inactive)
+
+  Note over Bot: Bot Restart (VPS/PC)
+  Bot->>Disk: reads config.json
+  Bot-->>Admin: re-registers Persistent Views (bot.add_view)
+  Admin->>Bot: clicks old buttons
+  Bot-->>Admin: works (doesn't break after restart)
+```
+
+> **Highlights:**
+>
+> - The panel is **ephemeral** (only you see it)
+> - Buttons work **even after bot restart**
+> - Configuration is **saved to disk** automatically
+
+---
+
+### 3) Main Bot States
+
+```mermaid
+stateDiagram-v2
+  [*] --> Connecting
+  Connecting --> Online: Token OK
+  Online --> SyncGuild: on_ready()
+  SyncGuild --> PersistentViews: add_view per guild from config
+  PersistentViews --> ScannerActive: starts loop
+  ScannerActive --> ScannerActive: scans feeds / posts / saves history
+  ScannerActive --> Online: feed error (handled / PT logs)
+```
+
+> **Lifecycle:**
+>
+> 1. **Connecting** — Validating token
+> 2. **Online** — Connected to Discord
+> 3. **SyncGuild** — Syncing slash commands
+> 4. **PersistentViews** — Restoring dashboard buttons
+> 5. **ScannerActive** — Scan loop running
 
 ---
 
@@ -126,7 +187,7 @@ LOOP_MINUTES=30
 
 ### Feed Sources (`sources.json`)
 
-Two formats accepted:
+The bot accepts two formats:
 
 <details>
 <summary><b>📁 Category Format (Recommended)</b></summary>
@@ -141,6 +202,18 @@ Two formats accepted:
     "https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw"
   ]
 }
+```
+
+</details>
+
+<details>
+<summary><b>📁 Simple List Format</b></summary>
+
+```json
+[
+  "https://www.animenewsnetwork.com/news/rss.xml",
+  "https://gundamnews.org/feed"
+]
 ```
 
 </details>
@@ -160,7 +233,7 @@ Two formats accepted:
 | `/invite` | Slash | Link to invite the bot |
 | `!dashboard` | Prefix | Legacy: Same function as /dashboard |
 
-> **🔒 Permission:** Admin restricted commands are marked above.
+> **🔒 Permission:** Only administrators can use these commands.
 
 ---
 
@@ -179,11 +252,16 @@ The interactive panel allows configuring which categories to monitor:
 | 📌 **View Filters** | Shows active filters |
 | 🔄 **Reset** | Clears all filters |
 
+### Visual Indicators
+
+- 🟢 **Green** = Filter active
+- ⚪ **Gray** = Filter inactive
+
 ---
 
 ## 🧠 Filter System
 
-The bot uses a **layered** system to ensure surgical precision:
+The filtering is **not simple** — the bot uses a **layered** system to ensure surgical precision:
 
 ### Decision Flow
 
@@ -203,6 +281,41 @@ flowchart TD
     H -->|No| I["📤 Send to Discord"]
 ```
 
+### ✅ Filtering Rules (real order)
+
+| Step | Check | Action |
+|-------|-------------|------|
+| 1️⃣ | Join `title + summary` | Concatenate text |
+| 2️⃣ | Clean HTML and normalize | Remove tags, extra spaces |
+| 3️⃣ | **BLACKLIST** | If present (e.g., *One Piece*), block |
+| 4️⃣ | **GUNDAM_CORE** | If no Gundam terms, block |
+| 5️⃣ | 'All' filter active? | Allow everything if yes |
+| 6️⃣ | Selected Category | Must match keywords |
+| 7️⃣ | **Deduplication** | If link is already in `history.json`, ignore |
+
+### 🎯 GUNDAM_CORE Terms
+
+```
+gundam, gunpla, mobile suit, universal century, rx-78, zaku, zeon, 
+char, amuro, hathaway, mafty, seed, seed freedom, witch from mercury, 
+g-witch, p-bandai, premium bandai, ver.ka, hg, mg, rg, pg, sd, fm, re/100
+```
+
+### 🚫 BLACKLIST (blocked)
+
+```
+one piece, dragon ball, naruto, bleach, pokemon, digimon, 
+attack on titan, jujutsu, demon slayer
+```
+
+### 🔧 Where to adjust precision?
+
+| Constant | Purpose |
+|-----------|-----------|
+| `GUNDAM_CORE` | Enforces "is Gundam" — add terms here |
+| `BLACKLIST` | Cuts noise from generalist feeds |
+| `CAT_MAP` | Adjusts triggers per category |
+
 ---
 
 ## 🖥️ Deploy
@@ -213,29 +326,96 @@ flowchart TD
 python main.py
 ```
 
-### 🐳 VPS with Docker (Production)
+### VPS with systemd (Production)
+
+Create file `/etc/systemd/system/gundam-bot.service`:
+
+```ini
+[Unit]
+Description=Gundam News Bot - Mafty Intel
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/gundam-bot
+ExecStart=/opt/gundam-bot/.venv/bin/python main.py
+Restart=always
+RestartSec=5
+User=gundam
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Useful commands:
+
+```bash
+# Enable and start
+sudo systemctl daemon-reload
+sudo systemctl enable gundam-bot
+sudo systemctl start gundam-bot
+
+# Check status
+sudo systemctl status gundam-bot
+
+# View real-time logs
+journalctl -u gundam-bot -f
+```
+
+### 🐳 VPS with Docker (Recommended for Production)
 
 **Quick Install:**
 
 ```bash
-# Clone
+# Clone the repository
 git clone https://github.com/carmipa/gundam-news-discord.git
 cd gundam-news-discord
 
-# Config
+# Configure .env with your token
 cp .env.example .env
-# Edit .env
+nano .env
 
-# Start
-docker-compose up -d --build
+# Start with Docker Compose
+docker-compose up -d
+
+# View logs
+docker-compose logs -f
 ```
 
-**Benefits:**
+**Docker Benefits:**
 
-- ✅ Auto-restart
-- ✅ Complete isolation
-- ✅ Easy update
+- ✅ Auto-restart if crashes
+- ✅ Complete system isolation
+- ✅ Easy update (`git pull && docker-compose restart`)
 - ✅ Log rotation
+- ✅ Portable between servers
+
+📖 **Complete Guide:** See [DEPLOY.md](DEPLOY.md) for detailed instructions.
+
+---
+
+## 🗂️ Project Structure
+
+```
+gundam-news-discord/
+├── 📄 main.py              # Main Bot
+├── 📄 settings.py          # Loads configuration from .env
+├── 📄 sources.json         # List of monitored feeds
+├── 📄 requirements.txt     # Python dependencies
+├── 📄 .env.example         # Configuration example
+├── 📄 .gitignore           # Git ignored files
+├── 🖼️ icon.png             # Bot icon
+├── 📁 .github/             # GitHub Actions Workflows
+├── 📁 bot/                 # Bot logic (Cogs, Views)
+├── 📁 core/                # System Core (Scanner, Filters)
+├── 📁 tests/               # Automated tests
+├── 📁 translations/        # Internationalization (i18n)
+├── 📁 utils/               # Utilities (Logger, Helpers)
+├── 📁 web/                 # Web Dashboard
+└── 📄 README.md            # This documentation
+```
+
+> **Note:** Files `config.json` and `history.json` are generated automatically at runtime and are in `.gitignore`.
 
 ---
 
@@ -245,21 +425,49 @@ docker-compose up -d --build
 <summary><b>❌ CommandNotFound: Application command 'dashboard' not found</b></summary>
 
 **Cause:** Discord global sync lag.
-**Solution:** Use the command `!sync` (prefix) to force immediate registration.
+
+**Solution:** The bot already syncs per guild in `on_ready()`. Wait a few seconds after the bot connects.
+
 </details>
 
 <details>
-<summary><b>❌ AttributeError: '_EnumValue_Locale' object...</b></summary>
+<summary><b>❌ AttributeError: 'str' object has no attribute 'get'</b></summary>
 
-**Cause:** Old code in `translator.py`.
-**Solution:** Update to v2.1 (already fixed in `main` branch).
+**Cause:** Incorrect format of `sources.json`.
+
+**Solution:** Check if the file is in one of the accepted formats (list or dictionary with categories).
+
 </details>
+
+<details>
+<summary><b>⚠️ "PyNaCl is not installed… voice will NOT be supported"</b></summary>
+
+**Not an error!** Just a warning. The bot does not use voice features, safely ignore.
+
+</details>
+
+---
+
+## 🤝 Contributing
+
+1. Fork the project
+2. Create your feature branch (`git checkout -b feature/MyFeature`)
+3. Commit your changes (`git commit -m 'Add MyFeature'`)
+4. Push to the branch (`git push origin feature/MyFeature`)
+5. Open a Pull Request
 
 ---
 
 ## 📜 License
 
-This project is licensed under the **MIT License** - see [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+---
+
+## 👨‍💻 Author
+
+**Paulo André Carminati**  
+[![GitHub](https://img.shields.io/badge/GitHub-carmipa-181717?logo=github)](https://github.com/carmipa)
 
 ---
 
