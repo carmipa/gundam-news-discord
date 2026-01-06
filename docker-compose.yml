@@ -16,6 +16,7 @@ services:
       - ./config.json:/app/config.json
       - ./history.json:/app/history.json
       - ./state.json:/app/state.json
+      - ./sources.json:/app/sources.json
 
       # Logs persistentes (opcional)
       - ./logs:/app/logs
