@@ -25,7 +25,8 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copia código do bot
-COPY main.py settings.py sources.json ./
+# Copia todo o código do projeto
+COPY . .
 
 # Cria diretórios para dados persistentes (serão volumes)
 RUN mkdir -p /app/data /app/logs
