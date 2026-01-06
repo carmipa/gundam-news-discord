@@ -51,3 +51,4 @@ state/*.json
 
 # Cache do bot (dedup/etag/translation)
 state.json
+history.json
