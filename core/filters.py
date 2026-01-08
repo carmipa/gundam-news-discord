@@ -44,9 +44,15 @@ FILTER_OPTIONS = {
 # HELPER FUNCTIONS
 # =========================================================
 
+import re
+
 def _contains_any(text: str, keywords: List[str]) -> bool:
     """
-    Verifica se alguma keyword está presente no texto.
+    Verifica se alguma keyword está presente no texto usando Regex.
+    
+    Usa word boundaries (\b) para evitar matches parciais (ex: 'wing' em 'drawing').
+    Suporta plural opcional ('s?').
+    Protege '00' de match em horários (12:00) usando negative lookbehind (?<!:).
     
     Args:
         text: Texto a verificar (já em lowercase)
@@ -55,10 +61,15 @@ def _contains_any(text: str, keywords: List[str]) -> bool:
     Returns:
         True se pelo menos uma keyword foi encontrada
     """
-    for kw in keywords:
-        if kw in text:
-            return True
-    return False
+    if not keywords:
+        return False
+
+    # Escapa keywords para segurança no regex
+    # Monta padrão: (?<!:)\b(?:kw1|kw2|...|kwn)s?\b
+    escaped_kws = [re.escape(k) for k in keywords]
+    pattern_str = r'(?<!:)\b(?:' + '|'.join(escaped_kws) + r')s?\b'
+    
+    return bool(re.search(pattern_str, text))
 
 
 def match_intel(guild_id: str, title: str, summary: str, config: Dict[str, Any]) -> bool:
