@@ -72,7 +72,8 @@ class StatusCog(commands.Cog):
         
         embed.set_footer(text=f"Bot v2.1 | Intervalo: {LOOP_MINUTES} min")
         
-        await interaction.response.send_message(embed=embed)
+        # EPHEMERAL: Apenas o usuário que digitou vê a mensagem.
+        await interaction.response.send_message(embed=embed, ephemeral=True)
 
 
 async def setup(bot):
