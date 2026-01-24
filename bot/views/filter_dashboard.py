@@ -60,8 +60,12 @@ class FilterDashboard(discord.ui.View):
         self.clear_items()
         active = set(self._filters())
         
+        # Se "todos" está ativo, tudo deve parecer ativo visualmente
+        everything_selected = "todos" in active
+        
         for key, (label, emoji) in FILTER_OPTIONS.items():
-            is_active = key in active
+            # A chave exata está ativa OU "todos" está ativo (visual apenas)
+            is_active = (key in active) or everything_selected
             style = discord.ButtonStyle.success if is_active else discord.ButtonStyle.secondary
             
             btn = discord.ui.Button(
@@ -108,13 +112,45 @@ class FilterDashboard(discord.ui.View):
         
         category = parts[3]
         current = self._filters()
+        msg = ""
+
+        if category == "todos":
+            # Lógica simples para o botão TUDO
+            if "todos" in current:
+                # Se já estava tudo, remover tudo? Ou limpar?
+                # Vamos assumir toggle: se clica em TUDO e já está on, remove TUDO.
+                current = []
+                msg = "➖ **Filtro global removido.** (Nada selecionado)"
+            else:
+                # Liga TUDO, limpa o resto para ficar limpo
+                current = ["todos"]
+                msg = "🌟 **Modo TUDO ativado!**"
         
-        if category in current:
-            current.remove(category)
-            msg = f"➖ **{category.capitalize()}** removido."
         else:
-            current.append(category)
-            msg = f"➕ **{category.capitalize()}** adicionado."
+            # Categoria específica
+            if "todos" in current:
+                # SMART UNPACKING:
+                # Se "todos" estava on e clicou em algo específico (ex: Gunpla),
+                # o usuário quer "Tudo MENOS Gunpla".
+                # Então: Remove "todos", adiciona TODAS as outras, menos a clicada.
+                
+                # Pega todas as chaves possíveis exceto "todos"
+                all_cats = [k for k in FILTER_OPTIONS.keys() if k != "todos"]
+                
+                # Lista nova é tudo menos o que foi clicado
+                new_list = [k for k in all_cats if k != category]
+                
+                current = new_list
+                msg = f"➖ **{category.capitalize()}** removido (Modo TUDO desfeito)."
+            
+            else:
+                # Comportamento padrão (toggle individual)
+                if category in current:
+                    current.remove(category)
+                    msg = f"➖ **{category.capitalize()}** removido."
+                else:
+                    current.append(category)
+                    msg = f"➕ **{category.capitalize()}** adicionado."
         
         self._set_filters(current)
         self._rebuild()
