@@ -15,10 +15,31 @@ from core.scanner import start_scheduler, run_scan_once
 from web.server import start_web_server  # Novo web server
 
 # Configuração de Logs
+import os
+import logging
+from logging.handlers import RotatingFileHandler
+
+# Configuração de Logs
+# Garante que o diretório logs existe
+os.makedirs("logs", exist_ok=True)
+
+# Formatador
+formatter = logging.Formatter("%(asctime)s - [%(levelname)s] - %(message)s")
+
+# File Handler (Rotaciona a cada 5MB, mantém 3 arquivos)
+file_handler = RotatingFileHandler("logs/bot.log", maxBytes=5*1024*1024, backupCount=3, encoding="utf-8")
+file_handler.setFormatter(formatter)
+
+# Console Handler
+console_handler = logging.StreamHandler()
+console_handler.setFormatter(formatter)
+
+# Root Logger Config
 logging.basicConfig(
     level=logging.INFO,
-    format="%(asctime)s - [%(levelname)s] - %(message)s"
+    handlers=[file_handler, console_handler]
 )
+
 log = logging.getLogger("MaftyIntel")
 
 
