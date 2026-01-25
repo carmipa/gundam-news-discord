@@ -120,18 +120,19 @@ async def main():
 
     try:
         # Carrega extensões normais (que têm setup(bot))
-        await bot.load_extension("bot.cogs.status")
         await bot.load_extension("bot.cogs.info")
         
-        # Admin e Dashboard precisam da função de scan injetada
+        # Admin, Dashboard e Status precisam da função de scan injetada
         # Como load_extension não aceita args, importamos e setup manual 
         # ou usamos uma abordagem de injeção. 
         # Simplificação: Passamos via bot instance ou setup manual.
         
         # Abordagem Híbrida: Carregar Status normalmente, e Admin/Dashboard manualmente
+        from bot.cogs.status import setup as setup_status
         from bot.cogs.admin import setup as setup_admin
         from bot.cogs.dashboard import setup as setup_dashboard
         
+        await setup_status(bot, bound_scan)
         await setup_admin(bot, bound_scan)
         await setup_dashboard(bot, bound_scan)
         
