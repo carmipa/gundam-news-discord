@@ -8,7 +8,7 @@ import asyncio
 import discord
 from discord.ext import commands
 
-from settings import TOKEN, COMMAND_PREFIX
+from settings import TOKEN, COMMAND_PREFIX, LOG_LEVEL
 from utils.storage import p, load_json_safe
 from bot.views.filter_dashboard import FilterDashboard
 from core.scanner import start_scheduler, run_scan_once
@@ -36,7 +36,7 @@ console_handler.setFormatter(formatter)
 
 # Root Logger Config
 logging.basicConfig(
-    level=logging.INFO,
+    level=LOG_LEVEL,
     handlers=[file_handler, console_handler]
 )
 
