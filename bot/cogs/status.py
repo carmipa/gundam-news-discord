@@ -42,7 +42,7 @@ class StatusCog(commands.Cog):
     @app_commands.command(name="status", description="Mostra estatísticas do bot Mafty.")
     async def status(self, interaction: discord.Interaction):
         """Exibe estatísticas e status atual do bot."""
-        await interaction.response.defer(ephemeral=True)
+        await interaction.response.defer(ephemeral=True) # Fix timeout
         
         # Calcula próxima varredura
         next_scan = datetime.now() + timedelta(minutes=LOOP_MINUTES)
