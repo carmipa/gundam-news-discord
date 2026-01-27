@@ -42,6 +42,8 @@ class StatusCog(commands.Cog):
     @app_commands.command(name="status", description="Mostra estatísticas do bot Mafty.")
     async def status(self, interaction: discord.Interaction):
         """Exibe estatísticas e status atual do bot."""
+        await interaction.response.defer(ephemeral=True)
+        
         # Calcula próxima varredura
         next_scan = datetime.now() + timedelta(minutes=LOOP_MINUTES)
         next_scan_ts = int(next_scan.timestamp())
@@ -99,7 +101,7 @@ class StatusCog(commands.Cog):
         view = ScanButton(self.run_scan_once)
         
         # EPHEMERAL: Apenas o usuário que digitou vê a mensagem.
-        await interaction.response.send_message(embed=embed, view=view, ephemeral=True)
+        await interaction.followup.send(embed=embed, view=view, ephemeral=True)
 
     @app_commands.command(name="now", description="Força uma verificação imediata de notícias.")
     async def now(self, interaction: discord.Interaction):
