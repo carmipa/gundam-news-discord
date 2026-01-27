@@ -1,0 +1,314 @@
+=== DEBUG SCAN START ===
+Loaded 34 sources.
+Loaded history with 225 items.
+Loaded http_state with 38 entries.
+
+--- Checking https://www.animenewsnetwork.com/news/rss.xml?ann-edition=us ---
+    Using Cache Headers: {'If-Modified-Since': 'Sun, 04 Jan 2026 22:08:31 GMT'}
+    [Active Cache] Status: 200
+    Entries found: 40
+    [0] Title: Baki-Dou Anime Reveals February 26 Debut on Netflix
+        Link: 'https://www.animenewsnetwork.com/news/2026-01-27/baki-dou-anime-reveals-february-26-debut-on-netflix/.233509'
+        -> Testing Filters...
+           [FAIL] Missing GUNDAM_CORE
+    [1] Title: Kyoto Animation's Sparks of Tomorrow TV Anime Unveils Exclusive Netflix July Debut
+        Link: 'https://www.animenewsnetwork.com/news/2026-01-27/kyoto-animation-sparks-of-tomorrow-tv-anime-unveils-exclusive-netflix-july-debut/.233506'
+        -> Testing Filters...
+           [FAIL] Missing GUNDAM_CORE
+    [2] Title: Chaos Game's Daiki Yamazaki Launches New Manga
+        Link: 'https://www.animenewsnetwork.com/news/2026-01-26/chaos-game-daiki-yamazaki-launches-new-manga/.233489'
+        -> Testing Filters...
+           [FAIL] Missing GUNDAM_CORE
+
+--- Checking https://gundamnews.org/feed ---
+    Using Cache Headers: {'If-None-Match': '"2677e5b95307658dd862499f051562f8"', 'If-Modified-Since': 'Sat, 27 Dec 2025 19:02:09 GMT'}
+    [Active Cache] Status: 200
+    Entries found: 10
+    [0] Title: Gundam SEED Director Mitsuo Fukuda to ôQuit Smokingö After Health Scare
+        Link: 'https://gundamnews.org/gundam-seed-director-mitsuo-fukuda-to-quit-smoking-after-health-scare'
+        -> Testing Filters...
+           [PASS] Matches guild 417746665219424277
+        -> RESULT: WOULD SEND (Missing in History)
+    [1] Title: Hideaki Anno on AnimeÆs Overseas Expansion: Audiences Must Adapt to Us
+        Link: 'https://gundamnews.org/hideaki-anno-on-animes-overseas-expansion-audiences-must-adapt-to-us'
+        -> SKIPPED (In History - EXACT MATCH)
+    [2] Title: Gundam Producer Wants Thunderbolt Anime Continuation After MangaÆs End
+        Link: 'https://gundamnews.org/gundam-producer-wants-thunderbolt-anime-continuation-after-mangas-end'
+        -> SKIPPED (In History - EXACT MATCH)
+
+--- Checking https://gunpla101.com/feed ---
+    Using Cache Headers: {'If-None-Match': '"530a3a4390d2b5ac74d1859b0faa156b-gzip"', 'If-Modified-Since': 'Sun, 30 Nov 2025 17:01:34 GMT'}
+    [Active Cache] Status: 200
+    Entries found: 10
+    [0] Title: The Gunpla 101 2025 Holiday Guide is Live!
+        Link: 'https://www.gunpla101.com/the-gunpla-101-2025-holiday-guide-is-live/?utm_source=rss&utm_medium=rss&utm_campaign=the-gunpla-101-2025-holiday-guide-is-live'
+        -> SKIPPED (In History - EXACT MATCH)
+    [1] Title: How Much Are Finished Gunpla Worth?
+        Link: 'https://www.gunpla101.com/how-much-are-finished-gunpla-worth/?utm_source=rss&utm_medium=rss&utm_campaign=how-much-are-finished-gunpla-worth'
+        -> SKIPPED (In History - EXACT MATCH)
+    [2] Title: Review: RG #43 Wing Gundam Zero
+        Link: 'https://www.gunpla101.com/review-rg-43-wing-gundam-zero/?utm_source=rss&utm_medium=rss&utm_campaign=review-rg-43-wing-gundam-zero'
+        -> SKIPPED (In History - EXACT MATCH)
+
+--- Checking https://www.gunjap.net/site/?feed=rss2 ---
+    Using Cache Headers: {'If-None-Match': 'W/"bcc327fffe144aa81a46ca5835e489a3"', 'If-Modified-Since': 'Sat, 03 Jan 2026 21:01:06 GMT'}
+    [Active Cache] Status: 200
+    Entries found: 10
+    [0] Title: [Full] Tenjin Hidetaka Artworks of Macross / VALKYRIES / Third Sortie
+        Link: 'https://www.gunjap.net/site/?p=421644'
+        -> Testing Filters...
+           [FAIL] Missing GUNDAM_CORE
+    [1] Title: FULL Gundam UC Mechanics and World ep7
+        Link: 'https://www.gunjap.net/site/?p=421639'
+        -> Testing Filters...
+        -> RESULT: SKIPPED (Filtered)
+    [2] Title: FULL Entertainment Bible 01
+        Link: 'https://www.gunjap.net/site/?p=421635'
+        -> Testing Filters...
+        -> RESULT: SKIPPED (Filtered)
+
+--- Checking https://www.usagundamstore.com/blogs/usa-gundam-blog.atom ---
+    Using Cache Headers: {'If-None-Match': 'W/"page_cache:7278355:BlogDetailsController:057f8db866a32094951575eacd8a7934"'}
+    [Active Cache] Status: 200
+    Entries found: 30
+    [0] Title: New Arrivals 01/22/26 - Bandai New Arrivals, Model Kits and More!
+        Link: 'https://www.usagundamstore.com/blogs/usa-gundam-blog/new-arrivals-012226-bandai-new-arrivals-model-kits-and-more'
+        -> Testing Filters...
+           [PASS] Matches guild 417746665219424277
+        -> RESULT: WOULD SEND (Missing in History)
+    [1] Title: New Arrivals 01/21/2026 - Model Kits, Figures, and More!
+        Link: 'https://www.usagundamstore.com/blogs/usa-gundam-blog/new-arrivals-01212026-model-kits-figures-and-more'
+        -> Testing Filters...
+        -> RESULT: SKIPPED (Filtered)
+    [2] Title: New Arrivals 01/19/2026 - Mr.Color Paints, Thinners, Glosses, and More!
+        Link: 'https://www.usagundamstore.com/blogs/usa-gundam-blog/new-arrivals-01192026-mrcolor-paints-thinners-glosses-and-more'
+        -> Testing Filters...
+        -> RESULT: SKIPPED (Filtered)
+
+--- Checking https://www.bandai.com/blog/rss/feed ---
+    No Cache Headers found.
+    [Active Cache] Status: 200
+    Entries found: 10
+    [0] Title: THE DE YOUNG MUSEUMÆS MANGA EXHIBITION HAS BEEN EXTENDED!
+        Link: 'https://www.bandai.com/News/post/latest-news/bntca-corporate-news/the-de-young-museums-manga-exhibition-that-bandai-namco-participates-in-has-been-extended'
+        -> Testing Filters...
+           [PASS] Matches guild 417746665219424277
+        -> RESULT: WOULD SEND (Missing in History)
+    [1] Title: Dragon Ball Pop-Up Tour USA 2026 Launches This February
+        Link: 'https://www.bandai.com/News/post/latest-news/dragon-ball-pop-up-tour-usa-2026-launches-this-february'
+        -> Testing Filters...
+           [FAIL] BLACKLIST
+    [2] Title: Save 15% off ALL Bandai toys at Target!
+        Link: 'https://www.bandai.com/News/post/latest-news/save-15-off-all-bandai-toys-at-target'
+        -> SKIPPED (In History - EXACT MATCH)
+
+--- Checking https://www.gundamkitscollection.com/feeds/posts/default?alt=rss ---
+    Using Cache Headers: {'If-Modified-Since': 'Sun, 4 Jan 2026 06:01:23 GMT'}
+    [Active Cache] Status: 200
+    Entries found: 25
+    [0] Title: P-Bandai: HGGQ 1/144 Red Gundam Expansion Set - Release Info
+        Link: 'https://www.gundamkitscollection.com/2026/01/p-bandai-hggq-1144-red-gundam-expansion.html'
+        -> Testing Filters...
+           [PASS] Matches guild 417746665219424277
+        -> RESULT: WOULD SEND (Missing in History)
+    [1] Title: HGCE 1/144 Legend Gundam - Release Info
+        Link: 'https://www.gundamkitscollection.com/2025/08/hg-1144-legend-gundam-release-info.html'
+        -> Testing Filters...
+           [PASS] Matches guild 417746665219424277
+        -> RESULT: WOULD SEND (Missing in History)
+    [2] Title: METAL ROBOT Spirits Welcomes MSN-04 Sazabi from CharÆs Counterattack
+        Link: 'https://www.gundamkitscollection.com/2026/01/metal-robot-spirits-welcomes-msn-04.html'
+        -> Testing Filters...
+           [PASS] Matches guild 417746665219424277
+        -> RESULT: WOULD SEND (Missing in History)
+
+--- Checking https://stelasub.blogspot.com/feeds/posts/default ---
+    Using Cache Headers: {'If-None-Match': 'W/"7e80055ba2209c88b79d9589b15703760f36cc92a15076802db4087c6b712a9d"', 'If-Modified-Since': 'Thu, 05 Sep 2024 02:25:52 GMT'}
+    [Active Cache] Status: 304
+    -> 304 Not Modified. Bot skips this.
+    -> Force fetching without cache headers to compare...
+    [Force Fetch] Status: 200
+    Entries found: 9
+    [0] Title: Mobile Suit Gundam Hathaway (Anime - Filme)
+        Link: 'https://stelasub.blogspot.com/2020/03/mobile-suit-gundam-hathaway-anime-filme.html'
+        -> SKIPPED (In History - EXACT MATCH)
+    [1] Title: Gundam vs. Hello Kitty (Anime - SÚrie)
+        Link: 'https://stelasub.blogspot.com/2020/01/gundam-vs-hello-kitty.html'
+        -> SKIPPED (In History - EXACT MATCH)
+    [2] Title: Mobile Suit Gundam Narrative (Anime - Filme)
+        Link: 'https://stelasub.blogspot.com/2018/12/mobile-suit-gundam-narrative-anime-filme.html'
+        -> SKIPPED (In History - EXACT MATCH)
+
+--- Checking https://nyaa.si/?page=rss&q=gundam&c=1_2&f=0 ---
+    No Cache Headers found.
+    [Active Cache] Status: 200
+    Entries found: 75
+    [0] Title: [PMR] Mobile Suit Gundam Iron-Blooded Orphans Season 2 (S02) (BD Remux 1080p AVC FLAC) [Dual Audio]
+        Link: 'https://nyaa.si/download/2068635.torrent'
+        -> Testing Filters...
+           [PASS] Matches guild 417746665219424277
+        -> RESULT: WOULD SEND (Missing in History)
+    [1] Title: [hchcsen] Mobile Suit Gundam Iron-Blooded Orphans S01 [BD Remux Dual Audio 1080p AVC 2xFLAC]
+        Link: 'https://nyaa.si/download/2067787.torrent'
+        -> Testing Filters...
+           [PASS] Matches guild 417746665219424277
+        -> RESULT: WOULD SEND (Missing in History)
+    [2] Title: [Joseki] Mobile Suit V Gundam COMPLETE (1993)(BD AV1 1080p Opus)[Sub Eng]
+        Link: 'https://nyaa.si/download/2062606.torrent'
+        -> Testing Filters...
+           [PASS] Matches guild 417746665219424277
+        -> RESULT: WOULD SEND (Missing in History)
+
+--- Checking https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw ---
+    No Cache Headers found.
+    [Active Cache] Status: 200
+    Entries found: 15
+ERROR processing https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw: 'charmap' codec can't encode characters in position 15-21: character maps to <undefined>
+
+--- Checking https://www.youtube.com/feeds/videos.xml?channel_id=UCbJM_Y06iuUOl3hVPqYcvng ---
+    No Cache Headers found.
+    [Active Cache] Status: 200
+    Entries found: 15
+    [0] Title: SawanoHiroyuki[nZk]:Jean-Ken Johnny & TAKUMA "PROVANT" #HiroyukiSAWANO #MWAM #10FEET #strangefake
+        Link: 'https://www.youtube.com/shorts/W7erqRnxTC8'
+        -> Testing Filters...
+           [FAIL] Missing GUNDAM_CORE
+ERROR processing https://www.youtube.com/feeds/videos.xml?channel_id=UCbJM_Y06iuUOl3hVPqYcvng: 'charmap' codec can't encode character '\u300e' in position 59: character maps to <undefined>
+
+--- Checking https://www.youtube.com/@GUNDAM ---
+    No Cache Headers found.
+    [Active Cache] Status: 200
+    Entries found: 0
+    WARN: No entries found for https://www.youtube.com/@GUNDAM
+
+--- Checking https://gundam-official.com/ ---
+    No Cache Headers found.
+    [Active Cache] Status: 200
+    Entries found: 0
+    WARN: No entries found for https://gundam-official.com/
+
+--- Checking https://en.gundam-official.com/news ---
+    No Cache Headers found.
+    [Active Cache] Status: 200
+    Entries found: 0
+    WARN: No entries found for https://en.gundam-official.com/news
+
+--- Checking https://www.gundam-seed.net/news/ ---
+    No Cache Headers found.
+    [Active Cache] Status: 200
+    Entries found: 0
+    WARN: No entries found for https://www.gundam-seed.net/news/
+
+--- Checking https://bo2.ggame.jp/en/info/ ---
+    No Cache Headers found.
+    [Active Cache] Status: 200
+    Entries found: 0
+    WARN: No entries found for https://bo2.ggame.jp/en/info/
+
+--- Checking https://global.bandai-hobby.net/en-us/news/ ---
+    No Cache Headers found.
+    [Active Cache] Status: 403
+    Entries found: 0
+    WARN: No entries found for https://global.bandai-hobby.net/en-us/news/
+
+--- Checking https://bandai-hobby.net/news/ ---
+    Using Cache Headers: {'If-None-Match': '"8ffb3e608a7f0609d996b617548ad8d1"', 'If-Modified-Since': 'Tue, 25 Mar 2025 15:47:57 GMT'}
+    [Active Cache] Status: 200
+    Entries found: 0
+    WARN: No entries found for https://bandai-hobby.net/news/
+
+--- Checking https://www.gundam-base.net/news ---
+    No Cache Headers found.
+    [Active Cache] Status: 200
+    Entries found: 0
+    WARN: No entries found for https://www.gundam-base.net/news
+
+--- Checking https://www.gundam-base.net/staffblog/ ---
+    No Cache Headers found.
+    [Active Cache] Status: 200
+    Entries found: 0
+    WARN: No entries found for https://www.gundam-base.net/staffblog/
+
+--- Checking https://www.bandai.com/News ---
+    No Cache Headers found.
+    [Active Cache] Status: 200
+    Entries found: 0
+    WARN: No entries found for https://www.bandai.com/News
+
+--- Checking https://www.sunrise-music.co.jp/ ---
+    No Cache Headers found.
+    [Active Cache] Status: 200
+    Entries found: 0
+    WARN: No entries found for https://www.sunrise-music.co.jp/
+
+--- Checking https://en.gundam-official.com/video-music ---
+    No Cache Headers found.
+    [Active Cache] Status: 404
+    Entries found: 0
+    WARN: No entries found for https://en.gundam-official.com/video-music
+
+--- Checking https://www.gundamplanet.com/ ---
+    Using Cache Headers: {'If-None-Match': 'W/"page_cache:67147694277:IndexController:f0c6101068eb3e9f6f400b49e8cc230e"'}
+    [Active Cache] Status: 200
+    Entries found: 0
+    WARN: No entries found for https://www.gundamplanet.com/
+
+--- Checking https://bandaibrasil.com.br/collections/gundam ---
+    Using Cache Headers: {'If-None-Match': 'W/"page_cache:89767706996:CollectionDetailsController:04765733984e6920365b1ceccc89c0a0"'}
+    [Active Cache] Status: 200
+    Entries found: 0
+    WARN: No entries found for https://bandaibrasil.com.br/collections/gundam
+
+--- Checking https://www.gundamkitscollection.com/ ---
+    Using Cache Headers: {'If-None-Match': 'W/"7da0af0e22a89a094d28c6e14c663b90496dc4dd5c797f3012c69402f85f6517"', 'If-Modified-Since': 'Sun, 04 Jan 2026 05:08:26 GMT'}
+    [Active Cache] Status: 200
+    Entries found: 0
+    WARN: No entries found for https://www.gundamkitscollection.com/
+
+--- Checking https://www.vcagundam.com/ ---
+    No Cache Headers found.
+    [Active Cache] Status: 200
+    Entries found: 0
+    WARN: No entries found for https://www.vcagundam.com/
+
+--- Checking https://gundamnews.org/ ---
+    No Cache Headers found.
+    [Active Cache] Status: 200
+    Entries found: 0
+    WARN: No entries found for https://gundamnews.org/
+
+--- Checking https://www.gundam-seed.net/ ---
+    No Cache Headers found.
+    [Active Cache] Status: 200
+    Entries found: 0
+    WARN: No entries found for https://www.gundam-seed.net/
+
+--- Checking https://en.bandainamcoent.eu/ ---
+    Using Cache Headers: {'If-None-Match': '"1767555006"', 'If-Modified-Since': 'Sun, 04 Jan 2026 19:30:06 GMT'}
+    [Active Cache] Status: 503
+    Entries found: 0
+    WARN: No entries found for https://en.bandainamcoent.eu/
+
+--- Checking https://www.sunrise-inc.co.jp/international/ ---
+    No Cache Headers found.
+    [Active Cache] Status: 200
+    Entries found: 0
+    WARN: No entries found for https://www.sunrise-inc.co.jp/international/
+
+--- Checking https://www.facebook.com/gundamglobalportal/?ref=embed_page# ---
+    No Cache Headers found.
+    [Active Cache] Status: 200
+    Entries found: 0
+    WARN: No entries found for https://www.facebook.com/gundamglobalportal/?ref=embed_page#
+
+--- Checking https://www.facebook.com/gundam.info.en/?locale=pt_BR ---
+    No Cache Headers found.
+    [Active Cache] Status: 200
+    Entries found: 0
+    WARN: No entries found for https://www.facebook.com/gundam.info.en/?locale=pt_BR
+
+--- Checking https://www.gunjap.net/ ---
+    No Cache Headers found.
+    [Active Cache] Status: 200
+    Entries found: 0
+    WARN: No entries found for https://www.gunjap.net/
