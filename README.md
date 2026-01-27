@@ -183,6 +183,7 @@ DISCORD_TOKEN=seu_token_aqui
 # Opcional
 COMMAND_PREFIX=!
 LOOP_MINUTES=30
+LOG_LEVEL=INFO  # Use DEBUG para logs GRC detalhados
 ```
 
 ### Fontes de Feeds (`sources.json`)
