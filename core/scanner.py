@@ -173,7 +173,8 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                     return (url, entries)
                     
                 except Exception as e:
-                    log.error(f"Falha ao baixar feed '{url}': {e}")
+                    log.error(f"❌ Falha ao baixar feed '{url}': {e}")
+                    log.debug(f"Traceback feed '{url}':", exc_info=True)
                     return None
 
         async with aiohttp.ClientSession(connector=connector, headers=base_headers, timeout=timeout) as session:
@@ -188,7 +189,12 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                 
                 for entry in entries:
                     link = entry.get("link") or ""
-                    if not link or link in history_set:
+                    if not link:
+                         log.debug(f"⚠️ Item sem link ignorado em {url}")
+                         continue
+                         
+                    if link in history_set:
+                        log.debug(f"⏭️ [History] Já enviado: {link}")
                         continue
 
                     title = entry.get("title") or ""
@@ -204,7 +210,10 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         if not isinstance(channel_id, int): continue
 
                         if not match_intel(str(gid), title, summary, config):
+                            log.debug(f"🛡️ [Filtro] Guild {gid} bloqueou: {title[:50]}...")
                             continue
+                        
+                        log.info(f"✨ [Match] Guild {gid} aprovou: {title[:50]}...")
 
                         channel = bot.get_channel(channel_id)
                         if channel is None:
@@ -281,7 +290,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                             await asyncio.sleep(1)
 
                         except Exception as e:
-                            log.error(f"Falha ao enviar no canal {channel_id}: {e}")
+                            log.exception(f"❌ Falha ao enviar no canal {channel_id}: {e}")
 
                     if posted_anywhere:
                         history_set.add(link)

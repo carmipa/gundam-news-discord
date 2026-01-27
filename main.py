@@ -79,7 +79,8 @@ async def main():
 
     @bot.event
     async def on_ready():
-        log.info(f"✅ Bot conectado como: {bot.user}")
+        log.info(f"✅ Bot conectado como: {bot.user} (ID: {bot.user.id})")
+        log.info(f"📊 Servidores conectados: {len(bot.guilds)}")
 
         # 0. Iniciar Web Server (Fase 10)
         await start_web_server(port=8080)

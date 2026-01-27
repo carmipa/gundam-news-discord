@@ -25,7 +25,7 @@ class AdminCog(commands.Cog):
             await self.run_scan_once(trigger="forcecheck")
             await interaction.followup.send("✅ Varredura forçada concluída!", ephemeral=True)
         except Exception as e:
-            log.error(f"Erro em /forcecheck: {e}")
+            log.exception(f"❌ Erro crítico em /forcecheck: {e}")
             try:
                 await interaction.followup.send("❌ Falha ao executar varredura.", ephemeral=True)
             except:
