@@ -7,7 +7,8 @@ import logging
 import feedparser
 import aiohttp
 import certifi
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from dateutil import parser as dtparser
 from typing import List, Set, Tuple, Dict, Any
 from urllib.parse import urlparse, urlunparse
 
@@ -128,6 +129,29 @@ def sanitize_link(link: str) -> str:
     except:
         return link
 
+def parse_entry_dt(entry: Any) -> datetime:
+    """
+    Tenta extrair a data de publicação de forma robusta.
+    Retorna datetime (com tzinfo se possível) ou None.
+    """
+    try:
+        # Tenta dateutil primeiro (ISO 8601 do YouTube)
+        s = getattr(entry, "published", None) or getattr(entry, "updated", None)
+        if s:
+            return dtparser.isoparse(s)
+    except:
+        pass
+    
+    # Fallback para struct_time do feedparser
+    try:
+        st = getattr(entry, "published_parsed", None) or getattr(entry, "updated_parsed", None)
+        if st:
+            return datetime(*st[:6], tzinfo=timezone.utc)
+    except:
+        pass
+        
+    return None
+
 # =========================================================
 # SCANNER LOGIC
 # =========================================================
@@ -198,6 +222,10 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
             
             async with semaphore:
                 try:
+                    # Rate Limit específico para YouTube (evita 429)
+                    if "youtube.com" in url or "youtu.be" in url:
+                        await asyncio.sleep(2)
+                        
                     request_headers = get_cache_headers(url, http_state)
                     
                     async with session.get(url, headers=request_headers) as resp:
@@ -249,6 +277,17 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                     if link in history_set:
                         log.debug(f"⏭️ [History] Já enviado: {link}")
                         continue
+                        
+                    # Filtragem por data (Robustez: ignora posts muito antigos > 3 dias)
+                    # Isso evita flood se o histórico for perdido ou em novos feeds
+                    entry_dt = parse_entry_dt(entry)
+                    if entry_dt:
+                        # Torna datetime.now() ciente de fuso se entry_dt for
+                        now = datetime.now(entry_dt.tzinfo) if entry_dt.tzinfo else datetime.now()
+                        age = now - entry_dt
+                        if age.days > 3:
+                             log.debug(f"👴 [Old] Ignorado (idade {age.days}d): {link}")
+                             continue
 
                     title = entry.get("title") or ""
                     summary = entry.get("summary") or entry.get("description") or ""

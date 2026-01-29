@@ -10,9 +10,9 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 # Operação (opcional via env)
 COMMAND_PREFIX = os.getenv("COMMAND_PREFIX", "!")
 try:
-    LOOP_MINUTES = int(os.getenv("LOOP_MINUTES", "30"))
+    LOOP_MINUTES = int(os.getenv("LOOP_MINUTES", "60"))
 except ValueError:
-    LOOP_MINUTES = 30
+    LOOP_MINUTES = 60
 
 # Logging Level (INFO, DEBUG, WARNING, ERROR)
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()

@@ -42,6 +42,7 @@
 | Feature | Description |
 |---------|-----------|
 | 📡 **Periodic Scanner** | Scans RSS/Atom/YouTube feeds every 30 minutes (configurable) |
+| 🕵️ **HTML Watcher** | Monitors official non-RSS sites (e.g., Gundam Official) for visual changes |
 | 🎛️ **Persistent Dashboard** | Interactive panel with buttons that work even after restart |
 | 🎯 **Category Filters** | Gunpla, Movies, Games, Music, Fashion + "ALL" option |
 | 🛡️ **Anti-Spam** | Blacklist to block non-Gundam related anime/games |
@@ -73,6 +74,23 @@ flowchart LR
   H --> E
   I["history.json<br>sent links"] --> D
   F --> I
+
+  W["Web Dashboard<br>aiohttp (Port 8080)"] .-> H
+  W .-> I
+  A["sources.json<br>Feeds RSS + HTML"] --> B["Scanner<br>core/scanner.py"]
+  B --> C["Normalization<br>URL + entries"]
+  B --> J["HTML Monitor<br>core/html_monitor.py"]
+  C --> D["Mafty Filters<br>core/filters.py"]
+  D -->|Approved| E["Translator (Auto)<br>utils/translator.py"]
+  E --> F["Discord Post<br>Channel per guild"]
+  J -->|Change Detected| F
+  D -->|Rejected| G["Ignore / Discard"]
+
+  H["config.json<br>channel + filters + lang"] --> D
+  H --> E
+  I["history.json<br>sent links"] --> D
+  F --> I
+  F --> K["state.json<br>Hashes HTML"]
 
   W["Web Dashboard<br>aiohttp (Port 8080)"] .-> H
   W .-> I
@@ -201,6 +219,21 @@ The bot accepts two formats:
   ],
   "youtube_feeds": [
     "https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw"
+  ]
+}
+```
+
+</details>
+
+<details>
+<summary><b>📁 Official Sites (HTML Monitoring)</b></summary>
+Sites without RSS are placed in a separate array. The bot checks for hash changes.
+
+```json
+{
+  "official_sites_reference_(not_rss)": [
+    "https://gundam-official.com/",
+    "https://en.gundam-official.com/news"
   ]
 }
 ```
@@ -408,7 +441,7 @@ gundam-news-discord/
 ├── 🖼️ icon.png             # Bot icon
 ├── 📁 .github/             # GitHub Actions Workflows
 ├── 📁 bot/                 # Bot logic (Cogs, Views)
-├── 📁 core/                # System Core (Scanner, Filters)
+├── 📁 core/                # System Core (Scanner, Filters, HTML Monitor)
 ├── 📁 tests/               # Automated tests
 ├── 📁 translations/        # Internationalization (i18n)
 ├── 📁 utils/               # Utilities (Logger, Helpers)
