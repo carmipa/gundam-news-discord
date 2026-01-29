@@ -21,6 +21,7 @@ from utils.cache import load_http_state, save_http_state, get_cache_headers, upd
 from utils.translator import translate_to_target, t
 from core.stats import stats
 from core.filters import match_intel
+from core.html_monitor import check_official_sites
 
 log = logging.getLogger("MaftyIntel")
 
@@ -168,6 +169,11 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
 
         history_list, history_set = load_history()
         http_state = load_http_state()
+        
+        # Load HTML Monitor state
+        state_file = p("state.json")
+        app_state = load_json_safe(state_file, {})
+        html_hashes = app_state.get("html_hashes", {})
 
         # SSL Configuration
         ssl_ctx = ssl.create_default_context(cafile=certifi.where())
@@ -342,6 +348,41 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                     if posted_anywhere:
                         history_set.add(link)
                         history_list.append(link)
+
+        # =========================================================
+        # HTML MONITOR RUN (SITE WATCHER)
+        # =========================================================
+        try:
+            log.info("🔎 Verificando sites oficiais (HTML Watcher)...")
+            html_updates, new_hashes = await check_official_sites(html_hashes)
+            
+            if html_updates:
+                log.info(f"✨ {len(html_updates)} atualizações em sites oficiais detectadas!")
+                html_hashes = new_hashes
+                app_state["html_hashes"] = html_hashes
+                save_json_safe(state_file, app_state)
+                
+                # Dispatch updates
+                for update in html_updates:
+                    u_title = update["title"]
+                    u_link = update["link"]
+                    
+                    for gid, gdata in config.items():
+                        if not isinstance(gdata, dict): continue
+                        channel_id = gdata.get("channel_id")
+                        if not channel_id: continue
+                        
+                        channel = bot.get_channel(channel_id)
+                        if channel:
+                            await channel.send(f"⚠️ **MAFTY INTEL ALERT**\n{u_title}\n{u_link}")
+            else:
+                 # Even if no updates, save state if it was initialized
+                 if new_hashes != html_hashes:
+                     app_state["html_hashes"] = new_hashes
+                     save_json_safe(state_file, app_state)
+                     
+        except Exception as e:
+            log.error(f"❌ Erro no HTML Monitor: {e}")
 
         save_history(history_list)
         save_http_state(http_state)
