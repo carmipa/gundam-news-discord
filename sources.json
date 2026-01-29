@@ -17,10 +17,9 @@
   ],
   "youtube_feeds": [
     "https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw",
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCbJM_Y06iuUOl3hVPqYcvng",
-    "https://www.youtube.com/watch?v=nmcw9QEuFvc"
+    "https://www.youtube.com/feeds/videos.xml?channel_id=UCbJM_Y06iuUOl3hVPqYcvng"
   ],
-  "official_sites": [
+  "official_sites_reference_(not_rss)": [
     "https://gundam-official.com/",
     "https://en.gundam-official.com/news",
     "https://www.gundam-seed.net/news/",

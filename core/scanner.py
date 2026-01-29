@@ -9,7 +9,7 @@ import aiohttp
 import certifi
 from datetime import datetime, timedelta
 from typing import List, Set, Tuple, Dict, Any
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 
 import discord
 from discord.ext import tasks
@@ -93,6 +93,39 @@ def load_sources() -> List[str]:
             out.append(u)
     return out
 
+
+
+
+def sanitize_link(link: str) -> str:
+    """
+    Remove parâmetros de rastreamento (utm_, etc) para evitar duplicação no histórico.
+    Mantém parâmetros úteis (id, v, article).
+    """
+    try:
+        parsed = urlparse(link)
+        # Se for YouTube, não mexe na query string (pode quebrar v=...)
+        if "youtube.com" in parsed.netloc or "youtu.be" in parsed.netloc:
+            return link
+            
+        # Filtra query params
+        q_pairs = parsed.query.split('&')
+        cleaned_pairs = [
+            pair for pair in q_pairs 
+            if not pair.startswith(('utm_', 'ref', 'source', 'fbclid', 'timestamp'))
+            and pair # remove vazios
+        ]
+        new_query = '&'.join(cleaned_pairs)
+        
+        return urlunparse((
+            parsed.scheme,
+            parsed.netloc,
+            parsed.path,
+            parsed.params,
+            new_query,
+            parsed.fragment
+        ))
+    except:
+        return link
 
 # =========================================================
 # SCANNER LOGIC
@@ -199,9 +232,13 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                 
                 for entry in entries:
                     link = entry.get("link") or ""
+                         
                     if not link:
                          log.debug(f"⚠️ Item sem link ignorado em {url}")
                          continue
+                    
+                    # Limpeza de URL para deduplicação robusta
+                    link = sanitize_link(link)
                          
                     if link in history_set:
                         log.debug(f"⏭️ [History] Já enviado: {link}")
