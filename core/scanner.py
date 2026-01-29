@@ -138,7 +138,12 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
 
         # SSL Configuration
         ssl_ctx = ssl.create_default_context(cafile=certifi.where())
-        base_headers = {"User-Agent": "Mozilla/5.0 MaftyIntel/2.1"}
+        # User-Agent atualizado para simular browser real e evitar bloqueios (Gundam.info, etc)
+        base_headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
+            "Accept-Language": "en-US,en;q=0.5"
+        }
         timeout = aiohttp.ClientTimeout(total=25)
         connector = aiohttp.TCPConnector(ssl=ssl_ctx)
 
@@ -170,6 +175,11 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                     feed = await loop.run_in_executor(None, lambda: feedparser.parse(text))
                     
                     entries = getattr(feed, "entries", []) or []
+                    
+                    # Diagnóstico de falha silenciosa de parser
+                    if not entries and resp.status == 200:
+                         log.warning(f"⚠️ Feed retornou 200 OK mas 0 entradas (possível mudança de layout): {url}")
+                         
                     return (url, entries)
                     
                 except Exception as e:
@@ -321,7 +331,18 @@ def start_scheduler(bot: discord.Client):
     
     @tasks.loop(minutes=LOOP_MINUTES)
     async def intelligence_gathering():
-        await run_scan_once(bot, trigger="loop")
+        try:
+            await run_scan_once(bot, trigger="loop")
+        except Exception as e:
+            log.exception(f"🔥 Erro não tratado dentro do loop 'intelligence_gathering': {e}")
+            # Importante: O loop do discord.ext.tasks pode parar se o erro subir.
+            # Este try/except garante que o erro seja logado e a task continue no próximo intervalo.
+
+    @intelligence_gathering.error
+    async def intelligence_gathering_error(error):
+        log.exception(f"💀 Erro Fatal no Loop (tasks.loop): {error}")
+        # Tenta reiniciar o loop se ele tiver morrido
+        # (Nota: intelligence_gathering.restart() não é método padrão documentado, melhor apenas logar)
     
     @intelligence_gathering.before_loop
     async def _before_loop():
