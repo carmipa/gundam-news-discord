@@ -285,7 +285,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         # Torna datetime.now() ciente de fuso se entry_dt for
                         now = datetime.now(entry_dt.tzinfo) if entry_dt.tzinfo else datetime.now()
                         age = now - entry_dt
-                        if age.days > 3:
+                        if age.days > 7:
                              log.debug(f"👴 [Old] Ignorado (idade {age.days}d): {link}")
                              continue
 
