@@ -17,7 +17,8 @@
   ],
   "youtube_feeds": [
     "https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw",
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCbJM_Y06iuUOl3hVPqYcvng"
+    "https://www.youtube.com/feeds/videos.xml?channel_id=UCbJM_Y06iuUOl3hVPqYcvng",
+    "https://www.youtube.com/feeds/videos.xml?channel_id=UCjO7_R8sP5-uPzZ4C00000Q"
   ],
   "official_sites_reference_(not_rss)": [
     "https://gundam-official.com/",
@@ -41,8 +42,6 @@
     "https://www.sunrise-inc.co.jp/international/",
     "https://www.facebook.com/gundamglobalportal/?ref=embed_page#",
     "https://www.facebook.com/gundam.info.en/?locale=pt_BR",
-    "https://www.gunjap.net/",
-    "https://www.youtube.com/IGNMovieTrailers",
-    "https://www.youtube.com/@IGNGames"
+    "https://www.gunjap.net/"
   ]
 }
