@@ -227,11 +227,11 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         # SSL Configuration
         ssl_ctx = ssl.create_default_context(cafile=certifi.where())
         base_headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
             "Accept-Language": "en-US,en;q=0.9",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
         }
-        timeout = aiohttp.ClientTimeout(total=25)
+        timeout = aiohttp.ClientTimeout(total=30)
         connector = aiohttp.TCPConnector(ssl=ssl_ctx)
 
         sent_count = 0
@@ -256,6 +256,10 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                             log.debug(f"📦 Cache hit: {url} (304)")
                             return None
                         
+                        if resp.status == 431:
+                            log.warning(f"⚠️ Twitter/X Error: Header value too long (431) - {url}")
+                            return None
+
                         update_cache_state(url, resp.headers, http_cache)
                         text = await resp.text(errors="ignore")
                     
