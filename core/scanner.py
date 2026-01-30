@@ -11,6 +11,8 @@ from datetime import datetime, timedelta, timezone
 from dateutil import parser as dtparser
 from typing import List, Set, Tuple, Dict, Any
 from urllib.parse import urlparse, urlunparse
+import time
+import os
 
 import discord
 from discord.ext import tasks
@@ -170,6 +172,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         bot: Instância do bot Discord
         trigger: Quem disparou ("loop", "dashboard", "manual")
     """
+
     if scan_lock.locked():
         log.info(f"⏭️ Varredura ignorada (já existe uma em execução). Trigger: {trigger}")
         return
@@ -191,17 +194,38 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
             _log_next_run()
             return
 
-        history_list, history_set = load_history()
-        http_state = load_http_state()
-        
-        # Load HTML Monitor state
+        # =========================================================
+        # UNIFIED STATE MANAGEMENT & AUTO-CLEANUP
+        # =========================================================
+        # Carrega o estado unificado (HTTP Cache + HTML Monitor + Deduplication + Cleanup)
         state_file = p("state.json")
-        app_state = load_json_safe(state_file, {})
-        html_hashes = app_state.get("html_hashes", {})
+        state = load_json_safe(state_file, {})
+        
+        # Garante estruturas básicas
+        state.setdefault("dedup", {})
+        state.setdefault("http_cache", {})
+        state.setdefault("html_hashes", {})
+        state.setdefault("last_cleanup", 0)
+
+        # Regra de Auto-Limpeza (Cleanup) a cada 7 dias
+        now_ts = time.time()
+        last_clean = state.get("last_cleanup", 0)
+        CLEANUP_INTERVAL = 604800  # 7 dias em segundos
+
+        if now_ts - last_clean > CLEANUP_INTERVAL:
+            log.info("🧹 [Auto-Cleanup] Executando limpeza de cache (Ciclo de 7 dias)")
+            state["dedup"] = {}  # Limpa histórico de mensagens enviadas para forçar refresh se necessário
+            state["last_cleanup"] = now_ts
+            # Nota: Não limpamos http_cache para manter eficiência, apenas o dedup de posts
+        
+        # Referências locais para facilitar acesso
+        http_cache = state["http_cache"]
+        html_hashes = state["html_hashes"]
+        # history_set ainda usado como fallback global, mas dedup por site é prioritário
+        history_list, history_set = load_history()
 
         # SSL Configuration
         ssl_ctx = ssl.create_default_context(cafile=certifi.where())
-        # User-Agent atualizado para simular browser real e evitar bloqueios (Gundam.info, etc)
         base_headers = {
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
             "Accept-Language": "en-US,en;q=0.9",
@@ -213,20 +237,18 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         sent_count = 0
         cache_hits = 0
         
-        # Semáforo para concorrência
         MAX_CONCURRENT_FEEDS = 5
         semaphore = asyncio.Semaphore(MAX_CONCURRENT_FEEDS)
 
         async def fetch_and_process_feed(session, url):
-            nonlocal cache_hits, http_state
+            nonlocal cache_hits, state
             
             async with semaphore:
                 try:
-                    # Rate Limit específico para YouTube (evita 429)
                     if "youtube.com" in url or "youtu.be" in url:
                         await asyncio.sleep(2)
                         
-                    request_headers = get_cache_headers(url, http_state)
+                    request_headers = get_cache_headers(url, http_cache)
                     
                     async with session.get(url, headers=request_headers) as resp:
                         if resp.status == 304:
@@ -234,18 +256,16 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                             log.debug(f"📦 Cache hit: {url} (304)")
                             return None
                         
-                        update_cache_state(url, resp.headers, http_state)
+                        update_cache_state(url, resp.headers, http_cache)
                         text = await resp.text(errors="ignore")
                     
-                    # Parse do feed em thread pool (feedparser é bloqueante)
                     loop = asyncio.get_running_loop()
                     feed = await loop.run_in_executor(None, lambda: feedparser.parse(text))
                     
                     entries = getattr(feed, "entries", []) or []
                     
-                    # Diagnóstico de falha silenciosa de parser
                     if not entries and resp.status == 200:
-                         log.warning(f"⚠️ Feed retornou 200 OK mas 0 entradas (possível mudança de layout): {url}")
+                         log.warning(f"⚠️ Feed retornou 200 OK mas 0 entradas: {url}")
                          
                     return (url, entries)
                     
@@ -264,30 +284,46 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                     
                 url, entries = result
                 
+                # Cold Start Check para este feed específico
+                # Se a URL não estiver no dedup, é um cold start ou reset deste feed
+                is_cold_start = url not in state["dedup"]
+                if is_cold_start:
+                    log.info(f"❄️ [Cold Start] Detectado para {url}. Ignorando travas de tempo para os 3 primeiros posts.")
+                    state["dedup"][url] = []
+                
+                feed_posted_count = 0
+                
                 for entry in entries:
-                    link = entry.get("link") or ""
-                         
-                    if not link:
-                         log.debug(f"⚠️ Item sem link ignorado em {url}")
-                         continue
+                    link = entry.get("link") or "" 
+                    if not link: continue
                     
-                    # Limpeza de URL para deduplicação robusta
                     link = sanitize_link(link)
-                         
-                    if link in history_set:
-                        log.debug(f"⏭️ [History] Já enviado: {link}")
+                    
+                    # 1. Verifica no dedup específico do site (Prioridade)
+                    if link in state["dedup"][url]:
                         continue
                         
-                    # Filtragem por data (Robustez: ignora posts muito antigos > 3 dias)
-                    # Isso evita flood se o histórico for perdido ou em novos feeds
+                    # 2. Verifica histórico global (Legado/Fallback)
+                    if link in history_set:
+                        # Adiciona ao novo dedup para consistência
+                        state["dedup"][url].append(link)
+                        continue
+
+                    # Cold Start Limit Check overrules everything
+                    if is_cold_start and feed_posted_count >= 3:
+                         continue
+
+                    # Filtragem por data
                     entry_dt = parse_entry_dt(entry)
                     if entry_dt:
-                        # Torna datetime.now() ciente de fuso se entry_dt for
                         now = datetime.now(entry_dt.tzinfo) if entry_dt.tzinfo else datetime.now()
                         age = now - entry_dt
-                        if age.days > 7:
-                             log.debug(f"👴 [Old] Ignorado (idade {age.days}d): {link}")
-                             continue
+                        
+                        # Se NÃO for Cold Start, aplica regra de 7 dias
+                        if not is_cold_start:
+                            if age.days > 7:
+                                log.debug(f"👴 [Old] Ignorado (idade {age.days}d): {link}")
+                                continue
 
                     title = entry.get("title") or ""
                     summary = entry.get("summary") or entry.get("description") or ""
@@ -305,32 +341,25 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                             log.debug(f"🛡️ [Filtro] Guild {gid} bloqueou: {title[:50]}...")
                             continue
                         
+                        # Envio (código de envio inalterado abaixo)
                         log.info(f"✨ [Match] Guild {gid} aprovou: {title[:50]}...")
 
                         channel = bot.get_channel(channel_id)
                         if channel is None:
-                            log.warning(f"Canal {channel_id} não encontrado na guild {gid}.")
+                            log.warning(f"Canal {channel_id} não encontrado.")
                             continue
 
-                        # Preparação do conteúdo
                         t_clean = clean_html(title).strip()
                         s_clean = clean_html(summary).strip()[:2000]
 
-                        # Detecta idioma da guild
-                        # Precisamos carregar o idioma configurado ou usar default
+                        # Tradução
                         target_lang = "en_US"
                         if str(gid) in config and "language" in config[str(gid)]:
                             target_lang = config[str(gid)]["language"]
                         
-                        # Tradução Dinâmica
-                        # Se o idioma for en_US, o texto original (geralmente EN) é mantido se não houver tradução
-                        # Mas como as fontes podem ser JP, sempre tentamos traduzir se não for o original
-                        # Assumindo que translate_to_target lida com 'auto' source.
-                        
                         t_translated = await translate_to_target(t_clean, target_lang)
                         s_translated = await translate_to_target(s_clean, target_lang)
 
-                        # Detecta se é link de mídia (YouTube, etc) para exibir player nativo
                         media_domains = ("youtube.com", "youtu.be", "twitch.tv", "soundcloud.com", "spotify.com")
                         is_media = False
                         try:
@@ -340,12 +369,9 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
 
                         try:
                             if is_media:
-                                # Para mídia, enviamos o link no content para o Discord gerar o player
-                                # Adicionamos o título traduzido para contexto
                                 msg_content = f"**{t_translated}**\n{link}"
                                 await channel.send(content=msg_content)
                             else:
-                                # Para notícias normais, mantemos o Embed bonito
                                 embed = discord.Embed(
                                     title=t_translated[:256],
                                     description=s_translated,
@@ -353,21 +379,12 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                                     color=discord.Color.from_rgb(255, 0, 32),
                                     timestamp=datetime.now()
                                 )
-                                
-                                # Strings localizadas
-                                # Usa t.get com o idioma alvo
                                 from utils.translator import t
-                                
                                 author_name = t.get('embed.author', lang=target_lang)
-                                embed.set_author(
-                                    name=author_name,
-                                    icon_url=bot.user.avatar.url if bot.user and bot.user.avatar else None
-                                )
-                                
+                                embed.set_author(name=author_name, icon_url=bot.user.avatar.url if bot.user and bot.user.avatar else None)
                                 source_domain = urlparse(link).netloc
                                 footer_text = t.get('embed.source', lang=target_lang, source=source_domain)
                                 embed.set_footer(text=footer_text)
-                                
                                 if hasattr(entry, "media_thumbnail") and entry.media_thumbnail:
                                     try:
                                         thumb_url = entry.media_thumbnail[0].get("url")
@@ -379,12 +396,17 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
 
                             posted_anywhere = True
                             sent_count += 1
+                            if is_cold_start:
+                                feed_posted_count += 1
+                            
                             await asyncio.sleep(1)
 
                         except Exception as e:
                             log.exception(f"❌ Falha ao enviar no canal {channel_id}: {e}")
 
                     if posted_anywhere:
+                        # Adiciona ao dedup específico e global
+                        state["dedup"][url].append(link)
                         history_set.add(link)
                         history_list.append(link)
 
@@ -393,38 +415,35 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         # =========================================================
         try:
             log.info("🔎 Verificando sites oficiais (HTML Watcher)...")
+            # Passa apenas o dicionário de hashes para o monitor
+            # Se check_official_sites retornar updates, atualizamos o state principal
             html_updates, new_hashes = await check_official_sites(html_hashes)
             
             if html_updates:
                 log.info(f"✨ {len(html_updates)} atualizações em sites oficiais detectadas!")
-                html_hashes = new_hashes
-                app_state["html_hashes"] = html_hashes
-                save_json_safe(state_file, app_state)
-                
+                state["html_hashes"] = new_hashes
                 # Dispatch updates
                 for update in html_updates:
                     u_title = update["title"]
                     u_link = update["link"]
-                    
                     for gid, gdata in config.items():
                         if not isinstance(gdata, dict): continue
                         channel_id = gdata.get("channel_id")
                         if not channel_id: continue
-                        
                         channel = bot.get_channel(channel_id)
                         if channel:
                             await channel.send(f"⚠️ **MAFTY INTEL ALERT**\n{u_title}\n{u_link}")
             else:
-                 # Even if no updates, save state if it was initialized
                  if new_hashes != html_hashes:
-                     app_state["html_hashes"] = new_hashes
-                     save_json_safe(state_file, app_state)
+                     state["html_hashes"] = new_hashes
                      
         except Exception as e:
             log.error(f"❌ Erro no HTML Monitor: {e}")
 
+        # Salva TUDO em um único arquivo de forma atômica/safe
         save_history(history_list)
-        save_http_state(http_state)
+        save_json_safe(state_file, state)
+        # Removido save_http_state duplicado que causava race condition
         
         stats.scans_completed += 1
         stats.news_posted += sent_count
