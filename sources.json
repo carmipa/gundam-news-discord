@@ -11,7 +11,10 @@
     "https://nyaa.si/?page=rss&q=gundam&c=1_2&f=0",
     "https://www.crunchyroll.com/news/rss",
     "https://www.whats-on-netflix.com/feed/",
-    "https://www.aboutamazon.com/rss"
+    "https://www.aboutamazon.com/rss",
+    "http://blog.esuteru.com/index.rdf",
+    "https://natalie.mu/comic/feed/news",
+    "http://yaraon-blog.com/feed"
   ],
   "youtube_feeds": [
     "https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw",
@@ -43,6 +46,13 @@
     "https://www.gunjap.net/",
     "https://gundam-official.com/hathaway/",
     "https://gundam-official.com/hathaway/news/",
-    "https://www.gundamfc.com/"
+    "https://www.gundamfc.com/",
+    "https://mao.5ch.net/test/read.cgi/eq/1740193892",
+    "https://mantan-web.jp/",
+    "https://eiga.com/",
+    "https://www.bilibili.com/",
+    "https://bbs.a9vg.com/forum-661-1.html",
+    "https://www.1999.co.jp/eng/gundam/",
+    "https://www.sotsu.co.jp/en/"
   ]
 }
