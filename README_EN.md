@@ -51,7 +51,7 @@
 | 📝 **Logs in PT-BR** | Clear messages for debugging and monitoring |
 | 🎨 **Rich Embeds** | Premium looking news (Gundam color, thumbnails, timestamps) |
 | 🎞️ **Native Player** | YouTube/Twitch videos play directly in chat (no browser needed) |
-| 🌍 **Multi-Language** | Support for EN, PT, ES, IT (auto-detect + `/setlang`) |
+| 🌍 **Multi-Language** | Support for EN, PT, ES, IT, JA (auto-detect + `/setlang`) |
 | 🖥️ **Web Dashboard** | Visual panel at <http://host:8080> with real-time status |
 | 🧹 **Auto-Cleanup** | Automatic cache cleaning every 7 days for performance (Zero maintenance) |
 | ❄️ **Cold Start** | Immediately posts top 3 recent news from new sources (bypassing time locks) |

@@ -51,7 +51,7 @@
 | 📝 **Logs em PT-BR** | Mensagens claras para debug e monitoramento |
 | 🎨 **Embeds Ricos** | Notícias com visual premium (cor Gundam, thumbnails, timestamps) |
 | 🎞️ **Player Nativo** | Vídeos do YouTube/Twitch tocam direto no chat (sem abrir navegador) |
-| 🌍 **Multi-Idioma** | Suporte a EN, PT, ES, IT (detecção automática + `/setlang`) |
+| 🌍 **Multi-Idioma** | Suporte a EN, PT, ES, IT, JA (detecção automática + `/setlang`) |
 | 🖥️ **Web Dashboard** | Painel visual em <http://host:8080> com status em tempo real |
 | 🧹 **Auto-Cleanup** | Limpeza automática de cache a cada 7 dias para performance (Zero manutenção) |
 | ❄️ **Cold Start** | Posta imediatamente as 3 notícias mais recentes de novas fontes (ignora travas) |

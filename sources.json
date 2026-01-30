@@ -14,12 +14,18 @@
     "https://www.aboutamazon.com/rss",
     "http://blog.esuteru.com/index.rdf",
     "https://natalie.mu/comic/feed/news",
-    "http://yaraon-blog.com/feed"
+    "http://yaraon-blog.com/feed",
+    "https://deadline.com/feed/",
+    "https://variety.com/feed/",
+    "https://kotaku.com/rss",
+    "https://www.alltheanime.com/blogs/news.atom",
+    "https://www.reddit.com/r/Gundam/.rss"
   ],
   "youtube_feeds": [
     "https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw",
     "https://www.youtube.com/feeds/videos.xml?channel_id=UCbJM_Y06iuUOl3hVPqYcvng",
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCjO7_R8sP5-uPzZ4C00000Q"
+    "https://www.youtube.com/feeds/videos.xml?channel_id=UCjO7_R8sP5-uPzZ4C00000Q",
+    "https://www.youtube.com/feeds/videos.xml?channel_id=UCamRLcYia0SOlSsIcbbGiag"
   ],
   "official_sites_reference_(not_rss)": [
     "https://gundam-official.com/",
@@ -53,6 +59,12 @@
     "https://www.bilibili.com/",
     "https://bbs.a9vg.com/forum-661-1.html",
     "https://www.1999.co.jp/eng/gundam/",
-    "https://www.sotsu.co.jp/en/"
+    "https://www.sotsu.co.jp/en/",
+    "https://www.catsuka.com/",
+    "https://www.manga-news.com/",
+    "https://www.gundamworld.it/",
+    "https://www.animeclick.it/video-intro?r=/",
+    "https://www.bandai.com/",
+    "https://www.youtube.com/hashtag/%E9%96%83%E5%85%89%E3%81%AE%E3%83%8F%E3%82%B5%E3%82%A6%E3%82%A7%E3%82%A4"
   ]
 }
