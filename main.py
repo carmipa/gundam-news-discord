@@ -13,6 +13,8 @@ from utils.storage import p, load_json_safe
 from bot.views.filter_dashboard import FilterDashboard
 from core.scanner import start_scheduler, run_scan_once
 from web.server import start_web_server  # Novo web server
+from utils.git_info import get_git_changes, get_current_hash
+from utils.storage import save_json_safe
 
 # Configuração de Logs
 import os
@@ -109,6 +111,57 @@ async def main():
 
         # 3. Iniciar Loop de Scanner
         start_scheduler(bot)
+
+        # 4. Anúncio de Versão (Git Check)
+        try:
+            current_hash = get_current_hash()
+            state_file = p("state.json")
+            state = load_json_safe(state_file, {})
+            last_hash = state.get("last_announced_hash")
+
+            if current_hash and current_hash != last_hash:
+                changes = get_git_changes()
+                repo_url = "https://github.com/carmipa/gundam-news-discord"
+                
+                # Encontra um canal para anunciar (prioridade: canal de logs ou primeiro canal de texto)
+                target_channel = None
+                
+                # Tenta achar um canal configurado primeiro
+                if isinstance(cfg, dict):
+                    for gid, gdata in cfg.items():
+                        if isinstance(gdata, dict) and gdata.get("channel_id"):
+                             target_channel = bot.get_channel(gdata["channel_id"])
+                             if target_channel: break
+                
+                if target_channel:
+                    log.info(f"📢 Anunciando nova versão {current_hash} no canal {target_channel.name}")
+                    
+                    # Mafty System Style Embed
+                    from datetime import datetime
+                    now = datetime.now()
+                    date_str = now.strftime("%Y.%m.%d")
+                    time_str = now.strftime("%H:%M")
+                    
+                    embed = discord.Embed(
+                        title=f"🛰️ MAFTY SYSTEM UPDATE - RELEASE DAY {date_str}",
+                        description=f"{changes}\n\n**Repositório:** [github.com/carmipa/gundam-news-discord](https://github.com/carmipa/gundam-news-discord)",
+                        color=discord.Color.from_rgb(255, 100, 0) # Orange/Red theme
+                    )
+                    
+                    embed.set_footer(text=f"Status: Operacional | Rede: 192.168.0.50 (Guarulhos) | Deploy: {time_str} BRT")
+                    
+                    await target_channel.send(embed=embed)
+                    
+                    # Atualiza estado para não repetir
+                    state["last_announced_hash"] = current_hash
+                    save_json_safe(state_file, state)
+                else:
+                     log.warning("⚠️ Nova versão detectada, mas nenhum canal encontrado para anunciar.")
+            else:
+                log.info(f"ℹ️ Versão atual ({current_hash}) já anunciada anteriormente.")
+
+        except Exception as e:
+            log.error(f"❌ Falha ao processar anúncio de versão: {e}")
 
     # =========================================================
     # CARREGAR COGS
