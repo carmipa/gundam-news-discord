@@ -53,6 +53,8 @@
 | 🎞️ **Native Player** | YouTube/Twitch videos play directly in chat (no browser needed) |
 | 🌍 **Multi-Language** | Support for EN, PT, ES, IT (auto-detect + `/setlang`) |
 | 🖥️ **Web Dashboard** | Visual panel at <http://host:8080> with real-time status |
+| 🧹 **Auto-Cleanup** | Automatic cache cleaning every 7 days for performance (Zero maintenance) |
+| ❄️ **Cold Start** | Immediately posts top 3 recent news from new sources (bypassing time locks) |
 | 🔐 **Secure SSL** | Verified connections with certifi (MITM protection) |
 
 ---
@@ -154,6 +156,16 @@ stateDiagram-v2
 > 3. **SyncGuild** — Syncing slash commands
 > 4. **PersistentViews** — Restoring dashboard buttons
 > 5. **ScannerActive** — Scan loop running
+
+---
+
+### 4) State Maintenance (Auto-Cleanup)
+
+The bot features an autonomous maintenance system to prevent infinite cache growth:
+
+- **7-Day Cycle**: Every week, the deduplication key (`dedup`) is automatically cleared.
+- **Smart Cold Start**: Upon detecting a new source or recent cleanup, the bot enters "Cold Start" mode, allowing the **top 3 post recent news** to be posted immediately, bypassing restrictive time filters (while keeping content filters active).
+- **Benefit**: Ensures the bot can run on resource-constrained environments without manual intervention.
 
 ---
 

@@ -53,6 +53,10 @@
 | 🎞️ **Player Nativo** | Vídeos do YouTube/Twitch tocam direto no chat (sem abrir navegador) |
 | 🌍 **Multi-Idioma** | Suporte a EN, PT, ES, IT (detecção automática + `/setlang`) |
 | 🖥️ **Web Dashboard** | Painel visual em <http://host:8080> com status em tempo real |
+| 🧹 **Auto-Cleanup** | Limpeza automática de cache a cada 7 dias para performance (Zero manutenção) |
+| ❄️ **Cold Start** | Posta imediatamente as 3 notícias mais recentes de novas fontes (ignora travas) |
+| 🧹 **Auto-Cleanup** | Limpeza automática de cache a cada 7 dias para performance (Zero manutenção) |
+| ❄️ **Cold Start** | Posta imediatamente as 3 notícias mais recentes de novas fontes (ignora travas) |
 | 🔐 **SSL Seguro** | Conexões verificadas com certifi (proteção contra MITM) |
 
 ---
