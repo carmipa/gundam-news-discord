@@ -1,0 +1,54 @@
+{
+    "bot": {
+        "name": "マフティー・インテリジェンス・システム",
+        "description": "ガンダムニュースボット"
+    },
+    "commands": {
+        "help": {
+            "title": "📖 オペレーション・マニュアル - マフティー・インテル",
+            "config": "🛠️ 設定 (管理者)",
+            "dashboard": "**/dashboard** - フィルター設定用ビジュアルパネル",
+            "forcecheck": "**/forcecheck** - 即時スキャンを実行",
+            "info": "📊 情報",
+            "status": "**/status** - 가動時間とパフォーマンス統計",
+            "feeds": "**/feeds** - 監視中のソース一覧",
+            "about": "**/about** - ボットについて",
+            "ping": "**/ping** - レイテンシ"
+        },
+        "ping": {
+            "response": "🏓 **ポン！** レイテンシ: `{latency}ms`"
+        },
+        "about": {
+            "description": "ガンダムニュース監視に特化したボット。\nRSS、YouTube、公式サイトから情報を収集し、あなたの言語に翻訳して設定されたチャンネルに投稿します。",
+            "developer": "👨‍💻 開発者",
+            "version": "📦 バージョン",
+            "stack": "🛠️ スタック",
+            "footer": "人類は変わらなければならない……さもなくば変えられる。"
+        },
+        "feeds": {
+            "title": "📡 監視中のフィード ({total})",
+            "more": "\n... 他 {count} 件のフィード"
+        },
+        "dashboard": {
+            "title": "🛰️ **マフティー・インテリジェンス・ダッシュボード**\n以下からニュースフィルターを設定してください:",
+            "created": "✅ ダッシュボードを作成しました！ 設定チャンネル: <#{channel}>",
+            "error": "❌ ダッシュボードを開けませんでした。"
+        },
+        "forcecheck": {
+            "starting": "🔎 強制スキャンを開始します...",
+            "success": "✅ 強制スキャン完了！",
+            "fail": "❌ スキャンの実行に失敗しました。",
+            "error_admin": "❌ このコマンドを使用するには **管理者** 権限が必要です。"
+        }
+    },
+    "scanner": {
+        "starting": "🔎 インテリジェンス・スキャンを開始... (trigger={trigger})",
+        "completed": "✅ スキャン完了 (送信={sent}, キャッシュ={hits}/{total}, trigger={trigger})",
+        "no_guilds": "⚠️ 'channel_id' が設定されたギルドがありません。/dashboard で設定してください。",
+        "new_news": "📰 新着インテリジェンス"
+    },
+    "embed": {
+        "author": "🛰️ インテル・マフティー",
+        "source": "ソース: {source}"
+    }
+}

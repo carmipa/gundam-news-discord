@@ -55,9 +55,21 @@ class FilterDashboard(discord.ui.View):
         except Exception:
             return False
     
+    
+    def _get_lang(self) -> str:
+        cfg = self._cfg()
+        return cfg[self.guild_id].get("language", "en_US")
+
+    def _set_lang(self, lang_code: str) -> None:
+        cfg = self._cfg()
+        cfg[self.guild_id]["language"] = lang_code
+        self._save(cfg)
+
     def _rebuild(self) -> None:
         """Reconstrói botões conforme filtros ativos."""
         self.clear_items()
+        
+        # --- SEÇÃO DE FILTROS ---
         active = set(self._filters())
         
         # Se "todos" está ativo, tudo deve parecer ativo visualmente
@@ -72,16 +84,40 @@ class FilterDashboard(discord.ui.View):
                 label=label,
                 emoji=emoji,
                 style=style,
-                custom_id=f"mafty:filter:{self.guild_id}:{key}"
+                custom_id=f"mafty:filter:{self.guild_id}:{key}",
+                row=0 if list(FILTER_OPTIONS.keys()).index(key) < 5 else 1 # Tenta organizar em linhas
             )
             btn.callback = self._toggle_callback
             self.add_item(btn)
         
+        # --- SEÇÃO DE IDIOMA ---
+        current_lang = self._get_lang()
+        languages = {
+            "en_US": "🇺🇸",
+            "pt_BR": "🇧🇷",
+            "es_ES": "🇪🇸",
+            "it_IT": "🇮🇹",
+            "ja_JP": "🇯🇵"
+        }
+        
+        for code, flag in languages.items():
+            style = discord.ButtonStyle.primary if code == current_lang else discord.ButtonStyle.secondary
+            btn = discord.ui.Button(
+                emoji=flag,
+                style=style,
+                custom_id=f"mafty:lang:{self.guild_id}:{code}",
+                row=2 
+            )
+            btn.callback = self._lang_callback
+            self.add_item(btn)
+
+        # --- SEÇÃO DE CONTROLE ---
         show_btn = discord.ui.Button(
             label="Ver filtros",
             emoji="📌",
-            style=discord.ButtonStyle.primary,
-            custom_id=f"mafty:show:{self.guild_id}"
+            style=discord.ButtonStyle.secondary,
+            custom_id=f"mafty:show:{self.guild_id}",
+            row=3
         )
         show_btn.callback = self._show_callback
         self.add_item(show_btn)
@@ -90,7 +126,8 @@ class FilterDashboard(discord.ui.View):
             label="Reset",
             emoji="🔄",
             style=discord.ButtonStyle.danger,
-            custom_id=f"mafty:reset:{self.guild_id}"
+            custom_id=f"mafty:reset:{self.guild_id}",
+            row=3
         )
         reset_btn.callback = self._reset_callback
         self.add_item(reset_btn)
@@ -157,7 +194,25 @@ class FilterDashboard(discord.ui.View):
         
         await interaction.response.edit_message(view=self)
         await interaction.followup.send(msg, ephemeral=True)
-    
+
+    async def _lang_callback(self, interaction: discord.Interaction):
+        """Troca o idioma."""
+        if not self._is_admin(interaction):
+            await interaction.response.send_message("❌ Apenas administradores.", ephemeral=True)
+            return
+
+        parts = interaction.data.get("custom_id", "").split(":")
+        lang_code = parts[3]
+        
+        self._set_lang(lang_code)
+        self._rebuild()
+        
+        flags = {"en_US": "🇺🇸", "pt_BR": "🇧🇷", "es_ES": "🇪🇸", "it_IT": "🇮🇹", "ja_JP": "🇯🇵"}
+        flag = flags.get(lang_code, "🏳️")
+        
+        await interaction.response.edit_message(view=self)
+        await interaction.followup.send(f"🌐 Idioma alterado para {flag} **{lang_code}**", ephemeral=True)
+
     async def _show_callback(self, interaction: discord.Interaction):
         """Mostra filtros ativos."""
         current = self._filters()
