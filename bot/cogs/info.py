@@ -55,7 +55,8 @@ class InfoCog(commands.Cog):
         app_commands.Choice(name="🇺🇸 English", value="en_US"),
         app_commands.Choice(name="🇧🇷 Português", value="pt_BR"),
         app_commands.Choice(name="🇪🇸 Español", value="es_ES"),
-        app_commands.Choice(name="🇮🇹 Italiano", value="it_IT")
+        app_commands.Choice(name="🇮🇹 Italiano", value="it_IT"),
+        app_commands.Choice(name="🇯🇵 日本語", value="ja_JP")
     ])
     @app_commands.checks.has_permissions(administrator=True)
     async def setlang(self, interaction: discord.Interaction, idioma: str):

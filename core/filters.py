@@ -11,8 +11,13 @@ from utils.html import clean_html
 
 GUNDAM_CORE = [
     "gundam", "gunpla", "zeon", "zaku", "mobile suit",
-    "rx-78", "seed", "wing", "00", "char", "amuro",
-    "hathaway", "unicorn", "witch from mercury", "suletta"
+    "rx-78", "gundam seed", "seed freedom", "seed destiny",
+    "gundam wing", "endless waltz",
+    "gundam 00", "double 00",
+    "char aznable", "amuro ray",
+    "hathaway", "mafty", "xi gundam", "penelope",
+    "unicorn gundam", "banshee", "rx-0",
+    "witch from mercury", "suletta", "miorine", "aerial"
 ]
 
 BLACKLIST = [

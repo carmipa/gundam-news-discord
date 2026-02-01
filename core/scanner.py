@@ -430,10 +430,20 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                 for update in html_updates:
                     u_title = update["title"]
                     u_link = update["link"]
+                    u_summary = update.get("summary", "")
+                    
                     for gid, gdata in config.items():
                         if not isinstance(gdata, dict): continue
+                        
                         channel_id = gdata.get("channel_id")
                         if not channel_id: continue
+                        
+                        # APLICA FILTRO DE INTELIGÊNCIA TAMBÉM NO MONITOR HTML
+                        # Isso impede que sites genéricos (Mantan, Eiga) spammem mudanças irrelevantes
+                        if not match_intel(str(gid), u_title, u_summary, config):
+                            log.debug(f"🛡️ [Filtro HTML] Guild {gid} bloqueou site: {u_title}")
+                            continue
+
                         channel = bot.get_channel(channel_id)
                         if channel:
                             await channel.send(f"⚠️ **MAFTY INTEL ALERT**\n{u_title}\n{u_link}")
