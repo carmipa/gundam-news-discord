@@ -364,6 +364,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         t_translated = await translate_to_target(t_clean, target_lang)
                         s_translated = await translate_to_target(s_clean, target_lang)
 
+                        # Verifica se é mídia para expor o link e gerar player
                         media_domains = ("youtube.com", "youtu.be", "twitch.tv", "soundcloud.com", "spotify.com")
                         is_media = False
                         try:
@@ -372,31 +373,37 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         except: pass
 
                         try:
-                            if is_media:
-                                msg_content = f"**{t_translated}**\n{link}"
-                                await channel.send(content=msg_content)
-                            else:
-                                embed = discord.Embed(
-                                    title=t_translated[:256],
-                                    description=s_translated,
-                                    url=link,
-                                    color=discord.Color.from_rgb(255, 0, 32),
-                                    timestamp=datetime.now()
-                                )
-                                from utils.translator import t
-                                author_name = t.get('embed.author', lang=target_lang)
-                                embed.set_author(name=author_name, icon_url=bot.user.avatar.url if bot.user and bot.user.avatar else None)
-                                source_domain = urlparse(link).netloc
-                                footer_text = t.get('embed.source', lang=target_lang, source=source_domain)
-                                embed.set_footer(text=footer_text)
-                                if hasattr(entry, "media_thumbnail") and entry.media_thumbnail:
-                                    try:
-                                        thumb_url = entry.media_thumbnail[0].get("url")
-                                        if thumb_url:
-                                            embed.set_thumbnail(url=thumb_url)
-                                    except: pass
-                                
-                                await channel.send(embed=embed)
+                            # Sempre usa Embed para manter a identidade INTEL MAFTY
+                            embed = discord.Embed(
+                                title=t_translated[:256],
+                                description=s_translated,
+                                url=link,
+                                color=discord.Color.from_rgb(255, 0, 32),
+                                timestamp=datetime.now()
+                            )
+                            from utils.translator import t
+                            author_name = t.get('embed.author', lang=target_lang)
+                            # Usa avatar do bot se disponível
+                            icon_url = bot.user.avatar.url if bot.user and bot.user.avatar else None
+                            embed.set_author(name=author_name, icon_url=icon_url)
+                            
+                            source_domain = urlparse(link).netloc
+                            footer_text = t.get('embed.source', lang=target_lang, source=source_domain)
+                            embed.set_footer(text=footer_text)
+                            
+                            if hasattr(entry, "media_thumbnail") and entry.media_thumbnail:
+                                try:
+                                    thumb_url = entry.media_thumbnail[0].get("url")
+                                    # Se for mídia (video), as vezes a thumb do RSS é ruim ou duplica o player.
+                                    # Mas vamos manter por enquanto.
+                                    if thumb_url:
+                                        embed.set_thumbnail(url=thumb_url)
+                                except: pass
+                            
+                            # Se for mídia, mandamos o LINK no content para o Discord gerar o player nativo
+                            msg_content = link if is_media else None
+                            
+                            await channel.send(content=msg_content, embed=embed)
 
                             posted_anywhere = True
                             sent_count += 1
