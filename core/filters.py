@@ -17,7 +17,8 @@ GUNDAM_CORE = [
     "char aznable", "amuro ray",
     "hathaway's flash", "hathaway noa", "mafty", "xi gundam", "penelope",
     "unicorn gundam", "banshee", "rx-0",
-    "witch from mercury", "suletta", "miorine", "aerial"
+    "witch from mercury", "suletta", "miorine", "aerial",
+    "ガンダム", "機動戦士", "ハサウェイ", "マフティー", "閃光のハサウェイ"
 ]
 
 BLACKLIST = [
