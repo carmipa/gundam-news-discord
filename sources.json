@@ -19,13 +19,17 @@
     "https://variety.com/feed/",
     "https://kotaku.com/rss",
     "https://www.alltheanime.com/blogs/news.atom",
-    "https://www.reddit.com/r/Gundam/.rss"
+    "https://www.reddit.com/r/Gundam/.rss",
+    "https://omochajapan.com/blogs/news.atom"
   ],
   "youtube_feeds": [
     "https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw",
     "https://www.youtube.com/feeds/videos.xml?channel_id=UCbJM_Y06iuUOl3hVPqYcvng",
     "https://www.youtube.com/feeds/videos.xml?channel_id=UCjO7_R8sP5-uPzZ4C00000Q",
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCamRLcYia0SOlSsIcbbGiag"
+    "https://www.youtube.com/feeds/videos.xml?channel_id=UCamRLcYia0SOlSsIcbbGiag",
+    "https://www.youtube.com/feeds/videos.xml?channel_id=UCl2aT0nRejTCQO_LHZAftBw",
+    "https://www.youtube.com/feeds/videos.xml?channel_id=UCPjmdJSt7kxP5jjkRVuI-7A",
+    "https://www.youtube.com/feeds/videos.xml?channel_id=UCfVoNfQvw41CoanNW_5gOiw"
   ],
   "official_sites_reference_(not_rss)": [
     "https://gundam-official.com/",
@@ -65,6 +69,9 @@
     "https://www.gundamworld.it/",
     "https://www.animeclick.it/video-intro?r=/",
     "https://www.bandai.com/",
-    "https://www.youtube.com/hashtag/%E9%96%83%E5%85%89%E3%81%AE%E3%83%8F%E3%82%B5%E3%82%A6%E3%82%A7%E3%82%A4"
+    "https://www.youtube.com/hashtag/%E9%96%83%E5%85%89%E3%81%AE%E3%83%8F%E3%82%B5%E3%82%A6%E3%82%A4",
+    "https://gundamhangar.com/",
+    "https://hobbyalley.biz/",
+    "https://www.hlj.com/search/?itemGroup=BANDAIHOBBY202506&utm_source=gundamkitscollection&utm_medium=affiliate"
   ]
 }
