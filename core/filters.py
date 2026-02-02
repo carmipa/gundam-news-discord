@@ -15,7 +15,7 @@ GUNDAM_CORE = [
     "gundam wing", "endless waltz",
     "gundam 00", "double 00",
     "char aznable", "amuro ray",
-    "hathaway", "mafty", "xi gundam", "penelope",
+    "hathaway's flash", "hathaway noa", "mafty", "xi gundam", "penelope",
     "unicorn gundam", "banshee", "rx-0",
     "witch from mercury", "suletta", "miorine", "aerial"
 ]
