@@ -401,9 +401,15 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                                 except: pass
                             
                             # Se for mídia, mandamos o LINK no content para o Discord gerar o player nativo
-                            msg_content = link if is_media else None
+                            # E NÃO mandamos o embed, pois o Discord prioriza o embed sobre o player
+                            if is_media:
+                                msg_content = f"📺 **{t_translated}**\n{link}"
+                                embed_to_send = None
+                            else:
+                                msg_content = None
+                                embed_to_send = embed
                             
-                            await channel.send(content=msg_content, embed=embed)
+                            await channel.send(content=msg_content, embed=embed_to_send)
 
                             posted_anywhere = True
                             sent_count += 1
