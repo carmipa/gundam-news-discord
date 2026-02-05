@@ -17,32 +17,10 @@ from utils.git_info import get_git_changes, get_current_hash
 from utils.storage import save_json_safe
 
 # Configuração de Logs
-import os
-import logging
-from logging.handlers import RotatingFileHandler
+from utils.logger import setup_logger
 
-# Configuração de Logs
-# Garante que o diretório logs existe
-os.makedirs("logs", exist_ok=True)
-
-# Formatador
-formatter = logging.Formatter("%(asctime)s - [%(levelname)s] - %(message)s")
-
-# File Handler (Rotaciona a cada 5MB, mantém 3 arquivos)
-file_handler = RotatingFileHandler("logs/bot.log", maxBytes=5*1024*1024, backupCount=3, encoding="utf-8")
-file_handler.setFormatter(formatter)
-
-# Console Handler
-console_handler = logging.StreamHandler()
-console_handler.setFormatter(formatter)
-
-# Root Logger Config
-logging.basicConfig(
-    level=LOG_LEVEL,
-    handlers=[file_handler, console_handler]
-)
-
-log = logging.getLogger("MaftyIntel")
+# Configura o logger global com rotação de arquivos e cores no console
+log = setup_logger(name="MaftyIntel", log_file="logs/bot.log", level=LOG_LEVEL)
 
 
 # =========================================================
