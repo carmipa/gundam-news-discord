@@ -2,12 +2,15 @@
 Status cog - /status command to show bot statistics.
 """
 import discord
+import logging
 from discord.ext import commands
 from discord import app_commands
 from datetime import datetime, timedelta
 
 from core.stats import stats
 from settings import LOOP_MINUTES
+
+log = logging.getLogger("MaftyIntel")
 
 
 
@@ -29,7 +32,11 @@ class ScanButton(discord.ui.View):
             # Confirmação
             await interaction.followup.send("✅ Verificação concluída! Se houver notícias novas, elas foram enviadas para o canal.", ephemeral=True)
         except Exception as e:
-            await interaction.followup.send(f"❌ Erro ao verificar: {e}", ephemeral=True)
+            log.exception(f"Erro ao executar verificação manual: {type(e).__name__}: {e}")
+            try:
+                await interaction.followup.send(f"❌ Erro ao verificar: {type(e).__name__}", ephemeral=True)
+            except Exception as send_err:
+                log.warning(f"Falha ao enviar mensagem de erro ao usuário: {send_err}")
 
 
 class StatusCog(commands.Cog):
@@ -112,7 +119,11 @@ class StatusCog(commands.Cog):
             await self.run_scan_once(trigger="command_now")
             await interaction.followup.send("✅ Scan finalizado.", ephemeral=True)
         except Exception as e:
-            await interaction.followup.send(f"❌ Erro: {e}", ephemeral=True)
+            log.exception(f"Erro ao executar comando /now: {type(e).__name__}: {e}")
+            try:
+                await interaction.followup.send(f"❌ Erro: {type(e).__name__}", ephemeral=True)
+            except Exception as send_err:
+                log.warning(f"Falha ao enviar mensagem de erro ao usuário: {send_err}")
 
 
 async def setup(bot, run_scan_once_func):

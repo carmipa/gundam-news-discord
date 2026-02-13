@@ -7,6 +7,7 @@
         "help": {
             "title": "📖 Operations Manual - Mafty Intel",
             "config": "🛠️ Configuration (Admin)",
+            "set_canal": "**/set_canal** - Set the channel where the bot will send news",
             "dashboard": "**/dashboard** - Visual panel to configure filters",
             "forcecheck": "**/forcecheck** - Force immediate scan",
             "info": "📊 Information",
@@ -29,6 +30,15 @@
             "title": "📡 Monitored Feeds ({total})",
             "more": "\n... and {count} more feeds."
         },
+        "set_canal": {
+            "success": "✅ Channel configured successfully!",
+            "success_changed": "✅ Channel configured successfully!\n\n**Previous channel:** <#{old}>\n**Current channel:** <#{new}>\n\nNext news will be sent to this channel.",
+            "success_new": "✅ Channel configured successfully!\n\n**Channel:** <#{channel}>\n\nNews will be sent to this channel.",
+            "error_permission": "❌ The bot doesn't have permission to send messages in channel <#{channel}>!\nPlease grant **Send Messages** permission to the bot.",
+            "error_embed": "⚠️ The bot doesn't have permission to send embeds in channel <#{channel}>.\nNews may not display correctly. Consider granting **Embed Links** permission.",
+            "error_text_channel": "❌ The channel must be a text channel!",
+            "error_admin": "❌ You need **Administrator** permission to use this command."
+        },
         "dashboard": {
             "title": "🛰️ **MAFTY INTELLIGENCE DASHBOARD**\nConfigure news filters below:",
             "created": "✅ Dashboard created! Channel configured: <#{channel}>",
@@ -44,7 +54,7 @@
     "scanner": {
         "starting": "🔎 Starting intelligence scan... (trigger={trigger})",
         "completed": "✅ Scan completed. (sent={sent}, cache={hits}/{total}, trigger={trigger})",
-        "no_guilds": "⚠️ No guilds configured with 'channel_id'. Use /dashboard to configure.",
+        "no_guilds": "⚠️ No guilds configured with 'channel_id'. Use /set_canal or /dashboard to configure.",
         "new_news": "📰 New Intelligence"
     },
     "embed": {

@@ -52,7 +52,11 @@ class FilterDashboard(discord.ui.View):
         """Somente admin altera filtros."""
         try:
             return bool(interaction.user.guild_permissions.administrator)
-        except Exception:
+        except AttributeError as e:
+            log.debug(f"Erro ao verificar permissões de admin (atributo ausente): {e}")
+            return False
+        except Exception as e:
+            log.warning(f"Erro inesperado ao verificar permissões de admin: {e}")
             return False
     
     

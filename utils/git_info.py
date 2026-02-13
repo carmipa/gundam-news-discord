@@ -26,5 +26,6 @@ def get_current_hash():
     try:
         cmd = "git log -1 --pretty=format:'%h'"
         return subprocess.check_output(cmd, shell=True, stderr=subprocess.DEVNULL).decode('utf-8').strip().replace("'", "")
-    except:
+    except Exception as e:
+        log.debug(f"Falha ao obter hash do Git: {e}")
         return None

@@ -22,6 +22,7 @@ from utils.storage import p, load_json_safe, save_json_safe
 from utils.html import clean_html
 from utils.cache import load_http_state, save_http_state, get_cache_headers, update_cache_state
 from utils.translator import translate_to_target, t
+from utils.security import validate_url
 from core.stats import stats
 from core.filters import match_intel
 from core.html_monitor import check_official_sites
@@ -128,7 +129,8 @@ def sanitize_link(link: str) -> str:
             new_query,
             parsed.fragment
         ))
-    except:
+    except Exception as e:
+        log.debug(f"Erro ao sanitizar link '{link[:50]}...': {e}. Retornando link original.")
         return link
 
 def parse_entry_dt(entry: Any) -> datetime:
@@ -141,16 +143,16 @@ def parse_entry_dt(entry: Any) -> datetime:
         s = getattr(entry, "published", None) or getattr(entry, "updated", None)
         if s:
             return dtparser.isoparse(s)
-    except:
-        pass
+    except (ValueError, TypeError, AttributeError) as e:
+        log.debug(f"Falha ao parsear data ISO8601: {e}. Tentando fallback...")
     
     # Fallback para struct_time do feedparser
     try:
         st = getattr(entry, "published_parsed", None) or getattr(entry, "updated_parsed", None)
         if st:
             return datetime(*st[:6], tzinfo=timezone.utc)
-    except:
-        pass
+    except (ValueError, TypeError, AttributeError) as e:
+        log.debug(f"Falha ao parsear data struct_time: {e}")
         
     return None
 
@@ -184,7 +186,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         
         # Verifica se há guilds configuradas
         if not config or not any(isinstance(v, dict) and v.get("channel_id") for v in config.values()):
-            log.warning("⚠️ Nenhuma guild configurada com 'channel_id'. Use /dashboard para configurar.")
+            log.warning("⚠️ Nenhuma guild configurada com 'channel_id'. Use /set_canal ou /dashboard para configurar.")
             _log_next_run()
             return
             
@@ -245,6 +247,12 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
             
             async with semaphore:
                 try:
+                    # Validação de segurança: anti-SSRF
+                    is_valid, error_msg = validate_url(url)
+                    if not is_valid:
+                        log.warning(f"🔒 URL bloqueada por segurança: {url} - {error_msg}")
+                        return None
+                    
                     if "youtube.com" in url or "youtu.be" in url:
                         await asyncio.sleep(2)
                         
@@ -273,9 +281,14 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                          
                     return (url, entries)
                     
+                except aiohttp.ClientError as e:
+                    log.error(f"❌ Erro de conexão ao baixar feed '{url}': {e}")
+                    return None
+                except asyncio.TimeoutError as e:
+                    log.warning(f"⏱️ Timeout ao baixar feed '{url}': {e}")
+                    return None
                 except Exception as e:
-                    log.error(f"❌ Falha ao baixar feed '{url}': {e}")
-                    log.debug(f"Traceback feed '{url}':", exc_info=True)
+                    log.error(f"❌ Falha inesperada ao processar feed '{url}': {type(e).__name__}: {e}", exc_info=True)
                     return None
 
         async with aiohttp.ClientSession(connector=connector, headers=base_headers, timeout=timeout) as session:
@@ -370,7 +383,8 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         try:
                             if any(d in link for d in media_domains):
                                 is_media = True
-                        except: pass
+                        except Exception as e:
+                            log.debug(f"Erro ao verificar domínio de mídia para '{link[:50]}...': {e}")
 
                         try:
                             # Sempre usa Embed para manter a identidade INTEL MAFTY
@@ -398,7 +412,10 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                                     # Mas vamos manter por enquanto.
                                     if thumb_url:
                                         embed.set_thumbnail(url=thumb_url)
-                                except: pass
+                                except (IndexError, AttributeError, KeyError) as e:
+                                    log.debug(f"Erro ao obter thumbnail da entrada: {e}")
+                                except Exception as e:
+                                    log.warning(f"Erro inesperado ao processar thumbnail: {e}")
                             
                             # Se for mídia, mandamos o LINK no content para o Discord gerar o player nativo
                             # E NÃO mandamos o embed, pois o Discord prioriza o embed sobre o player
@@ -418,8 +435,14 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                             
                             await asyncio.sleep(1)
 
+                        except discord.Forbidden as e:
+                            log.error(f"🚫 Sem permissão para enviar mensagem no canal {channel_id} (guild {gid}): {e}")
+                        except discord.HTTPException as e:
+                            log.error(f"🌐 Erro HTTP ao enviar mensagem no canal {channel_id}: {e.status} - {e.text}")
+                        except discord.InvalidArgument as e:
+                            log.error(f"⚠️ Argumento inválido ao criar embed/mensagem: {e}")
                         except Exception as e:
-                            log.exception(f"❌ Falha ao enviar no canal {channel_id}: {e}")
+                            log.exception(f"❌ Falha inesperada ao enviar no canal {channel_id} (guild {gid}): {type(e).__name__}: {e}")
 
                     if posted_anywhere:
                         # Adiciona ao dedup específico e global

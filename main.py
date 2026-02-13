@@ -54,8 +54,12 @@ async def main():
                 ctx.bot.tree.copy_global_to(guild=ctx.guild)
                 synced_guild = await ctx.bot.tree.sync(guild=ctx.guild)
                 await ctx.send(f"✅ Sincronizado {len(synced_guild)} comandos na guild: {ctx.guild.name}")
+        except discord.HTTPException as e:
+            log.error(f"Erro HTTP ao sincronizar comandos: {e.status} - {e.text}")
+            await ctx.send(f"❌ Erro HTTP ao sincronizar: {e.status}")
         except Exception as e:
-            await ctx.send(f"❌ Erro ao sincronizar: {e}")
+            log.exception(f"Erro ao sincronizar comandos: {type(e).__name__}: {e}")
+            await ctx.send(f"❌ Erro ao sincronizar: {type(e).__name__}")
 
     @bot.event
     async def on_ready():
@@ -63,7 +67,8 @@ async def main():
         log.info(f"📊 Servidores conectados: {len(bot.guilds)}")
 
         # 0. Iniciar Web Server (Fase 10)
-        await start_web_server(port=8080)
+        # Host e porta agora vêm de variáveis de ambiente (padrão: 127.0.0.1:8080)
+        await start_web_server()
 
         # 1. Carregar Views Persistentes
         cfg = load_json_safe(p("config.json"), {})
@@ -72,8 +77,10 @@ async def main():
                 try:
                     bot.add_view(FilterDashboard(int(gid)))
                     log.info(f"View persistente registrada para guild {gid}")
+                except ValueError as e:
+                    log.error(f"Erro ao converter guild_id '{gid}' para inteiro: {e}")
                 except Exception as e:
-                    log.error(f"Erro view guild {gid}: {e}")
+                    log.error(f"Erro ao registrar view persistente para guild {gid}: {type(e).__name__}: {e}", exc_info=True)
 
         # 2. Sync Comandos (Slash)
         try:
@@ -84,8 +91,10 @@ async def main():
                 bot.tree.copy_global_to(guild=discord.Object(id=guild.id))
                 await bot.tree.sync(guild=discord.Object(id=guild.id))
                 log.info(f"Comandos sincronizados (copy_global) em: {guild.name}")
+        except discord.HTTPException as e:
+            log.error(f"Erro HTTP no sync de comandos: {e.status} - {e.text}")
         except Exception as e:
-            log.error(f"Falha no sync de comandos: {e}")
+            log.exception(f"Falha no sync de comandos: {type(e).__name__}: {e}")
 
         # 3. Iniciar Loop de Scanner
         start_scheduler(bot)
@@ -139,7 +148,7 @@ async def main():
                 log.info(f"ℹ️ Versão atual ({current_hash}) já anunciada anteriormente.")
 
         except Exception as e:
-            log.error(f"❌ Falha ao processar anúncio de versão: {e}")
+            log.exception(f"❌ Falha ao processar anúncio de versão: {type(e).__name__}: {e}")
 
     # =========================================================
     # CARREGAR COGS

@@ -42,8 +42,14 @@ def load_json_safe(filepath: str, default: Any) -> Any:
             return default
         with open(filepath, "r", encoding="utf-8") as f:
             return json.load(f)
+    except json.JSONDecodeError as e:
+        log.error(f"Erro de sintaxe JSON ao carregar '{filepath}': linha {e.lineno}, coluna {e.colno}. Usando padrão.")
+        return default
+    except PermissionError as e:
+        log.error(f"Sem permissão para ler '{filepath}': {e}. Usando padrão.")
+        return default
     except Exception as e:
-        log.error(f"Falha ao carregar '{filepath}': {e}. Usando padrão.")
+        log.error(f"Falha ao carregar '{filepath}': {type(e).__name__}: {e}. Usando padrão.", exc_info=True)
         return default
 
 
@@ -58,5 +64,11 @@ def save_json_safe(filepath: str, data: Any) -> None:
     try:
         with open(filepath, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
+    except PermissionError as e:
+        log.error(f"Sem permissão para escrever '{filepath}': {e}")
+    except OSError as e:
+        log.error(f"Erro de sistema ao salvar '{filepath}': {e}")
+    except TypeError as e:
+        log.error(f"Dados não serializáveis em JSON ao salvar '{filepath}': {e}")
     except Exception as e:
-        log.error(f"Falha ao salvar '{filepath}': {e}")
+        log.error(f"Falha inesperada ao salvar '{filepath}': {type(e).__name__}: {e}", exc_info=True)

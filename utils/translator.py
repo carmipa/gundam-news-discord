@@ -122,4 +122,5 @@ async def translate_to_target(text: str, target_lang: str) -> str:
         )
         return trad
     except Exception as e:
+        log.debug(f"Falha na tradução de texto (retornando original): {type(e).__name__}: {e}")
         return text

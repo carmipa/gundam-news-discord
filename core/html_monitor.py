@@ -11,6 +11,7 @@ from typing import List, Dict, Tuple
 from bs4 import BeautifulSoup
 
 from utils.storage import p, load_json_safe, save_json_safe
+from utils.security import validate_url
 
 log = logging.getLogger("MaftyIntel")
 
@@ -25,6 +26,12 @@ async def fetch_page_hash(session: aiohttp.ClientSession, url: str) -> Tuple[str
     Returns (url, "", "") on failure.
     """
     try:
+        # Validação de segurança: anti-SSRF
+        is_valid, error_msg = validate_url(url)
+        if not is_valid:
+            log.warning(f"🔒 URL bloqueada por segurança no HTML Monitor: {url} - {error_msg}")
+            return url, "", ""
+        
         async with session.get(url) as resp:
             if resp.status != 200:
                 log.debug(f"HTML Monitor: {url} returned {resp.status}")
@@ -53,8 +60,14 @@ async def fetch_page_hash(session: aiohttp.ClientSession, url: str) -> Tuple[str
             
             return url, title, page_hash
 
+    except aiohttp.ClientError as e:
+        log.warning(f"🌐 Erro de conexão no HTML Monitor para '{url}': {e}")
+        return url, "", ""
+    except asyncio.TimeoutError as e:
+        log.warning(f"⏱️ Timeout no HTML Monitor para '{url}': {e}")
+        return url, "", ""
     except Exception as e:
-        log.warning(f"HTML Monitor: Failed to fetch {url}: {e}")
+        log.warning(f"⚠️ Erro inesperado no HTML Monitor para '{url}': {type(e).__name__}: {e}", exc_info=True)
         return url, "", ""
 
 async def check_official_sites(current_state: Dict[str, str]) -> Tuple[List[Dict[str, str]], Dict[str, str]]:

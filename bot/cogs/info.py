@@ -109,12 +109,12 @@ class InfoCog(commands.Cog):
             color=discord.Color.gold()
         )
         
-        keys = ['dashboard', 'forcecheck', 'status', 'feeds', 'about', 'ping']
-        vals = {k: t.get(f'commands.help.{k}', lang=lang) for k in keys}
+        keys = ['set_canal', 'dashboard', 'forcecheck', 'status', 'feeds', 'about', 'ping']
+        vals = {k: t.get(f'commands.help.{k}', lang=lang, default=f"**/{k}** - Command") for k in keys}
         
         embed.add_field(
             name=t.get('commands.help.config', lang=lang),
-            value=f"{vals['dashboard']}\n{vals['forcecheck']}",
+            value=f"{vals.get('set_canal', '**/set_canal** - Set channel')}\n{vals['dashboard']}\n{vals['forcecheck']}",
             inline=False
         )
         

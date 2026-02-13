@@ -7,6 +7,7 @@
         "help": {
             "title": "📖 Manual de Operações - Mafty Intel",
             "config": "🛠️ Configuração (Admin)",
+            "set_canal": "**/set_canal** - Define o canal onde o bot enviará notícias",
             "dashboard": "**/dashboard** - Painel visual para configurar filtros",
             "forcecheck": "**/forcecheck** - Força uma varredura imediata",
             "info": "📊 Informações",
@@ -29,6 +30,15 @@
             "title": "📡 Feeds Monitorados ({total})",
             "more": "\n... e mais {count} feeds."
         },
+        "set_canal": {
+            "success": "✅ Canal configurado com sucesso!",
+            "success_changed": "✅ Canal configurado com sucesso!\n\n**Canal anterior:** <#{old}>\n**Canal atual:** <#{new}>\n\nAs próximas notícias serão enviadas neste canal.",
+            "success_new": "✅ Canal configurado com sucesso!\n\n**Canal:** <#{channel}>\n\nAs notícias serão enviadas neste canal.",
+            "error_permission": "❌ O bot não tem permissão para enviar mensagens no canal <#{channel}>!\nPor favor, conceda a permissão **Enviar Mensagens** ao bot.",
+            "error_embed": "⚠️ O bot não tem permissão para enviar embeds no canal <#{channel}>.\nAs notícias podem não aparecer corretamente. Considere conceder a permissão **Incorporar Links**.",
+            "error_text_channel": "❌ O canal deve ser um canal de texto!",
+            "error_admin": "❌ Você precisa ter **Administrador** para usar este comando."
+        },
         "dashboard": {
             "title": "🛰️ **PAINEL DE INTELIGÊNCIA MAFTY**\nConfigure os filtros de notícias abaixo:",
             "created": "✅ Dashboard criado! Canal configurado: <#{channel}>",
@@ -44,7 +54,7 @@
     "scanner": {
         "starting": "🔎 Iniciando varredura de inteligência... (gatilho={trigger})",
         "completed": "✅ Varredura concluída. (enviadas={sent}, cache={hits}/{total}, gatilho={trigger})",
-        "no_guilds": "⚠️ Nenhuma guilda configurada com 'channel_id'. Use /dashboard para configurar.",
+        "no_guilds": "⚠️ Nenhuma guilda configurada com 'channel_id'. Use /set_canal ou /dashboard para configurar.",
         "new_news": "📰 Nova Inteligência"
     },
     "embed": {

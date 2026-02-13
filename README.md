@@ -12,12 +12,14 @@
   <img src="https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white" alt="Python 3.10+" />
   <img src="https://img.shields.io/badge/discord.py-2.x-00B0F4?logo=python&logoColor=white" alt="discord.py 2.x" />
   <img src="https://img.shields.io/badge/Status-Produção-success" alt="Status" />
+  <img src="https://img.shields.io/badge/Security-Hardened-brightgreen" alt="Security" />
   <img src="https://img.shields.io/badge/License-MIT-green" alt="License MIT" />
 </p>
 
 <p align="center">
   <b>Monitoramento inteligente de feeds RSS/Atom/YouTube sobre o universo Gundam</b><br>
-  Filtragem cirúrgica • Dashboard interativo • Postagem automática no Discord
+  Filtragem cirúrgica • Dashboard interativo • Postagem automática no Discord<br>
+  <i>🔒 Segurança aprimorada • 📊 Logs detalhados • 🛡️ Proteção anti-SSRF</i>
 </p>
 
 ---
@@ -25,6 +27,7 @@
 ## 📋 Índice
 
 - [✨ Funcionalidades](#-funcionalidades)
+- [🔒 Segurança e GRC](#-segurança-e-grc)
 - [🧱 Arquitetura](#-arquitetura)
 - [🚀 Instalação](#-instalação)
 - [⚙️ Configuração](#️-configuração)
@@ -32,6 +35,7 @@
 - [🎛️ Dashboard](#️-dashboard)
 - [🧠 Sistema de Filtros](#-sistema-de-filtros)
 - [🖥️ Deploy](#️-deploy)
+- [📊 Monitoramento e Logs](#-monitoramento-e-logs)
 - [🧩 Troubleshooting](#-troubleshooting)
 - [📜 Licença](#-licença)
 
@@ -48,16 +52,44 @@
 | 🛡️ **Anti-Spam** | Blacklist para bloquear animes/jogos não relacionados a Gundam |
 | 🔄 **Deduplicação** | Nunca repete notícias (histórico em `history.json`) |
 | 🌐 **Multi-Guild** | Configuração independente por servidor Discord |
-| 📝 **Logs em PT-BR** | Mensagens claras para debug e monitoramento |
+| 📝 **Logs Coloridos** | Sistema de logging avançado com cores e traceback detalhado |
 | 🎨 **Embeds Ricos** | Notícias com visual premium (cor Gundam, thumbnails, timestamps) |
 | 🎞️ **Player Nativo** | Vídeos do YouTube/Twitch tocam direto no chat (sem abrir navegador) |
 | 🌍 **Multi-Idioma** | Suporte a EN, PT, ES, IT, JA (detecção automática + `/setlang`) |
 | 🖥️ **Web Dashboard** | Painel visual em <http://host:8080> com status em tempo real |
 | 🧹 **Auto-Cleanup** | Limpeza automática de cache a cada 7 dias para performance (Zero manutenção) |
 | ❄️ **Cold Start** | Posta imediatamente as 3 notícias mais recentes de novas fontes (ignora travas) |
-| 🧹 **Auto-Cleanup** | Limpeza automática de cache a cada 7 dias para performance (Zero manutenção) |
-| ❄️ **Cold Start** | Posta imediatamente as 3 notícias mais recentes de novas fontes (ignora travas) |
 | 🔐 **SSL Seguro** | Conexões verificadas com certifi (proteção contra MITM) |
+| 🔒 **Validação de URLs** | Proteção anti-SSRF (Server-Side Request Forgery) |
+| 🛡️ **Rate Limiting** | Proteção contra abuso de comandos e servidor web |
+| 🔐 **Autenticação Web** | Servidor web protegido com token (opcional) |
+
+---
+
+## 🔒 Segurança e GRC
+
+### Melhorias de Segurança Implementadas
+
+| Recurso | Status | Descrição |
+|---------|--------|-----------|
+| 🔒 **Validação de URLs** | ✅ | Bloqueia IPs privados e domínios locais (anti-SSRF) |
+| 🛡️ **Rate Limiting** | ✅ | Limite de requisições por IP no servidor web |
+| 🔐 **Autenticação Web** | ✅ | Token opcional para acesso ao dashboard web |
+| 📝 **Sanitização de Logs** | ✅ | Informações sensíveis são mascaradas automaticamente |
+| 🔒 **Headers de Segurança** | ✅ | CSP, X-Frame-Options, X-Content-Type-Options |
+| ✅ **Validação SSL** | ✅ | Certificados verificados com certifi |
+| 🚫 **Tratamento de Erros** | ✅ | Exceções específicas com contexto detalhado |
+
+### Análise de Segurança
+
+📄 **Documentação completa:** Veja [SECURITY_GRC_ANALYSIS.md](SECURITY_GRC_ANALYSIS.md) para análise detalhada.
+
+**Principais melhorias:**
+- ✅ Validação de URLs antes de fazer requisições HTTP
+- ✅ Rate limiting em comandos críticos e servidor web
+- ✅ Sanitização automática de logs (tokens, senhas)
+- ✅ Tratamento específico de exceções com contexto
+- ✅ Headers de segurança HTTP configurados
 
 ---
 
@@ -66,38 +98,51 @@
 ### 1) Visão Macro — Fluxo Completo de Dados
 
 ```mermaid
-flowchart LR
-  A["sources.json<br>Feeds RSS/Atom/YouTube"] --> B["Scanner<br>core/scanner.py"]
-  B --> C["Normalização<br>URL + entries"]
-  C --> D["Filtros Mafty<br>core/filters.py"]
-  D -->|Aprovado| E["Tradutor (Auto)<br>utils/translator.py"]
-  E --> F["Postagem no Discord<br>Canal por guild"]
-  D -->|Reprovado| G["Ignora / Descarta"]
-
-  H["config.json<br>canal + filtros + idioma"] --> D
-  H --> E
-  I["history.json<br>links enviados"] --> D
-  F --> I
-
-  W["Web Dashboard<br>aiohttp (Port 8080)"] .-> H
-  W .-> I
-  A["sources.json<br>Feeds RSS + HTML"] --> B["Scanner<br>core/scanner.py"]
-  B --> C["Normalização<br>URL + entries"]
-  B --> J["HTML Monitor<br>core/html_monitor.py"]
-  C --> D["Filtros Mafty<br>core/filters.py"]
-  D -->|Aprovado| E["Tradutor (Auto)<br>utils/translator.py"]
-  E --> F["Postagem no Discord<br>Canal por guild"]
-  J -->|Mudança Detectada| F
-  D -->|Reprovado| G["Ignora / Descarta"]
-
-  H["config.json<br>canal + filtros + idioma"] --> D
-  H --> E
-  I["history.json<br>links enviados"] --> D
-  F --> I
-  F --> K["state.json<br>Hashes HTML"]
-
-  W["Web Dashboard<br>aiohttp (Port 8080)"] .-> H
-  W .-> I
+flowchart TB
+    subgraph "📥 Entrada"
+        A["sources.json<br/>Feeds RSS/Atom/YouTube"]
+        A2["sources.json<br/>Sites Oficiais HTML"]
+    end
+    
+    subgraph "🔍 Processamento"
+        B["Scanner<br/>core/scanner.py"]
+        J["HTML Monitor<br/>core/html_monitor.py"]
+        C["Normalização<br/>URL + entries"]
+        D["Filtros Mafty<br/>core/filters.py"]
+        E["Tradutor<br/>utils/translator.py"]
+        S["Validação Segurança<br/>utils/security.py"]
+    end
+    
+    subgraph "💾 Armazenamento"
+        H["config.json<br/>canal + filtros + idioma"]
+        I["history.json<br/>links enviados"]
+        K["state.json<br/>hashes HTML + cache"]
+    end
+    
+    subgraph "📤 Saída"
+        F["Postagem Discord<br/>Canal por guild"]
+        W["Web Dashboard<br/>aiohttp :8080"]
+    end
+    
+    A -->|"🔒 Validação"| S
+    S -->|"✅ Aprovado"| B
+    A2 --> J
+    B --> C
+    J -->|"Mudança Detectada"| D
+    C --> D
+    D -->|"Aprovado"| E
+    D -->|"Reprovado"| G["❌ Ignorado"]
+    E --> F
+    
+    H --> D
+    H --> E
+    I --> D
+    F --> I
+    F --> K
+    J --> K
+    
+    W -.->|"Monitora"| H
+    W -.->|"Monitora"| I
 ```
 
 > **Legenda:**
@@ -105,34 +150,48 @@ flowchart LR
 > - `sources.json` — Lista de feeds monitorados
 > - `config.json` — Configuração de canal e filtros por servidor
 > - `history.json` — Links já enviados (deduplicação)
+> - `state.json` — Estado de cache HTTP e hashes HTML
+> - 🔒 **Validação de Segurança** — Anti-SSRF e validação de URLs
 
 ---
 
-### 2) Fluxo do Comando `/dashboard` e Persistência de UI
+### 2) Fluxo do Comando `/set_canal` e `/dashboard`
 
 ```mermaid
 sequenceDiagram
-  participant Admin as Admin Discord
-  participant Bot as Gundam News Bot
-  participant Disk as config.json / history.json
-
-  Admin->>Bot: /dashboard (no canal desejado)
-  Bot->>Disk: salva channel_id da guild (canal atual)
-  Bot-->>Admin: envia painel (ephemeral) com botões
-  Admin->>Bot: clica em filtros (Gunpla/Filmes/Games...)
-  Bot->>Disk: atualiza filtros da guild
-  Bot-->>Admin: atualiza cores dos botões (ativa/desativa)
-
-  Note over Bot: Restart do bot (VPS/PC)
-  Bot->>Disk: lê config.json
-  Bot-->>Admin: re-registra Views persistentes (bot.add_view)
-  Admin->>Bot: clica em botões antigos
-  Bot-->>Admin: funciona (não quebra após restart)
+    participant Admin as 👤 Admin Discord
+    participant Bot as 🤖 Gundam News Bot
+    participant Disk as 💾 config.json
+    participant Security as 🔒 Security Module
+    
+    Note over Admin,Security: Configuração de Canal
+    
+    Admin->>Bot: /set_canal [canal]
+    Bot->>Security: Valida permissões do bot
+    Security-->>Bot: ✅ Permissões OK
+    Bot->>Disk: Salva channel_id da guild
+    Bot-->>Admin: ✅ Canal configurado!
+    
+    Note over Admin,Security: Configuração de Filtros
+    
+    Admin->>Bot: /dashboard
+    Bot->>Disk: Salva channel_id (canal atual)
+    Bot-->>Admin: Envia painel com botões
+    Admin->>Bot: Clica em filtros (Gunpla/Filmes...)
+    Bot->>Disk: Atualiza filtros da guild
+    Bot-->>Admin: Atualiza cores dos botões
+    
+    Note over Bot: Restart do bot
+    Bot->>Disk: Lê config.json
+    Bot-->>Admin: Re-registra Views persistentes
+    Admin->>Bot: Clica em botões antigos
+    Bot-->>Admin: ✅ Funciona após restart!
 ```
 
 > **Destaques:**
 >
-> - O painel é **ephemeral** (só você vê)
+> - `/set_canal` — Comando dedicado para configurar canal rapidamente
+> - `/dashboard` — Painel completo com filtros e configurações
 > - Botões funcionam **mesmo após restart** do bot
 > - Configuração é **salva em disco** automaticamente
 
@@ -142,13 +201,19 @@ sequenceDiagram
 
 ```mermaid
 stateDiagram-v2
-  [*] --> Conectando
-  Conectando --> Online: Token OK
-  Online --> SyncGuild: on_ready()
-  SyncGuild --> ViewsPersistentes: add_view por guild do config
-  ViewsPersistentes --> ScannerAtivo: inicia loop
-  ScannerAtivo --> ScannerAtivo: varre feeds / posta / salva histórico
-  ScannerAtivo --> Online: erro em feed (tratado / log PT)
+    [*] --> Conectando
+    Conectando --> Online: Token OK
+    Online --> SyncGuild: on_ready()
+    SyncGuild --> ViewsPersistentes: add_view por guild do config
+    ViewsPersistentes --> ScannerAtivo: inicia loop
+    ScannerAtivo --> ScannerAtivo: varre feeds / posta / salva histórico
+    ScannerAtivo --> Online: erro em feed (tratado / log detalhado)
+    
+    note right of ScannerAtivo
+        🔒 Validação de URLs
+        📝 Logs coloridos
+        🛡️ Rate limiting
+    end note
 ```
 
 > **Ciclo de vida:**
@@ -157,7 +222,32 @@ stateDiagram-v2
 > 2. **Online** — Conectado ao Discord
 > 3. **SyncGuild** — Sincronizando comandos slash
 > 4. **ViewsPersistentes** — Restaurando botões do dashboard
-> 5. **ScannerAtivo** — Loop de varredura rodando
+> 5. **ScannerAtivo** — Loop de varredura rodando com segurança
+
+---
+
+### 4) Arquitetura de Segurança
+
+```mermaid
+flowchart LR
+    subgraph "🌐 Requisições HTTP"
+        A["URL de Feed"] --> B["🔒 Validação<br/>utils/security.py"]
+        B -->|"✅ Válida"| C["Requisição HTTP"]
+        B -->|"❌ Inválida"| D["Bloqueada<br/>Log de Segurança"]
+    end
+    
+    subgraph "🖥️ Servidor Web"
+        E["Requisição"] --> F["🛡️ Rate Limiting"]
+        F --> G["🔐 Autenticação<br/>Token Opcional"]
+        G --> H["📊 Dashboard"]
+    end
+    
+    subgraph "📝 Sistema de Logs"
+        I["Log Event"] --> J["🔒 Sanitização"]
+        J --> K["🎨 Formatação<br/>Cores + Traceback"]
+        K --> L["Arquivo + Console"]
+    end
+```
 
 ---
 
@@ -167,6 +257,7 @@ stateDiagram-v2
 
 - Python 3.10 ou superior
 - Token de bot do Discord ([Portal de Desenvolvedores](https://discord.com/developers/applications))
+- Git (para clonar o repositório)
 
 ### Passo a passo
 
@@ -192,6 +283,26 @@ cp .env.example .env
 # Edite o .env com seu token
 ```
 
+### 🐳 Instalação com Docker (Recomendado)
+
+```bash
+# Clone o repositório
+git clone https://github.com/carmipa/gundam-news-discord.git
+cd gundam-news-discord
+
+# Configure .env
+cp .env.example .env
+nano .env  # Adicione seu DISCORD_TOKEN
+
+# Inicie com Docker Compose
+docker-compose up -d
+
+# Ver logs
+docker-compose logs -f
+```
+
+📖 **Guia completo de deploy:** Veja [DEPLOY.md](DEPLOY.md) para instruções detalhadas.
+
 ---
 
 ## ⚙️ Configuração
@@ -199,18 +310,25 @@ cp .env.example .env
 ### Variáveis de Ambiente (`.env`)
 
 ```env
-# Obrigatório
+# ⚠️ OBRIGATÓRIO
 DISCORD_TOKEN=seu_token_aqui
 
-# Opcional
+# ⚙️ OPCIONAL
 COMMAND_PREFIX=!
 LOOP_MINUTES=30
-LOG_LEVEL=INFO  # Use DEBUG para logs GRC detalhados
+LOG_LEVEL=INFO  # Use DEBUG para logs detalhados
+
+# 🔒 Segurança do Servidor Web (Opcional)
+WEB_AUTH_TOKEN=seu_token_secreto_aqui  # Recomendado para produção
+WEB_HOST=127.0.0.1  # 127.0.0.1 = apenas localhost, 0.0.0.0 = todos os IPs
+WEB_PORT=8080
 ```
+
+> **🔒 Segurança:** Configure `WEB_AUTH_TOKEN` em produção para proteger o dashboard web!
 
 ### Fontes de Feeds (`sources.json`)
 
-O bot aceita dois formatos:
+O bot aceita múltiplos formatos:
 
 <details>
 <summary><b>📁 Formato com categorias (recomendado)</b></summary>
@@ -223,18 +341,7 @@ O bot aceita dois formatos:
   ],
   "youtube_feeds": [
     "https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw"
-  ]
-}
-```
-
-</details>
-
-<details>
-<summary><b>📁 Sites Oficiais (Monitoramento HTML)</b></summary>
-Sites que não possuem RSS são colocados em um array separado. O bot verifica mudanças de hash.
-
-```json
-{
+  ],
   "official_sites_reference_(not_rss)": [
     "https://gundam-official.com/",
     "https://en.gundam-official.com/news"
@@ -260,18 +367,32 @@ Sites que não possuem RSS são colocados em um array separado. O bot verifica m
 
 ## 🧰 Comandos
 
-| Comando | Tipo | Descrição |
-|---------|------|-----------|
-| `/dashboard` | Slash | Abre painel de configuração de filtros (Admin) |
-| `/setlang` | Slash | Define o idioma do bot para o servidor (Admin) |
-| `/forcecheck` | Slash | Força uma varredura imediata (Admin) |
-| `/status` | Slash | Mostra estatísticas do bot (Uptime, Scans, etc) |
-| `/feeds` | Slash | Lista todas as fontes monitoradas |
-| `/help` | Slash | Mostra manual de ajuda |
-| `/invite` | Slash | Link para convidar o bot |
-| `!dashboard` | Prefixo | Legado: Mesma função do /dashboard |
+| Comando | Tipo | Descrição | Permissão |
+|---------|------|-----------|-----------|
+| `/set_canal` | Slash | Define o canal onde o bot enviará notícias | Admin |
+| `/dashboard` | Slash | Abre painel de configuração de filtros | Admin |
+| `/setlang` | Slash | Define o idioma do bot para o servidor | Admin |
+| `/forcecheck` | Slash | Força uma varredura imediata | Admin |
+| `/status` | Slash | Mostra estatísticas do bot (Uptime, Scans, etc) | Todos |
+| `/feeds` | Slash | Lista todas as fontes monitoradas | Todos |
+| `/help` | Slash | Mostra manual de ajuda | Todos |
+| `/ping` | Slash | Verifica latência do bot | Todos |
 
-> **🔒 Permissão:** Apenas administradores podem usar estes comandos.
+> **🔒 Permissão:** Apenas administradores podem usar comandos administrativos.
+
+### 📖 Exemplos de Uso
+
+```bash
+# Configurar canal rapidamente
+/set_canal                    # Usa o canal atual
+/set_canal canal:#noticias    # Define canal específico
+
+# Abrir dashboard completo
+/dashboard                    # Abre painel com filtros
+
+# Verificar status
+/status                       # Estatísticas do bot
+```
 
 ---
 
@@ -287,6 +408,7 @@ O painel interativo permite configurar quais categorias monitorar:
 | 🎮 **Games** | Jogos Gundam (GBO2, Breaker, etc.) |
 | 🎵 **Música** | OST, álbuns, openings/endings |
 | 👕 **Fashion** | Roupas e merchandise |
+| 🌐 **Idioma** | Seleciona idioma (🇺🇸 🇧🇷 🇪🇸 🇮🇹 🇯🇵) |
 | 📌 **Ver filtros** | Mostra filtros ativos |
 | 🔄 **Reset** | Limpa todos os filtros |
 
@@ -294,6 +416,7 @@ O painel interativo permite configurar quais categorias monitorar:
 
 - 🟢 **Verde** = Filtro ativo
 - ⚪ **Cinza** = Filtro inativo
+- 🔵 **Azul** = Idioma selecionado
 
 ---
 
@@ -305,24 +428,27 @@ A filtragem **não é simples** — o bot usa um sistema em **camadas** para gar
 
 ```mermaid
 flowchart TD
-    A["📰 Notícia Recebida"] --> B{"🚫 Está na BLACKLIST?"}
-    B -->|Sim| C["❌ Descartada"]
-    B -->|Não| D{"🎯 Contém termo GUNDAM_CORE?"}
-    D -->|Não| C
-    D -->|Sim| E{"🌟 Filtro 'todos' ativo?"}
-    E -->|Sim| F["✅ Aprovada para postagem"]
-    E -->|Não| G{"📂 Bate com categoria selecionada?"}
-    G -->|Sim| F
-    G -->|Não| C
-    F --> H{"🔄 Link já está no histórico?"}
-    H -->|Sim| C
-    H -->|Não| I["📤 Envia para o Discord"]
+    A["📰 Notícia Recebida"] --> B{"🔒 URL Válida?"}
+    B -->|"❌ Inválida"| C["❌ Bloqueada<br/>Log de Segurança"]
+    B -->|"✅ Válida"| D{"🚫 Está na BLACKLIST?"}
+    D -->|Sim| C
+    D -->|Não| E{"🎯 Contém termo GUNDAM_CORE?"}
+    E -->|Não| C
+    E -->|Sim| F{"🌟 Filtro 'todos' ativo?"}
+    F -->|Sim| G["✅ Aprovada para postagem"]
+    F -->|Não| H{"📂 Bate com categoria selecionada?"}
+    H -->|Sim| G
+    H -->|Não| C
+    G --> I{"🔄 Link já está no histórico?"}
+    I -->|Sim| C
+    I -->|Não| J["📤 Envia para o Discord"]
 ```
 
 ### ✅ Regras de Filtragem (ordem real)
 
 | Etapa | Verificação | Ação |
 |-------|-------------|------|
+| 0️⃣ | **Validação de Segurança** | Verifica URL (anti-SSRF) |
 | 1️⃣ | Junta `title + summary` | Concatena texto |
 | 2️⃣ | Limpa HTML e normaliza | Remove tags, espaços extras |
 | 3️⃣ | **BLACKLIST** | Se aparecer (ex: *One Piece*), bloqueia |
@@ -346,14 +472,6 @@ one piece, dragon ball, naruto, bleach, pokemon, digimon,
 attack on titan, jujutsu, demon slayer
 ```
 
-### 🔧 Onde ajustar precisão?
-
-| Constante | Propósito |
-|-----------|-----------|
-| `GUNDAM_CORE` | Reforça o "é Gundam" — adicione termos aqui |
-| `BLACKLIST` | Corta ruído de feeds generalistas |
-| `CAT_MAP` | Ajusta gatilhos por categoria |
-
 ---
 
 ## 🖥️ Deploy
@@ -363,6 +481,26 @@ attack on titan, jujutsu, demon slayer
 ```bash
 python main.py
 ```
+
+### 🐳 Docker (Recomendado para Produção)
+
+```bash
+# Inicie com Docker Compose
+docker-compose up -d
+
+# Ver logs
+docker-compose logs -f
+
+# Parar
+docker-compose down
+```
+
+**Vantagens do Docker:**
+- ✅ Reinício automático se crashar
+- ✅ Isolamento completo do sistema
+- ✅ Fácil atualização (`git pull && docker-compose restart`)
+- ✅ Logs com rotação automática
+- ✅ Portável entre servidores
 
 ### VPS com systemd (produção)
 
@@ -400,35 +538,48 @@ sudo systemctl status gundam-bot
 journalctl -u gundam-bot -f
 ```
 
-### 🐳 VPS com Docker (recomendado para produção)
+📖 **Guia completo:** Veja [DEPLOY.md](DEPLOY.md) para instruções detalhadas.
 
-**Instalação rápida:**
+---
 
-```bash
-# Clone o repositório
-git clone https://github.com/carmipa/gundam-news-discord.git
-cd gundam-news-discord
+## 📊 Monitoramento e Logs
 
-# Configure .env com seu token
-cp .env.example .env
-nano .env
+### Sistema de Logging Avançado
 
-# Inicie com Docker Compose
-docker-compose up -d
+O bot possui um sistema de logging profissional com:
 
-# Ver logs
-docker-compose logs -f
+- 🎨 **Cores no Console** — Diferentes cores para cada nível de log
+- 📝 **Traceback Colorido** — Stack traces formatados com cores
+- 🔒 **Sanitização Automática** — Tokens e senhas são mascarados
+- 📁 **Rotação de Arquivos** — Logs rotacionam automaticamente (5MB, 3 backups)
+- 📊 **Níveis Configuráveis** — DEBUG, INFO, WARNING, ERROR, CRITICAL
+
+### Exemplo de Logs
+
+```
+2026-02-13 10:30:45 - [INFO] ℹ️ Bot conectado como: Mafty#1234 (ID: 123456789)
+2026-02-13 10:30:46 - [INFO] ℹ️ 📊 Servidores conectados: 3
+2026-02-13 10:30:47 - [INFO] ℹ️ 🔄 Agendador de tarefas iniciado (30 min).
+2026-02-13 10:31:15 - [INFO] ℹ️ 🔎 Iniciando varredura de inteligência... (trigger=loop)
+2026-02-13 10:31:20 - [WARNING] ⚠️ 🔒 URL bloqueada por segurança: http://localhost/test - IP privado/local não permitido
+2026-02-13 10:31:25 - [INFO] ℹ️ ✅ Varredura concluída. (enviadas=5, cache_hits=12/15, trigger=loop)
 ```
 
-**Vantagens do Docker:**
+### Ver Logs
 
-- ✅ Reinício automático se crashar
-- ✅ Isolamento completo do sistema
-- ✅ Fácil atualização (`git pull && docker-compose restart`)
-- ✅ Logs com rotação automática
-- ✅ Portável entre servidores
+```bash
+# Docker
+docker-compose logs -f
 
-📖 **Guia completo:** Veja [DEPLOY.md](DEPLOY.md) para instruções detalhadas.
+# Local
+tail -f logs/bot.log
+
+# Filtrar por nível
+grep ERROR logs/bot.log
+grep WARNING logs/bot.log
+```
+
+📄 **Documentação de melhorias:** Veja [LOGGING_IMPROVEMENTS.md](LOGGING_IMPROVEMENTS.md) para detalhes.
 
 ---
 
@@ -442,25 +593,38 @@ gundam-news-discord/
 ├── 📄 requirements.txt     # Dependências Python
 ├── 📄 .env.example         # Exemplo de configuração
 ├── 📄 .gitignore           # Arquivos ignorados pelo Git
-├── 🖼️ icon.png             # Ícone do bot
+├── 🖼️ icon.png            # Ícone do bot
 ├── 📁 .github/             # Workflows do GitHub Actions
 ├── 📁 bot/                 # Lógica do bot (Cogs, Views)
-├── 📁 core/                # Core do sistema (Scanner, Filtros, HTML Monitor)
+│   ├── cogs/               # Comandos (admin, dashboard, status, info)
+│   └── views/              # Views persistentes (FilterDashboard)
+├── 📁 core/                # Core do sistema
+│   ├── scanner.py          # Scanner de feeds
+│   ├── filters.py          # Sistema de filtros
+│   ├── html_monitor.py     # Monitor HTML
+│   └── stats.py            # Estatísticas
 ├── 📁 tests/               # Testes automatizados
 ├── 📁 translations/        # Internacionalização (i18n)
-├── 📁 utils/               # Utilitários (Logger, Helpers)
+├── 📁 utils/               # Utilitários
+│   ├── logger.py           # Sistema de logging
+│   ├── security.py         # Validação e segurança
+│   ├── storage.py          # Armazenamento JSON
+│   ├── translator.py       # Tradução
+│   └── cache.py            # Cache HTTP
 ├── 📁 web/                 # Web Dashboard
+│   ├── server.py           # Servidor aiohttp
+│   └── templates/          # Templates HTML
 └── 📄 README.md            # Esta documentação
 ```
 
-> **Nota:** Os arquivos `config.json` e `history.json` são gerados automaticamente em runtime e estão no `.gitignore`.
+> **Nota:** Os arquivos `config.json`, `history.json` e `state.json` são gerados automaticamente em runtime e estão no `.gitignore`.
 
 ---
 
 ## 🧩 Troubleshooting
 
 <details>
-<summary><b>❌ CommandNotFound: Application command 'dashboard' not found</b></summary>
+<summary><b>❌ CommandNotFound: Application command 'set_canal' not found</b></summary>
 
 **Causa:** Sincronização global lenta do Discord.
 
@@ -469,11 +633,14 @@ gundam-news-discord/
 </details>
 
 <details>
-<summary><b>❌ AttributeError: 'str' object has no attribute 'get'</b></summary>
+<summary><b>❌ Bot não tem permissão para enviar mensagens</b></summary>
 
-**Causa:** Formato incorreto do `sources.json`.
+**Causa:** Bot não tem permissões no canal configurado.
 
-**Solução:** Verifique se o arquivo está em um dos formatos aceitos (lista ou dicionário com categorias).
+**Solução:** 
+1. Verifique as permissões do bot no servidor
+2. Use `/set_canal` novamente - o bot verifica permissões automaticamente
+3. Conceda as permissões: **Enviar Mensagens** e **Incorporar Links**
 
 </details>
 
@@ -481,6 +648,15 @@ gundam-news-discord/
 <summary><b>⚠️ "PyNaCl is not installed… voice will NOT be supported"</b></summary>
 
 **Isso não é erro!** É apenas um aviso. O bot não usa recursos de voz, pode ignorar com segurança.
+
+</details>
+
+<details>
+<summary><b>🔒 URL bloqueada por segurança</b></summary>
+
+**Causa:** URL contém IP privado ou domínio local (proteção anti-SSRF).
+
+**Solução:** Verifique se a URL em `sources.json` está correta e é pública.
 
 </details>
 
@@ -509,6 +685,15 @@ Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](L
 
 ---
 
+## 📚 Documentação Adicional
+
+- 🔒 [SECURITY_GRC_ANALYSIS.md](SECURITY_GRC_ANALYSIS.md) — Análise completa de segurança e GRC
+- 📝 [LOGGING_IMPROVEMENTS.md](LOGGING_IMPROVEMENTS.md) — Melhorias de logging e tratamento de exceções
+- 🐳 [DEPLOY.md](DEPLOY.md) — Guia completo de deploy com Docker
+
+---
+
 <p align="center">
-  🛰️ <i>Mafty Intelligence System — Vigilância contínua do Universal Century</i>
+  🛰️ <i>Mafty Intelligence System — Vigilância contínua do Universal Century</i><br>
+  <b>Versão 2.1</b> • <i>Segurança Aprimorada • Logs Profissionais • Multi-Idioma</i>
 </p>
