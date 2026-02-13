@@ -80,7 +80,17 @@ class DashboardCog(commands.Cog):
         Define o canal onde o bot enviará notícias de Gundam.
         Se nenhum canal for especificado, usa o canal atual.
         """
-        await interaction.response.defer(ephemeral=True)
+        # Tenta fazer defer, mas trata se a interação já expirou
+        try:
+            await interaction.response.defer(ephemeral=True)
+            use_followup = True
+        except discord.NotFound:
+            # Interação expirada, tentará usar followup se possível
+            log.warning("Interação expirada ao tentar defer em /set_canal")
+            use_followup = False
+        except Exception as e:
+            log.error(f"Erro ao fazer defer em /set_canal: {type(e).__name__}: {e}")
+            use_followup = False
         
         guild_id = str(interaction.guild.id)
         
@@ -90,10 +100,21 @@ class DashboardCog(commands.Cog):
         
         # Valida que o canal é de texto
         if not isinstance(target_channel, discord.TextChannel):
-            await interaction.followup.send(
-                "❌ O canal deve ser um canal de texto!",
-                ephemeral=True
-            )
+            msg = "❌ O canal deve ser um canal de texto!"
+            try:
+                if use_followup:
+                    await interaction.followup.send(msg, ephemeral=True)
+                elif not interaction.response.is_done():
+                    await interaction.response.send_message(msg, ephemeral=True)
+                else:
+                    # Interação expirada, envia no canal
+                    await target_channel.send(f"{interaction.user.mention}: {msg}")
+            except (discord.NotFound, discord.InteractionResponded):
+                # Interação expirada ou já respondida, envia no canal
+                try:
+                    await target_channel.send(f"{interaction.user.mention}: {msg}")
+                except Exception as e:
+                    log.error(f"Erro ao enviar mensagem de erro: {e}")
             return
         
         # Verifica permissões do bot no canal
@@ -101,19 +122,37 @@ class DashboardCog(commands.Cog):
         if bot_member:
             permissions = target_channel.permissions_for(bot_member)
             if not permissions.send_messages:
-                await interaction.followup.send(
+                msg = (
                     f"❌ O bot não tem permissão para enviar mensagens no canal <#{channel_id}>!\n"
-                    f"Por favor, conceda a permissão **Enviar Mensagens** ao bot.",
-                    ephemeral=True
+                    f"Por favor, conceda a permissão **Enviar Mensagens** ao bot."
                 )
+                try:
+                    if use_followup:
+                        await interaction.followup.send(msg, ephemeral=True)
+                    elif not interaction.response.is_done():
+                        await interaction.response.send_message(msg, ephemeral=True)
+                    else:
+                        await target_channel.send(f"{interaction.user.mention}: {msg}")
+                except (discord.NotFound, discord.InteractionResponded):
+                    try:
+                        await target_channel.send(f"{interaction.user.mention}: {msg}")
+                    except Exception as e:
+                        log.error(f"Erro ao enviar mensagem de erro: {e}")
                 return
             
             if not permissions.embed_links:
-                await interaction.followup.send(
+                msg = (
                     f"⚠️ O bot não tem permissão para enviar embeds no canal <#{channel_id}>.\n"
-                    f"As notícias podem não aparecer corretamente. Considere conceder a permissão **Incorporar Links**.",
-                    ephemeral=True
+                    f"As notícias podem não aparecer corretamente. Considere conceder a permissão **Incorporar Links**."
                 )
+                try:
+                    if use_followup:
+                        await interaction.followup.send(msg, ephemeral=True)
+                    elif not interaction.response.is_done():
+                        await interaction.response.send_message(msg, ephemeral=True)
+                    # Aviso não crítico, não precisa fallback
+                except (discord.NotFound, discord.InteractionResponded):
+                    pass  # Aviso não crítico, pode ignorar
         
         # Carrega config
         cfg = load_json_safe(p("config.json"), {})
@@ -154,7 +193,28 @@ class DashboardCog(commands.Cog):
                 f"As notícias serão enviadas neste canal."
             )
         
-        await interaction.followup.send(msg, ephemeral=True)
+        # Envia mensagem de confirmação
+        try:
+            if use_followup:
+                await interaction.followup.send(msg, ephemeral=True)
+            elif not interaction.response.is_done():
+                await interaction.response.send_message(msg, ephemeral=True)
+            else:
+                # Interação já foi respondida, envia no canal
+                await target_channel.send(f"{interaction.user.mention}: {msg}")
+        except (discord.NotFound, discord.InteractionResponded):
+            # Interação expirada ou já respondida, tenta enviar no canal
+            try:
+                await target_channel.send(f"{interaction.user.mention}: {msg}")
+            except Exception as e:
+                log.warning(f"Não foi possível enviar confirmação: {type(e).__name__}: {e}")
+        except Exception as e:
+            log.error(f"Erro inesperado ao enviar confirmação: {type(e).__name__}: {e}")
+            # Última tentativa: enviar no canal
+            try:
+                await target_channel.send(f"{interaction.user.mention}: ✅ Canal configurado: <#{channel_id}>")
+            except:
+                pass
     
     @set_canal.error
     async def set_canal_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
