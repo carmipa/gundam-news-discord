@@ -367,20 +367,31 @@ O bot aceita múltiplos formatos:
 
 ## 🧰 Comandos
 
-| Comando | Tipo | Descrição | Permissão |
-|---------|------|-----------|-----------|
-| `/set_canal` | Slash | Define o canal onde o bot enviará notícias | Admin |
-| `/dashboard` | Slash | Abre painel de configuração de filtros | Admin |
-| `/setlang` | Slash | Define o idioma do bot para o servidor | Admin |
-| `/forcecheck` | Slash | Força uma varredura imediata | Admin |
-| `/status` | Slash | Mostra estatísticas do bot (Uptime, Scans, etc) | Todos |
-| `/feeds` | Slash | Lista todas as fontes monitoradas | Todos |
-| `/help` | Slash | Mostra manual de ajuda | Todos |
-| `/ping` | Slash | Verifica latência do bot | Todos |
+### 🔧 Comandos Administrativos
+
+| Comando | Descrição | Uso |
+|---------|-----------|-----|
+| `/set_canal` | Define o canal onde o bot enviará notícias | `/set_canal [canal:#noticias]` |
+| `/dashboard` | Abre painel visual para configurar filtros | `/dashboard` |
+| `/setlang` | Define o idioma do bot para o servidor | `/setlang idioma:pt_BR` |
+| `/forcecheck` | Força uma varredura imediata de feeds | `/forcecheck` |
+| `/clean_state` | Limpa partes do state.json (com backup automático) | `/clean_state tipo:dedup confirmar:sim` |
+
+### 📊 Comandos Informativos
+
+| Comando | Descrição | Uso |
+|---------|-----------|-----|
+| `/status` | Mostra estatísticas do bot (Uptime, Scans, etc) | `/status` |
+| `/feeds` | Lista todas as fontes monitoradas | `/feeds` |
+| `/help` | Mostra manual de ajuda completo | `/help` |
+| `/ping` | Verifica latência do bot | `/ping` |
+| `/about` | Informações sobre o bot | `/about` |
 
 > **🔒 Permissão:** Apenas administradores podem usar comandos administrativos.
 
 ### 📖 Exemplos de Uso
+
+#### Configuração
 
 ```bash
 # Configurar canal rapidamente
@@ -390,8 +401,67 @@ O bot aceita múltiplos formatos:
 # Abrir dashboard completo
 /dashboard                    # Abre painel com filtros
 
+# Definir idioma
+/setlang idioma:pt_BR         # Português
+/setlang idioma:en_US         # Inglês
+```
+
+#### Manutenção
+
+```bash
+# Limpar state.json (requer confirmação)
+/clean_state tipo:dedup confirmar:não    # Ver estatísticas primeiro
+/clean_state tipo:dedup confirmar:sim   # Executar limpeza
+
+# Tipos disponíveis:
+# - dedup: Histórico de links enviados
+# - http_cache: Cache HTTP (ETags)
+# - html_hashes: Hashes de monitoramento HTML
+# - tudo: Limpa tudo (use com cuidado!)
+
+# Forçar varredura manual
+/forcecheck                   # Executa scan imediato
+```
+
+#### Informações
+
+```bash
 # Verificar status
 /status                       # Estatísticas do bot
+
+# Listar feeds
+/feeds                        # Todas as fontes monitoradas
+
+# Ajuda
+/help                         # Manual completo
+```
+
+### ⚠️ Comando `/clean_state` - Detalhes
+
+O comando `/clean_state` permite limpar partes específicas do `state.json`:
+
+**Opções de Limpeza:**
+
+| Tipo | O que Limpa | Impacto |
+|------|-------------|---------|
+| 🧹 **dedup** | Histórico de links enviados | ⚠️ Bot repostará notícias recentes |
+| 🌐 **http_cache** | Cache HTTP (ETags, Last-Modified) | ℹ️ Mais requisições HTTP, sem repostagem |
+| 🔍 **html_hashes** | Hashes de monitoramento HTML | ⚠️ Sites serão detectados como "mudados" |
+| ⚠️ **tudo** | Limpa tudo (exceto metadados) | 🚨 Todos os efeitos acima combinados |
+
+**Proteções:**
+- ✅ Backup automático antes de limpar
+- ✅ Confirmação dupla obrigatória
+- ✅ Estatísticas antes/depois
+- ✅ Logging de auditoria completo
+
+**Exemplo Completo:**
+```
+1. /clean_state tipo:dedup confirmar:não
+   → Mostra estatísticas e pede confirmação
+
+2. /clean_state tipo:dedup confirmar:sim
+   → Cria backup → Limpa → Mostra resultado
 ```
 
 ---

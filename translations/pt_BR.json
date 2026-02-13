@@ -10,6 +10,7 @@
             "set_canal": "**/set_canal** - Define o canal onde o bot enviará notícias",
             "dashboard": "**/dashboard** - Painel visual para configurar filtros",
             "forcecheck": "**/forcecheck** - Força uma varredura imediata",
+            "clean_state": "**/clean_state** - Limpa partes do state.json (com backup)",
             "info": "📊 Informações",
             "status": "**/status** - Estatísticas de uptime e performance",
             "feeds": "**/feeds** - Lista fontes monitoradas",
@@ -49,6 +50,14 @@
             "success": "✅ Varredura forçada concluída!",
             "fail": "❌ Falha ao executar varredura.",
             "error_admin": "❌ Você precisa ter permissão de **Administrador** para usar este comando."
+        },
+        "clean_state": {
+            "description": "Limpa partes do state.json com backup automático",
+            "success": "✅ Limpeza concluída com sucesso!",
+            "backup_created": "Backup criado",
+            "error_admin": "❌ Você precisa ter permissão de **Administrador** para usar este comando.",
+            "error_no_backup": "❌ Falha ao criar backup. Limpeza cancelada por segurança.",
+            "error_empty": "⚠️ state.json está vazio ou não existe."
         }
     },
     "scanner": {

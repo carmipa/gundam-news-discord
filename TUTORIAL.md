@@ -27,12 +27,53 @@ Força uma varredura **imediata** de todas as fontes de notícias.
 
 * Útil para testar se o bot está funcionando ou quando você sabe que saiu uma notícia urgente e não quer esperar o ciclo automático (30 min).
 
+### `/set_canal`
+
+Define o canal onde o bot enviará notícias.
+**Uso:** `/set_canal [canal:#noticias]`
+
+* Se não especificar canal, usa o canal atual
+* Verifica permissões do bot automaticamente
+* Mais rápido que `/dashboard` para apenas configurar canal
+
+**Exemplo:**
+```
+/set_canal                    # Usa o canal atual
+/set_canal canal:#noticias    # Define canal específico
+```
+
 ### `/setlang`
 
 Define o idioma do bot para o servidor via comando (alternativa ao Dashboard).
 **Uso:** `/setlang [idioma]`
 
 * **Opções:** `en_US`, `pt_BR`, `es_ES`, `it_IT`, `ja_JP`.
+
+### `/clean_state`
+
+Limpa partes específicas do `state.json` com backup automático.
+**Uso:** `/clean_state tipo:[tipo] confirmar:[sim/não]`
+
+* **⚠️ Requer confirmação explícita** (`confirmar:sim`)
+* **Cria backup automático** antes de limpar
+* **Mostra estatísticas** antes e depois da limpeza
+
+**Tipos de Limpeza:**
+- 🧹 **dedup** - Histórico de links enviados (⚠️ pode causar repostagem)
+- 🌐 **http_cache** - Cache HTTP (ETags) - seguro
+- 🔍 **html_hashes** - Hashes de monitoramento HTML (⚠️ pode causar re-detecção)
+- ⚠️ **tudo** - Limpa tudo (🚨 use apenas em emergências)
+
+**Exemplo:**
+```
+# Passo 1: Ver estatísticas
+/clean_state tipo:dedup confirmar:não
+
+# Passo 2: Confirmar limpeza
+/clean_state tipo:dedup confirmar:sim
+```
+
+**⚠️ Atenção:** Limpar `dedup` fará o bot repostar notícias já enviadas!
 
 ---
 

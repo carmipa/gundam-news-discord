@@ -171,17 +171,27 @@ I siti senza RSS sono inseriti in un array separato. Il bot controlla i cambiame
 
 ## 🧰 Comandi
 
-| Comando | Tipo | Descrizione |
-|---------|------|-----------|
-| `/dashboard` | Slash | Apre pannello configurazione filtri (Admin) |
-| `/setlang` | Slash | Imposta la lingua del bot per il server (Admin) |
-| `/forcecheck` | Slash | Forza una scansione immediata (Admin) |
-| `/status` | Slash | Mostra statistiche del bot (Uptime, Scansioni, ecc) |
-| `/feeds` | Slash | Elenca tutte le fonti monitorate |
-| `/help` | Slash | Mostra manuale di aiuto |
-| `/invite` | Slash | Link per invitare il bot |
+### 🔧 Comandi Amministrativi
 
-> **🔒 Permessi:** Solo gli amministratori possono usare questi comandi.
+| Comando | Descrizione | Uso |
+|---------|-------------|-----|
+| `/set_canal` | Imposta il canale dove il bot invierà notizie | `/set_canal [canale:#notizie]` |
+| `/dashboard` | Apre pannello visuale per configurare filtri | `/dashboard` |
+| `/setlang` | Imposta la lingua del bot per il server | `/setlang lingua:it_IT` |
+| `/forcecheck` | Forza una scansione immediata | `/forcecheck` |
+| `/clean_state` | Pulisce parti del state.json (con backup automatico) | `/clean_state tipo:dedup confermare:si` |
+
+### 📊 Comandi Informativi
+
+| Comando | Descrizione | Uso |
+|---------|-------------|-----|
+| `/status` | Mostra statistiche del bot | `/status` |
+| `/feeds` | Elenca tutte le fonti monitorate | `/feeds` |
+| `/help` | Mostra manuale di aiuto | `/help` |
+| `/ping` | Verifica latenza del bot | `/ping` |
+| `/about` | Informazioni sul bot | `/about` |
+
+> **🔒 Permessi:** Solo gli amministratori possono usare comandi amministrativi.
 
 ---
 

@@ -268,18 +268,90 @@ Sites without RSS are placed in a separate array. The bot checks for hash change
 
 ## 🧰 Commands
 
-| Command | Type | Description |
-|---------|------|-----------|
-| `/dashboard` | Slash | Opens filter configuration panel (Admin) |
-| `/setlang` | Slash | Sets bot language for the server (Admin) |
-| `/forcecheck` | Slash | Forces immediate scan (Admin) |
-| `/status` | Slash | Shows bot statistics (Uptime, Scans, etc) |
-| `/feeds` | Slash | Lists all monitored sources |
-| `/help` | Slash | Shows help manual |
-| `/invite` | Slash | Link to invite the bot |
-| `!dashboard` | Prefix | Legacy: Same function as /dashboard |
+### 🔧 Administrative Commands
 
-> **🔒 Permission:** Only administrators can use these commands.
+| Command | Description | Usage |
+|---------|-------------|-------|
+| `/set_canal` | Sets the channel where the bot will send news | `/set_canal [channel:#news]` |
+| `/dashboard` | Opens visual panel to configure filters | `/dashboard` |
+| `/setlang` | Sets bot language for the server | `/setlang language:en_US` |
+| `/forcecheck` | Forces immediate feed scan | `/forcecheck` |
+| `/clean_state` | Cleans parts of state.json (with automatic backup) | `/clean_state type:dedup confirm:yes` |
+
+### 📊 Informational Commands
+
+| Command | Description | Usage |
+|---------|-------------|-------|
+| `/status` | Shows bot statistics (Uptime, Scans, etc) | `/status` |
+| `/feeds` | Lists all monitored sources | `/feeds` |
+| `/help` | Shows help manual | `/help` |
+| `/ping` | Checks bot latency | `/ping` |
+| `/about` | Bot information | `/about` |
+
+> **🔒 Permission:** Only administrators can use administrative commands.
+
+### 📖 Usage Examples
+
+#### Configuration
+```bash
+# Set channel quickly
+/set_canal                    # Uses current channel
+/set_canal channel:#news      # Sets specific channel
+
+# Open dashboard
+/dashboard                    # Opens filter panel
+
+# Set language
+/setlang language:en_US       # English
+/setlang language:pt_BR       # Portuguese
+```
+
+#### Maintenance
+```bash
+# Clean state.json (requires confirmation)
+/clean_state type:dedup confirm:no     # View statistics first
+/clean_state type:dedup confirm:yes    # Execute cleanup
+
+# Available types:
+# - dedup: Sent links history
+# - http_cache: HTTP cache (ETags)
+# - html_hashes: HTML monitoring hashes
+# - everything: Cleans everything (use with caution!)
+
+# Force manual scan
+/forcecheck                   # Executes immediate scan
+```
+
+#### Information
+```bash
+# Check status
+/status                       # Bot statistics
+
+# List feeds
+/feeds                        # All monitored sources
+
+# Help
+/help                         # Complete manual
+```
+
+### ⚠️ `/clean_state` Command - Details
+
+The `/clean_state` command allows cleaning specific parts of `state.json`:
+
+**Cleaning Options:**
+
+| Type | What it Cleans | Impact |
+|------|----------------|--------|
+| 🧹 **dedup** | Sent links history | ⚠️ Bot will repost recent news |
+| 🌐 **http_cache** | HTTP cache (ETags, Last-Modified) | ℹ️ More HTTP requests, no reposting |
+| 🔍 **html_hashes** | HTML monitoring hashes | ⚠️ Sites will be detected as "changed" |
+| ⚠️ **everything** | Cleans everything (except metadata) | 🚨 All effects above combined |
+
+**Protections:**
+- ✅ Automatic backup before cleaning
+- ✅ Double confirmation required
+- ✅ Statistics before/after
+- ✅ Complete audit logging
 
 ---
 

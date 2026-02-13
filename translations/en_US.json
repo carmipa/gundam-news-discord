@@ -10,6 +10,7 @@
             "set_canal": "**/set_canal** - Set the channel where the bot will send news",
             "dashboard": "**/dashboard** - Visual panel to configure filters",
             "forcecheck": "**/forcecheck** - Force immediate scan",
+            "clean_state": "**/clean_state** - Clean parts of state.json (with backup)",
             "info": "📊 Information",
             "status": "**/status** - Uptime and performance stats",
             "feeds": "**/feeds** - List monitored sources",
@@ -49,6 +50,14 @@
             "success": "✅ Forced scan completed!",
             "fail": "❌ Failed to execute scan.",
             "error_admin": "❌ You need **Administrator** permission to use this command."
+        },
+        "clean_state": {
+            "description": "Clean parts of state.json with automatic backup",
+            "success": "✅ Cleanup completed successfully!",
+            "backup_created": "Backup created",
+            "error_admin": "❌ You need **Administrator** permission to use this command.",
+            "error_no_backup": "❌ Failed to create backup. Cleanup cancelled for safety.",
+            "error_empty": "⚠️ state.json is empty or does not exist."
         }
     },
     "scanner": {
