@@ -3,6 +3,8 @@ services:
     build: .
     container_name: gundam-news-bot
     restart: unless-stopped
+    tty: true
+    stdin_open: true
 
     # Variáveis de ambiente (do arquivo .env)
     env_file:

@@ -4,7 +4,8 @@ import sys
 from colorama import init, Fore, Style
 
 # Inicializa colorama para funcionar no Windows
-init(autoreset=True)
+# Inicializa colorama para funcionar no Windows e forçar cores
+init(autoreset=True, strip=False)
 
 class SecurityFilter(logging.Filter):
     """
@@ -46,8 +47,8 @@ class ColorfulFormatter(logging.Formatter):
         color, icon = self.FORMATS.get(record.levelno, (Fore.WHITE, ""))
         
         # Formato: DATA - [NIVEL] ICON MENSAGEM
-        # O %(levelname)s será colorido
-        log_fmt = f"{Fore.LIGHTBLACK_EX}%(asctime)s{Style.RESET_ALL} - [{color}%(levelname)s{Style.RESET_ALL}] {icon} %(message)s"
+        # Agora a mensagem inteira segue a cor do nível
+        log_fmt = f"{Fore.LIGHTBLACK_EX}%(asctime)s{Style.RESET_ALL} - [{color}%(levelname)s{Style.RESET_ALL}] {icon} {color}%(message)s{Style.RESET_ALL}"
         
         formatter = logging.Formatter(log_fmt, datefmt="%Y-%m-%d %H:%M:%S")
         message = formatter.format(record)
