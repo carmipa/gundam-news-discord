@@ -96,7 +96,7 @@ async def check_official_sites(current_state: Dict[str, str]) -> Tuple[List[Dict
     updates = []
     new_state = current_state.copy()
     
-    async with aiohttp.ClientSession(connector=connector, headers=headers) as session:
+    async with aiohttp.ClientSession(connector=connector, headers=headers, read_bufsize=2**16) as session:
         tasks = [fetch_page_hash(session, url) for url in urls]
         results = await asyncio.gather(*tasks)
         
