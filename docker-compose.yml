@@ -5,6 +5,9 @@ services:
     restart: unless-stopped
     tty: true
     stdin_open: true
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
 
     # Variáveis de ambiente (do arquivo .env)
     env_file:
