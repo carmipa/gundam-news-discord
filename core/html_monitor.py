@@ -21,7 +21,7 @@ IGNORE_TAGS = ['script', 'style', 'meta', 'noscript', 'iframe', 'svg']
 # Classes/IDs often used for ads or dynamic widgets
 IGNORE_SELECTORS = ['.ad', '.advertisement', '.widget', '#clock', '.timestamp', '.cookie-consent']
 
-async def fetch_page_hash(client: httpx.AsyncClient, url: str) -> Tuple[str, str, str]:
+async def fetch_page_hash(client: httpx.AsyncClient, url: str) -> tuple[str, str, str]:
     """
     Fetches a page, cleans it, and returns (url, title, hash).
     Returns (url, "", "") on failure.
