@@ -480,9 +480,9 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                             log.debug(f"🛡️ [Filtro HTML] Guild {gid} bloqueou site: {u_title}")
                             continue
 
-                        channel = bot.get_channel(channel_id)
                         if channel:
                             await channel.send(f"⚠️ **MAFTY INTEL ALERT**\n{u_title}\n{u_link}")
+                            sent_count += 1
             else:
                  if new_hashes != html_hashes:
                      state["html_hashes"] = new_hashes

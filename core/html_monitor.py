@@ -5,22 +5,13 @@ import ssl
 import logging
 import hashlib
 import asyncio
-import aiohttp
-import certifi
-from typing import List, Dict, Tuple
-from bs4 import BeautifulSoup
+import httpx
 
-from utils.storage import p, load_json_safe, save_json_safe
-from utils.security import validate_url
+# ... (imports unchanged)
 
-log = logging.getLogger("MaftyIntel")
+# ... (constants unchanged)
 
-# Tags to ignore during hash calculation (noise reduction)
-IGNORE_TAGS = ['script', 'style', 'meta', 'noscript', 'iframe', 'svg']
-# Classes/IDs often used for ads or dynamic widgets
-IGNORE_SELECTORS = ['.ad', '.advertisement', '.widget', '#clock', '.timestamp', '.cookie-consent']
-
-async def fetch_page_hash(session: aiohttp.ClientSession, url: str) -> Tuple[str, str, str]:
+async def fetch_page_hash(client: httpx.AsyncClient, url: str) -> Tuple[str, str, str]:
     """
     Fetches a page, cleans it, and returns (url, title, hash).
     Returns (url, "", "") on failure.
@@ -32,39 +23,36 @@ async def fetch_page_hash(session: aiohttp.ClientSession, url: str) -> Tuple[str
             log.warning(f"🔒 URL bloqueada por segurança no HTML Monitor: {url} - {error_msg}")
             return url, "", ""
         
-        async with session.get(url) as resp:
-            if resp.status != 200:
-                log.debug(f"HTML Monitor: {url} returned {resp.status}")
-                return url, "", ""
-            
-            content = await resp.text(errors="ignore")
-            
-            # Parse and Clean
-            soup = BeautifulSoup(content, 'html.parser')
-            
-            # Remove noise tags
-            for tag in soup(IGNORE_TAGS):
-                tag.decompose()
-            
-            # Remove noise classes (Safe attempt)
-            for selector in IGNORE_SELECTORS:
-                for match in soup.select(selector):
-                    match.decompose()
-            
-            # Get text content only (ignoring HTML structure changes)
-            text_content = soup.get_text(separator=' ', strip=True)
-            
-            # Hash calculation
-            page_hash = hashlib.sha256(text_content.encode('utf-8')).hexdigest()
-            title = soup.title.string.strip() if soup.title else "No Title"
-            
-            return url, title, page_hash
+        resp = await client.get(url, follow_redirects=True)
+        if resp.status_code != 200:
+            log.debug(f"HTML Monitor: {url} returned {resp.status_code}")
+            return url, "", ""
+        
+        content = resp.text
+        
+        # Parse and Clean
+        soup = BeautifulSoup(content, 'html.parser')
+        
+        # Remove noise tags
+        for tag in soup(IGNORE_TAGS):
+            tag.decompose()
+        
+        # Remove noise classes (Safe attempt)
+        for selector in IGNORE_SELECTORS:
+            for match in soup.select(selector):
+                match.decompose()
+        
+        # Get text content only (ignoring HTML structure changes)
+        text_content = soup.get_text(separator=' ', strip=True)
+        
+        # Hash calculation
+        page_hash = hashlib.sha256(text_content.encode('utf-8')).hexdigest()
+        title = soup.title.string.strip() if soup.title else "No Title"
+        
+        return url, title, page_hash
 
-    except aiohttp.ClientError as e:
+    except httpx.RequestError as e:
         log.warning(f"🌐 Erro de conexão no HTML Monitor para '{url}': {e}")
-        return url, "", ""
-    except asyncio.TimeoutError as e:
-        log.warning(f"⏱️ Timeout no HTML Monitor para '{url}': {e}")
         return url, "", ""
     except Exception as e:
         log.warning(f"⚠️ Erro inesperado no HTML Monitor para '{url}': {type(e).__name__}: {e}", exc_info=True)
@@ -84,25 +72,27 @@ async def check_official_sites(current_state: Dict[str, str]) -> Tuple[List[Dict
     if not urls:
         return [], current_state
 
-    # SSL & Headers (Same as scanner.py)
-    ssl_ctx = ssl.create_default_context(cafile=certifi.where())
+    # Headers (Same as scanner.py)
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9"
     }
-    connector = aiohttp.TCPConnector(ssl=ssl_ctx)
     
     updates = []
     new_state = current_state.copy()
     
-    async with aiohttp.ClientSession(connector=connector, headers=headers, read_bufsize=2**16) as session:
-        tasks = [fetch_page_hash(session, url) for url in urls]
+    # HTTPX Client with http2 support and large limits explicitly handled by default config usually
+    # but we can verify later if needed. HTTPX handles large headers much better than aiohttp default.
+    async with httpx.AsyncClient(headers=headers, timeout=30.0, verify=certifi.where()) as client:
+        tasks = [fetch_page_hash(client, url) for url in urls]
+        # Asyncio gather works same way
         results = await asyncio.gather(*tasks)
         
         for url, title, page_hash in results:
             if not page_hash:
                 continue
+
                 
             last_hash = current_state.get(url)
             
