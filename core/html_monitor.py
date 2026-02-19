@@ -7,9 +7,19 @@ import hashlib
 import asyncio
 import httpx
 
-# ... (imports unchanged)
+import certifi
+from typing import List, Dict, Tuple
+from bs4 import BeautifulSoup
 
-# ... (constants unchanged)
+from utils.storage import p, load_json_safe, save_json_safe
+from utils.security import validate_url
+
+log = logging.getLogger("MaftyIntel")
+
+# Tags to ignore during hash calculation (noise reduction)
+IGNORE_TAGS = ['script', 'style', 'meta', 'noscript', 'iframe', 'svg']
+# Classes/IDs often used for ads or dynamic widgets
+IGNORE_SELECTORS = ['.ad', '.advertisement', '.widget', '#clock', '.timestamp', '.cookie-consent']
 
 async def fetch_page_hash(client: httpx.AsyncClient, url: str) -> Tuple[str, str, str]:
     """
