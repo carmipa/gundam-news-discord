@@ -156,6 +156,28 @@ def parse_entry_dt(entry: Any) -> datetime:
         
     return None
 
+def get_news_metadata(title: str, url: str) -> tuple[str, discord.Color]:
+    """
+    Retorna (prefixo, cor) baseado em keywords e source url.
+    Implementa a lógica de Leaks (🚨) e Rumores (🕵️).
+    """
+    leak_keywords = ["leak", "riiku", "vazamento", "rumor", "uwasa", "sokuhou", "速報", "リーク", "新型"]
+    leak_sources = ["hobbynotoriko", "reddit.com/r/Gunpla", "dengeki", "weibo", "5ch"]
+
+    title_lower = title.lower()
+    
+    # 1. Palavras-Chave (Prioridade: Alerta Vermelho/Laranja)
+    if any(k in title_lower for k in leak_keywords):
+        return ("🚨 **[LEAK]**", discord.Color.from_rgb(255, 69, 0)) # Red-Orange
+    
+    # 2. Fonte de Rumores (Prioridade: Espião/Detective)
+    elif any(src in url for src in leak_sources):
+         return ("🕵️ **[RUMOR]**", discord.Color.from_rgb(255, 140, 0)) # Dark Orange
+    
+    # 3. Padrão
+    else:
+        return ("", discord.Color.from_rgb(255, 0, 32)) # Standard Red
+
 # =========================================================
 # SCANNER LOGIC
 # =========================================================
@@ -377,15 +399,11 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         t_translated = await translate_to_target(t_clean, target_lang)
                         s_translated = await translate_to_target(s_clean, target_lang)
 
-                        # Detecção de Leaks/Rumores (Maldade Pura)
-                        leak_keywords = ["速報", "リーク", "噂", "新型", "Leak", "Rumor"]
-                        is_leak = any(k in t_clean for k in leak_keywords) or any(k in s_clean for k in leak_keywords)
+                        # Detecção de Leaks/Rumores (Refined Logic via Helper)
+                        prefix, embed_color = get_news_metadata(t_clean, link)
                         
-                        if is_leak:
-                            t_translated = f"[🚨 LEAK] {t_translated}"
-                            embed_color = discord.Color.from_rgb(255, 165, 0) # Laranja para leaks
-                        else:
-                            embed_color = discord.Color.from_rgb(255, 0, 32) # Vermelho padrão
+                        if prefix:
+                            t_translated = f"{prefix} {t_translated}"
 
 
                         # Verifica se é mídia para expor o link e gerar player
