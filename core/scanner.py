@@ -473,6 +473,11 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         
                         channel_id = gdata.get("channel_id")
                         if not channel_id: continue
+
+                        try:
+                            channel = bot.get_channel(int(channel_id))
+                        except Exception:
+                            channel = None
                         
                         # APLICA FILTRO DE INTELIGÊNCIA TAMBÉM NO MONITOR HTML
                         # Isso impede que sites genéricos (Mantan, Eiga) spammem mudanças irrelevantes
