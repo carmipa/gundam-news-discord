@@ -67,26 +67,33 @@ async def main():
 
     async with httpx.AsyncClient(headers=HEADERS, timeout=20.0, verify=False) as client:
         
-        print("\n🔎 --- TESTANDO FEEDS RSS ---")
-        rss_feeds = data.get("rss_feeds", [])
-        for url in rss_feeds:
-            status, msg = await check_rss(client, url)
-            icon = "✅" if status else "❌"
-            print(f"{icon} {url}\n   └── {msg}")
+        with open("verification_results.txt", "w", encoding="utf-8") as outfile:
+            def log_result(text):
+                print(text)
+                outfile.write(text + "\n")
 
-        print("\n🔎 --- TESTANDO CANAIS YOUTUBE (RSS) ---")
-        yt_feeds = data.get("youtube_feeds", [])
-        for url in yt_feeds:
-            status, msg = await check_rss(client, url)
-            icon = "✅" if status else "❌"
-            print(f"{icon} {url}\n   └── {msg}")
+            log_result("📂 Carregando sources.json...")
+            
+            log_result("\n🔎 --- TESTANDO FEEDS RSS ---")
+            rss_feeds = data.get("rss_feeds", [])
+            for url in rss_feeds:
+                status, msg = await check_rss(client, url)
+                icon = "✅" if status else "❌"
+                log_result(f"{icon} {url}\n   └── {msg}")
 
-        print("\n🔎 --- TESTANDO HTML MONITOR (SITES OFICIAIS) ---")
-        html_sites = data.get("official_sites_reference_(not_rss)", [])
-        for url in html_sites:
-            status, msg = await check_html(client, url)
-            icon = "✅" if status else "❌"
-            print(f"{icon} {url}\n   └── {msg}")
+            log_result("\n🔎 --- TESTANDO CANAIS YOUTUBE (RSS) ---")
+            yt_feeds = data.get("youtube_feeds", [])
+            for url in yt_feeds:
+                status, msg = await check_rss(client, url)
+                icon = "✅" if status else "❌"
+                log_result(f"{icon} {url}\n   └── {msg}")
+
+            log_result("\n🔎 --- TESTANDO HTML MONITOR (SITES OFICIAIS) ---")
+            html_sites = data.get("official_sites_reference_(not_rss)", [])
+            for url in html_sites:
+                status, msg = await check_html(client, url)
+                icon = "✅" if status else "❌"
+                log_result(f"{icon} {url}\n   └── {msg}")
 
 if __name__ == "__main__":
     import logging
