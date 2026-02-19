@@ -7,9 +7,8 @@
     "https://www.usagundamstore.com/blogs/usa-gundam-blog.atom",
     "https://www.bandai.com/blog/rss/feed",
     "https://www.gundamkitscollection.com/feeds/posts/default?alt=rss",
-    "https://stelasub.blogspot.com/feeds/posts/default",
     "https://nyaa.si/?page=rss&q=gundam&c=1_2&f=0",
-    "https://www.crunchyroll.com/news/rss",
+    "https://www.crunchyroll.com/news/rss?lang=en-us",
     "https://www.whats-on-netflix.com/feed/",
     "http://blog.esuteru.com/index.rdf",
     "https://natalie.mu/comic/feed/news",
@@ -17,9 +16,15 @@
     "https://deadline.com/feed/",
     "https://variety.com/feed/",
     "https://kotaku.com/rss",
-    "https://www.alltheanime.com/blogs/news.atom",
     "https://www.reddit.com/r/Gundam/.rss",
-    "https://omochajapan.com/blogs/news.atom"
+    "https://www.gundamkitscollection.com/feeds/posts/default/-/The%20Gundam%20Base",
+    "https://www.gundamkitscollection.com/feeds/posts/default/-/Gundam%20Card%20Game",
+    "https://www.gundamkitscollection.com/feeds/posts/default/-/Gundam%20Hangar",
+    "https://tamashiiweb.com/rss/news/?wovn=en",
+    "https://p-bandai.com/us/news/rss",
+    "https://hobby.dengeki.com/feed/",
+    "http://hobbynotoriko.yuka-iki.com/index.xml",
+    "https://www.reddit.com/r/Gunpla/search.rss?q=flair%3ANews&restrict_sr=on&sort=new"
   ],
   "youtube_feeds": [
     "https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw",
@@ -50,11 +55,9 @@
     "https://bandaibrasil.com.br/collections/gundam",
     "https://www.gundamkitscollection.com/",
     "https://www.vcagundam.com/",
-    "https://gundamnews.org/",
     "https://www.gundam-seed.net/",
     "https://en.bandainamcoent.eu/",
     "https://www.sunrise-inc.co.jp/international/",
-    "https://www.gunjap.net/",
     "https://gundam-official.com/hathaway/",
     "https://gundam-official.com/hathaway/news/",
     "https://www.gundamfc.com/",
@@ -100,6 +103,8 @@
     "https://en.gundam.info/about-gundam/series-pages/buildmetaverse/",
     "https://www.strict-g.com/",
     "https://p-bandai.jp/global_newpc.html",
-    "https://x.com/gundam_ch"
+    "https://x.com/gundam_ch",
+    "https://weibo.com/n/BandaiNamcoChina",
+    "https://mevius.5ch.net/mecha/"
   ]
 }

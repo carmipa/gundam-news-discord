@@ -229,9 +229,9 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         # SSL Configuration
         ssl_ctx = ssl.create_default_context(cafile=certifi.where())
         base_headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36",
+            "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
             "Accept-Language": "en-US,en;q=0.9",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8"
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
         }
         timeout = aiohttp.ClientTimeout(total=30)
         connector = aiohttp.TCPConnector(ssl=ssl_ctx)
@@ -377,6 +377,17 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         t_translated = await translate_to_target(t_clean, target_lang)
                         s_translated = await translate_to_target(s_clean, target_lang)
 
+                        # Detecção de Leaks/Rumores (Maldade Pura)
+                        leak_keywords = ["速報", "リーク", "噂", "新型", "Leak", "Rumor"]
+                        is_leak = any(k in t_clean for k in leak_keywords) or any(k in s_clean for k in leak_keywords)
+                        
+                        if is_leak:
+                            t_translated = f"[🚨 LEAK] {t_translated}"
+                            embed_color = discord.Color.from_rgb(255, 165, 0) # Laranja para leaks
+                        else:
+                            embed_color = discord.Color.from_rgb(255, 0, 32) # Vermelho padrão
+
+
                         # Verifica se é mídia para expor o link e gerar player
                         media_domains = ("youtube.com", "youtu.be", "twitch.tv", "soundcloud.com", "spotify.com")
                         is_media = False
@@ -392,7 +403,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                                 title=t_translated[:256],
                                 description=s_translated,
                                 url=link,
-                                color=discord.Color.from_rgb(255, 0, 32),
+                                color=embed_color,
                                 timestamp=datetime.now()
                             )
                             from utils.translator import t
