@@ -177,10 +177,12 @@ def clean_state(state: Dict[str, Any], clean_type: str) -> Tuple[Dict[str, Any],
     """
     stats_before = get_state_stats(state)
     new_state = state.copy()
-    
     if clean_type == "dedup":
         new_state["dedup"] = {}
         log.info("🧹 Limpeza: dedup removido")
+        # Também zera o histórico global legado (history.json)
+        save_json_safe(p("history.json"), [])
+        log.info("🧹 Limpeza: history.json zerado")
     
     elif clean_type == "http_cache":
         new_state["http_cache"] = {}
@@ -195,8 +197,9 @@ def clean_state(state: Dict[str, Any], clean_type: str) -> Tuple[Dict[str, Any],
         new_state["dedup"] = {}
         new_state["http_cache"] = {}
         new_state["html_hashes"] = {}
+        save_json_safe(p("history.json"), [])
         # Mantém last_cleanup e last_announced_hash
-        log.info("🧹 Limpeza: tudo removido (exceto metadados)")
+        log.info("🧹 Limpeza: tudo removido (exceto metadados), incluindo history.json")
     
     else:
         raise ValueError(f"Tipo de limpeza inválido: {clean_type}")
