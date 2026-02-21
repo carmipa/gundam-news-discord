@@ -464,15 +464,19 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                                 label="Leia Mais",
                                 emoji="📖"
                             ))
+                            wa_text = f"Confira essa notícia:\n{t_translated}\n{link}"
                             view.add_item(discord.ui.Button(
                                 style=discord.ButtonStyle.link,
-                                url=f"https://api.whatsapp.com/send?text={quote(f'Confira essa notícia:\\n{t_translated}\\n{link}')}"[:512],
+                                url=f"https://api.whatsapp.com/send?text={quote(wa_text)}"[:512],
                                 label="WhatsApp",
                                 emoji="🟢"
                             ))
+                            
+                            email_subj = t_translated[:100]
+                            email_body = f"Confira essa notícia:\n{link}"
                             view.add_item(discord.ui.Button(
                                 style=discord.ButtonStyle.link,
-                                url=f"mailto:?subject={quote(t_translated[:100])}&body={quote(f'Confira essa notícia:\\n{link}')}"[:512],
+                                url=f"mailto:?subject={quote(email_subj)}&body={quote(email_body)}"[:512],
                                 label="E-mail",
                                 emoji="✉️"
                             ))
@@ -546,15 +550,18 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                                 label="Leia Mais",
                                 emoji="📖"
                             ))
+                            wa_alert_text = f"Atualização:\n{u_title}\n{u_link}"
                             view.add_item(discord.ui.Button(
                                 style=discord.ButtonStyle.link,
-                                url=f"https://api.whatsapp.com/send?text={quote(f'Atualização:\\n{u_title}\\n{u_link}')}"[:512],
+                                url=f"https://api.whatsapp.com/send?text={quote(wa_alert_text)}"[:512],
                                 label="WhatsApp",
                                 emoji="🟢"
                             ))
+                            
+                            email_alert_body = f"{u_title}\n{u_link}"
                             view.add_item(discord.ui.Button(
                                 style=discord.ButtonStyle.link,
-                                url=f"mailto:?subject={quote('Nova Atualização')}&body={quote(f'{u_title}\\n{u_link}')}"[:512],
+                                url=f"mailto:?subject={quote('Nova Atualização')}&body={quote(email_alert_body)}"[:512],
                                 label="E-mail",
                                 emoji="✉️"
                             ))
