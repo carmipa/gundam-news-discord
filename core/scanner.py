@@ -476,7 +476,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                             email_body = f"Confira essa notícia:\n{link}"
                             view.add_item(discord.ui.Button(
                                 style=discord.ButtonStyle.link,
-                                url=f"mailto:?subject={quote(email_subj)}&body={quote(email_body)}"[:512],
+                                url=f"https://mail.google.com/mail/?view=cm&fs=1&su={quote(email_subj)}&body={quote(email_body)}"[:512],
                                 label="E-mail",
                                 emoji="✉️"
                             ))
@@ -561,7 +561,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                             email_alert_body = f"{u_title}\n{u_link}"
                             view.add_item(discord.ui.Button(
                                 style=discord.ButtonStyle.link,
-                                url=f"mailto:?subject={quote('Nova Atualização')}&body={quote(email_alert_body)}"[:512],
+                                url=f"https://mail.google.com/mail/?view=cm&fs=1&su={quote('Nova Atualização')}&body={quote(email_alert_body)}"[:512],
                                 label="E-mail",
                                 emoji="✉️"
                             ))
