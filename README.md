@@ -1,7 +1,7 @@
 # 🛰️ Gundam News Bot — Mafty Intelligence System
 
 <p align="center">
-  <img alt="Gundam News Bot" src="./icon.png" width="300">
+  <img alt="Games Bot" src="./icon.png" width="300">
 </p>
 
 <p align="center">

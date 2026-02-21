@@ -18,7 +18,8 @@ GUNDAM_CORE = [
     "hathaway's flash", "hathaway noa", "mafty", "xi gundam", "penelope",
     "unicorn gundam", "banshee", "rx-0",
     "witch from mercury", "suletta", "miorine", "aerial",
-    "ガンダム", "機動戦士", "ハサウェイ", "マフティー", "閃光のハサウェイ"
+    "uce", "engage", "gundam u.c. engage",
+    "ガンダム", "機動戦士", "ハサウェイ", "マフティー", "閃光のハサウェイ", "エンゲージ"
 ]
 
 BLACKLIST = [
@@ -30,10 +31,27 @@ BLACKLIST = [
 
 CAT_MAP = {
     "gunpla":  ["gunpla", "model kit", "kit", "ver.ka", "p-bandai", "premium bandai", "hg ", "mg ", "rg ", "pg ", "sd ", "fm ", "re/100"],
-    "filmes":  ["anime", "episode", "movie", "film", "pv", "trailer", "teaser", "series", "season", "seed freedom", "witch from mercury", "hathaway"],
+    "filmes":  ["anime", "episode", "episódio", "episodio", "movie", "film", "pv", "trailer", "teaser", "series", "season", "seed freedom", "witch from mercury", "hathaway"],
     "games":   ["game", "steam", "ps5", "xbox", "gbo2", "battle operation", "breaker", "gundam breaker"],
     "musica":  ["music", "ost", "soundtrack", "album", "opening", "ending"],
     "fashion": ["fashion", "clothing", "apparel", "t-shirt", "hoodie", "jacket", "merch"],
+}
+
+# =========================================================
+# SPECIAL SOURCE RULES (Advanced Filtering)
+# =========================================================
+# Mapeia ID do canal -> Regex que DEVE dar match no título para ser aprovado.
+# Útil para canais oficiais que postam muito lixo (gameplay, trailers de outros jogos)
+# e queremos apenas conteúdo específico (ex: cutscenes de história).
+
+SPECIAL_SOURCE_RULES = {
+    # Gundam Channel (Official) -> Apenas U.C. Engage (Story/Animation)
+    # ID: UC7wu64jFsV02bbu6UHUd7JA (Gundam Channel)
+    # ID: UC7wu64jGxCwSuxOR7XfS88g (Gundam Channel - Another URL format, same channel?)
+    # Let's support both just in case, or list the specific one we are adding.
+    # The user provided: UC7wu64jGxCwSuxOR7XfS88g
+    "UC7wu64jFsV02bbu6UHUd7JA": r"(?i)(UCE|ENGAGE|エンゲージ|story|cutscene|アニメ|epis[oó]dio|episode|第\d+話)", 
+    "UC7wu64jGxCwSuxOR7XfS88g": r"(?i)(UCE|ENGAGE|エンゲージ|story|cutscene|アニメ|epis[oó]dio|episode|第\d+話)"
 }
 
 FILTER_OPTIONS = {
@@ -54,10 +72,12 @@ import re
 
 def _contains_any(text: str, keywords: List[str]) -> bool:
     """
-    Verifica se alguma keyword está presente no texto usando Regex.
+    Verifica se alguma keyword está presente no texto usando Regex flexível.
     
-    Usa word boundaries (\b) para evitar matches parciais (ex: 'wing' em 'drawing').
-    Suporta plural opcional ('s?').
+    1. Se for Japonês (CJK), não usa 'word boundaries' (\\b), pois o Python 're' falha.
+    2. Se for uma palavra chave central muito importante e passível de aglutinação
+       (ex: 'gundam' em 'suitgundam', 'gunpla', 'zeon'), também removemos a borda rígida.
+    3. Para as demais, usa word boundaries (\\b) para evitar 'wing' no meio de 'drawing'.
     Protege '00' de match em horários (12:00) usando negative lookbehind (?<!:).
     
     Args:
@@ -70,10 +90,26 @@ def _contains_any(text: str, keywords: List[str]) -> bool:
     if not keywords:
         return False
 
-    # Escapa keywords para segurança no regex
-    # Monta padrão: (?<!:)\b(?:kw1|kw2|...|kwn)s?\b
-    escaped_kws = [re.escape(k) for k in keywords]
-    pattern_str = r'(?<!:)\b(?:' + '|'.join(escaped_kws) + r')s?\b'
+    patterns = []
+    
+    # Palavras centrais que podem ser aglutinadas facilmente pelo usuário ou fonte
+    core_agglutinable = ["gundam", "gunpla", "zaku", "zeon"]
+    
+    for k in keywords:
+        escaped = re.escape(k)
+        
+        # Caracteres CJK ou Japonês - Não usar \\b pois falha no Python re
+        is_cjk = re.search(r'[^\x00-\x7F]', k)
+        
+        if k in core_agglutinable:
+             patterns.append(escaped + r's?')
+        elif is_cjk:
+             patterns.append(escaped)
+        else:
+             # Lookbehind para 00 (ex: 12:00)
+             patterns.append(r'(?<!:)\b' + escaped + r's?\b')
+
+    pattern_str = r'(?:' + '|'.join(patterns) + r')'
     
     return bool(re.search(pattern_str, text))
 
