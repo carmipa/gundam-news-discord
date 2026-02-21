@@ -48,6 +48,7 @@ def run_tests():
         
     print("\n🔎 Testing Filter Logic (`_contains_any`) with edge cases...")
     filter_tests = [
+        # Fase 1 Tests
         ("Mobile SuitGundam", GUNDAM_CORE, True), # Word boundary fix test
         ("機動戦士ガンダム", GUNDAM_CORE, True), # Japanese CJK test
         ("Wing", ["wing"], True), # Normal boundary test
@@ -55,6 +56,13 @@ def run_tests():
         ("Episódio 13", CAT_MAP["filmes"], True), # Accent handling
         ("Força SD Gundam", GUNDAM_CORE, True), 
         ("Dragon ball trailer", BLACKLIST, True), # Blacklist test
+        
+        # Fase 2 Tests (Generic Sources)
+        ("New Netflix anime Requiem for Vengeance trailer drops", GUNDAM_CORE, True), # Doesn't have the word gundam
+        ("Iron-blooded Orphans is the best anime", GUNDAM_CORE, True), # No gundam word
+        ("Bandai announces new Perfect Grade kit for late 2025", CAT_MAP["gunpla"], True), # Gunpla core check
+        ("PlayStation 5 gets new UC Engage mobile port", CAT_MAP["games"], True), # Games category check
+        ("Char's Counterattack returning to theaters", GUNDAM_CORE, True)
     ]
     
     for text, keywords, expected in filter_tests:

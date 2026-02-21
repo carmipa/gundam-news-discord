@@ -10,16 +10,28 @@ from utils.html import clean_html
 # =========================================================
 
 GUNDAM_CORE = [
-    "gundam", "gunpla", "zeon", "zaku", "mobile suit",
-    "rx-78", "gundam seed", "seed freedom", "seed destiny",
-    "gundam wing", "endless waltz",
-    "gundam 00", "double 00",
-    "char aznable", "amuro ray",
-    "hathaway's flash", "hathaway noa", "mafty", "xi gundam", "penelope",
-    "unicorn gundam", "banshee", "rx-0",
-    "witch from mercury", "suletta", "miorine", "aerial",
-    "uce", "engage", "gundam u.c. engage",
-    "ガンダム", "機動戦士", "ハサウェイ", "マフティー", "閃光のハサウェイ", "エンゲージ"
+    # Termos Gerais
+    "gundam", "gunpla", "zeon", "zaku", "mobile suit", "haropla", "sdcs", 
+    "amuro ray", "char aznable", "mafty", "minovsky", "newtype", "cyber newtype",
+    
+    # Universal Century (U.C.)
+    "rx-78", "08th ms team", "0080", "war in the pocket", "0083", "stardust memory",
+    "zeta gundam", "zz gundam", "char's counterattack", "cca", "hathaway's flash", 
+    "hathaway noa", "xi gundam", "penelope", "unicorn gundam", "rx-0", "banshee", 
+    "narrative", "gundam f91", "victory gundam", "cucuruz doan", "cucuruz doan's island",
+    "thunderbolt", "requiem for vengeance", "gundam the origin", "u.c. engage", "engage", "uce",
+    
+    # Alternate Universes (A.U.)
+    "g gundam", "gundam wing", "endless waltz", "gundam x", "turn a gundam",
+    "gundam seed", "seed destiny", "seed freedom", "astray", "stargazer", 
+    "gundam 00", "double 00", "gundam age", "g reconguista", "iron-blooded orphans", 
+    "ibo", "barbatos", "witch from mercury", "suletta", "miorine", "aerial",
+    
+    # Build Series & SD
+    "build fighters", "build divers", "build metaverse", "sd gundam", "gundam breakers",
+    
+    # Japanese Terms
+    "ガンダム", "機動戦士", "ハサウェイ", "マフティー", "閃光のハサウェイ", "エンゲージ", "ガンプラ"
 ]
 
 BLACKLIST = [
@@ -30,9 +42,9 @@ BLACKLIST = [
 ]
 
 CAT_MAP = {
-    "gunpla":  ["gunpla", "model kit", "kit", "ver.ka", "p-bandai", "premium bandai", "hg ", "mg ", "rg ", "pg ", "sd ", "fm ", "re/100"],
-    "filmes":  ["anime", "episode", "episódio", "episodio", "movie", "film", "pv", "trailer", "teaser", "series", "season", "seed freedom", "witch from mercury", "hathaway"],
-    "games":   ["game", "steam", "ps5", "xbox", "gbo2", "battle operation", "breaker", "gundam breaker"],
+    "gunpla":  ["gunpla", "model kit", "kit", "ver.ka", "p-bandai", "premium bandai", "hg ", "mg ", "rg ", "pg ", "sd ", "fm ", "re/100", "perfect grade", "real grade", "high grade", "master grade", "metal build", "robot spirits", "ガンプラ"],
+    "filmes":  ["anime", "episode", "episódio", "episodio", "movie", "film", "pv", "trailer", "teaser", "series", "season", "seed freedom", "witch from mercury", "hathaway", "requiem for vengeance", "cucuruz doan"],
+    "games":   ["game", "steam", "ps5", "xbox", "gbo2", "battle operation", "breaker", "gundam breaker", "uc engage", "crossrays", "maxiboost", "extreme vs"],
     "musica":  ["music", "ost", "soundtrack", "album", "opening", "ending"],
     "fashion": ["fashion", "clothing", "apparel", "t-shirt", "hoodie", "jacket", "merch"],
 }
