@@ -27,7 +27,8 @@ class AdminCog(commands.Cog):
         try:
             await interaction.response.defer(ephemeral=True)
             await self.run_scan_once(trigger="forcecheck")
-            await interaction.followup.send("✅ Varredura forçada concluída!", ephemeral=True)
+            now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            await interaction.followup.send(f"✅ Varredura forçada concluída! ({now_str})", ephemeral=True)
         except Exception as e:
             log.exception(f"❌ Erro crítico em /forcecheck: {e}")
             try:
@@ -59,13 +60,17 @@ class AdminCog(commands.Cog):
     @app_commands.command(name="clean_state", description="Limpa partes do state.json (requer confirmação).")
     @app_commands.describe(
         tipo="Tipo de limpeza: dedup (histórico), http_cache (cache HTTP), html_hashes (monitor HTML), ou tudo",
-        confirmar="Confirmação: 'sim' para confirmar a limpeza"
+        confirmar="Escolha 'Sim' para executar a limpeza; 'Não' só mostra o que seria feito"
     )
     @app_commands.choices(tipo=[
         app_commands.Choice(name="🧹 Dedup (Histórico de links)", value="dedup"),
         app_commands.Choice(name="🌐 HTTP Cache (ETags)", value="http_cache"),
         app_commands.Choice(name="🔍 HTML Hashes (Monitor de sites)", value="html_hashes"),
         app_commands.Choice(name="⚠️ TUDO (Limpa tudo)", value="tudo"),
+    ])
+    @app_commands.choices(confirmar=[
+        app_commands.Choice(name="Não (só mostrar o que seria feito)", value="não"),
+        app_commands.Choice(name="Sim (executar limpeza)", value="sim"),
     ])
     @app_commands.checks.has_permissions(administrator=True)
     async def clean_state_cmd(
@@ -76,12 +81,13 @@ class AdminCog(commands.Cog):
     ):
         """
         Limpa partes específicas do state.json.
-        Requer confirmação explícita com 'sim'.
+        Requer confirmação explícita: escolha "Sim" para executar.
         """
         await interaction.response.defer(ephemeral=True)
         
-        # Valida confirmação
-        if confirmar.lower() not in ("sim", "yes", "s", "y", "confirmar", "confirm"):
+        # Valida confirmação (confirmar pode ser None se o usuário não preencher)
+        confirmar_val = (confirmar or "não").strip().lower()
+        if confirmar_val not in ("sim", "yes", "s", "y", "confirmar", "confirm"):
             # Mostra estatísticas e pede confirmação
             state_file = p("state.json")
             state = load_json_safe(state_file, {})
@@ -94,6 +100,10 @@ class AdminCog(commands.Cog):
                 return
             
             stats = get_state_stats(state)
+            guild_id = interaction.guild.id if interaction.guild else "DM"
+            log.info(
+                f"🧹 /clean_state: Preview solicitado (tipo={tipo}) por {interaction.user} (ID: {interaction.user.id}) [Guild: {guild_id}]"
+            )
             
             # Tamanho do arquivo
             file_size = 0
@@ -143,10 +153,12 @@ class AdminCog(commands.Cog):
             
             embed.add_field(
                 name="✅ Para Confirmar",
-                value=f"Use `/clean_state tipo:{tipo} confirmar:sim`",
+                value=f"Execute novamente `/clean_state`, escolha o mesmo tipo e em **confirmar** selecione **Sim (executar limpeza)**.",
                 inline=False
             )
             
+            now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            embed.add_field(name="📅 Data e hora", value=now_str, inline=False)
             embed.set_footer(text="⚠️ Um backup automático será criado antes da limpeza")
             
             await interaction.followup.send(embed=embed, ephemeral=True)
@@ -154,6 +166,11 @@ class AdminCog(commands.Cog):
         
         # Confirmação recebida - procede com limpeza
         from core.scanner import scan_lock
+        
+        guild_id = interaction.guild.id if interaction.guild else "DM"
+        log.info(
+            f"🧹 /clean_state: Iniciando limpeza (tipo={tipo}) solicitado por {interaction.user} (ID: {interaction.user.id}) [Guild: {guild_id}]"
+        )
         
         try:
             async with scan_lock:
@@ -173,6 +190,7 @@ class AdminCog(commands.Cog):
                 # Cria backup antes de limpar
                 backup_path = create_backup(state_file)
                 if not backup_path:
+                    log.warning(f"🧹 /clean_state: Falha ao criar backup de state.json. Limpeza cancelada. User: {interaction.user.id} Guild: {guild_id}")
                     await interaction.followup.send(
                         "❌ Falha ao criar backup. Limpeza cancelada por segurança.",
                         ephemeral=True
@@ -184,6 +202,7 @@ class AdminCog(commands.Cog):
                 
                 # Salva novo state
                 save_json_safe(state_file, new_state)
+                log.info(f"🧹 state.json salvo com sucesso após limpeza (tipo={tipo})")
                 
                 # Estatísticas depois
                 stats_after = get_state_stats(new_state)
@@ -236,7 +255,8 @@ class AdminCog(commands.Cog):
                 inline=True
             )
             
-            embed.set_footer(text=f"Executado por {interaction.user.display_name}")
+            now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            embed.set_footer(text=f"Executado por {interaction.user.display_name} em {now_str}")
             
             await interaction.followup.send(embed=embed, ephemeral=True)
             

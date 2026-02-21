@@ -5,6 +5,7 @@
 
 import logging
 import asyncio
+from datetime import datetime
 import discord
 from discord.ext import commands
 
@@ -39,7 +40,29 @@ async def main():
     # =========================================================
     # EVENTOS
     # =========================================================
-    
+
+    @bot.event
+    async def on_interaction(interaction: discord.Interaction):
+        """Registra no log todo uso de comando (slash) para acompanhamento."""
+        if interaction.type != discord.InteractionType.application_command:
+            return
+        now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        command_name = interaction.command.name if interaction.command else "?"
+        guild_id = interaction.guild.id if interaction.guild else "DM"
+        user = interaction.user
+        options = interaction.data.get("options", []) if interaction.data else []
+        parts = []
+        for o in options:
+            if isinstance(o, dict):
+                name = o.get("name", "")
+                val = o.get("value", "")
+                parts.append(f"{name}={val}" if name else str(val))
+        opts_str = " ".join(parts)
+        log.info(
+            f"📌 [{now_str}] Comando: /{command_name} | por {user} (ID: {user.id}) | Guild: {guild_id}"
+            + (f" | {opts_str}" if opts_str.strip() else "")
+        )
+
     @bot.command()
     @commands.is_owner()
     async def sync(ctx):

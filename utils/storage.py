@@ -204,4 +204,8 @@ def clean_state(state: Dict[str, Any], clean_type: str) -> Tuple[Dict[str, Any],
     else:
         raise ValueError(f"Tipo de limpeza inválido: {clean_type}")
     
+    log.info(
+        f"🧹 Limpeza concluída: tipo={clean_type} | antes: dedup={stats_before['dedup_total_links']} links, "
+        f"http_cache={stats_before['http_cache_urls']} URLs, html_hashes={stats_before['html_hashes_sites']} sites"
+    )
     return new_state, stats_before
