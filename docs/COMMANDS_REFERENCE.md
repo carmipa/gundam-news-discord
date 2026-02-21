@@ -1,7 +1,14 @@
-# 📚 Referência Completa de Comandos - Gundam News Bot
+# 📚 Referência Completa de Comandos — Gundam News Bot
+
+[![Versão](https://img.shields.io/badge/Versão-2.1_Mafty_Sovereign-blue)](../readme.md)
+[![Discord](https://img.shields.io/badge/Discord-Bot-5865F2?logo=discord&logoColor=white)](https://discord.com)
+[![Admin](https://img.shields.io/badge/Comandos-Admin%20%7C%20Público-orange)](COMMANDS_LIST.md)
 
 **Versão:** 2.1 "Mafty Sovereign"  
-**Última Atualização:** 13 de Fevereiro de 2026
+**Última Atualização:** Fevereiro 2026
+
+| 📋 [Lista rápida de comandos](COMMANDS_LIST.md) | 🧹 [Tutorial /clean_state](TUTORIAL_CLEAN_STATE.md) |
+|-------------------------------------------------|-----------------------------------------------------|
 
 ---
 
@@ -133,6 +140,8 @@
 ### `/clean_state`
 
 **Descrição:** Limpa partes específicas do `state.json` com backup automático.
+
+> 📘 **Tutorial completo com diagramas:** [TUTORIAL_CLEAN_STATE.md](TUTORIAL_CLEAN_STATE.md)
 
 **Sintaxe:**
 ```
@@ -411,5 +420,9 @@ HTML: 8          HTML: 8
 
 ---
 
-**Última Atualização:** 13 de Fevereiro de 2026  
+**Última Atualização:** Fevereiro 2026  
 **Versão do Bot:** 2.1 "Mafty Sovereign"
+
+---
+
+| [📋 Lista de comandos](COMMANDS_LIST.md) | [🧹 Tutorial /clean_state](TUTORIAL_CLEAN_STATE.md) | [🧱 Arquitetura](ARCHITECTURE.md) | [../readme.md](../readme.md) |

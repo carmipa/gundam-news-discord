@@ -32,6 +32,7 @@
 - [🚀 Instalação](#-instalação)
 - [⚙️ Configuração](#️-configuração)
 - [🧰 Comandos](#-comandos)
+- [📚 Documentação](#-documentação)
 - [🎛️ Dashboard](#️-dashboard)
 - [🧠 Sistema de Filtros](#-sistema-de-filtros)
 - [🖥️ Deploy](#️-deploy)
@@ -82,7 +83,7 @@
 
 ### Análise de Segurança
 
-📄 **Documentação completa:** Veja [SECURITY_GRC_ANALYSIS.md](SECURITY_GRC_ANALYSIS.md) para análise detalhada.
+📄 **Documentação completa:** Veja [analysis/SECURITY_GRC_ANALYSIS.md](analysis/SECURITY_GRC_ANALYSIS.md) para análise detalhada.
 
 **Principais melhorias:**
 - ✅ Validação de URLs antes de fazer requisições HTTP
@@ -389,6 +390,9 @@ O bot aceita múltiplos formatos:
 
 > **🔒 Permissão:** Apenas administradores podem usar comandos administrativos.
 
+| 📋 [**Lista de comandos**](docs/COMMANDS_LIST.md) | 📖 [**Referência completa**](docs/COMMANDS_REFERENCE.md) | 🧹 [**Tutorial /clean_state**](docs/TUTORIAL_CLEAN_STATE.md) |
+|--------------------------------------------------|--------------------------------------------------------|-------------------------------------------------------------|
+
 ### 📖 Exemplos de Uso
 
 #### Configuração
@@ -463,6 +467,22 @@ O comando `/clean_state` permite limpar partes específicas do `state.json`:
 2. /clean_state tipo:dedup confirmar:sim
    → Cria backup → Limpa → Mostra resultado
 ```
+
+📘 **Tutorial passo a passo com diagramas:** [docs/TUTORIAL_CLEAN_STATE.md](docs/TUTORIAL_CLEAN_STATE.md)
+
+---
+
+## 📚 Documentação
+
+| Documento | Conteúdo |
+|-----------|----------|
+| [docs/COMMANDS_LIST.md](docs/COMMANDS_LIST.md) | Lista rápida: o que cada comando faz |
+| [docs/COMMANDS_REFERENCE.md](docs/COMMANDS_REFERENCE.md) | Referência completa: sintaxe, parâmetros, exemplos |
+| [docs/TUTORIAL_CLEAN_STATE.md](docs/TUTORIAL_CLEAN_STATE.md) | Tutorial do comando de limpeza (diagramas e passo a passo) |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Arquitetura: fluxo de dados, componentes, segurança |
+| [docs/TUTORIAL.md](docs/TUTORIAL.md) | Tutorial geral de todos os comandos |
+| [docs/DEPLOY.md](docs/DEPLOY.md) | Deploy com Docker e systemd |
+| [analysis/SECURITY_GRC_ANALYSIS.md](analysis/SECURITY_GRC_ANALYSIS.md) | Análise de segurança e GRC |
 
 ---
 
@@ -608,7 +628,7 @@ sudo systemctl status gundam-bot
 journalctl -u gundam-bot -f
 ```
 
-📖 **Guia completo:** Veja [DEPLOY.md](DEPLOY.md) para instruções detalhadas.
+📖 **Guia completo:** Veja [docs/DEPLOY.md](docs/DEPLOY.md) para instruções detalhadas.
 
 ---
 
@@ -649,7 +669,7 @@ grep ERROR logs/bot.log
 grep WARNING logs/bot.log
 ```
 
-📄 **Documentação de melhorias:** Veja [LOGGING_IMPROVEMENTS.md](LOGGING_IMPROVEMENTS.md) para detalhes.
+📄 **Documentação de melhorias:** Veja [analysis/LOGGING_IMPROVEMENTS.md](analysis/LOGGING_IMPROVEMENTS.md) para detalhes.
 
 ---
 
@@ -673,6 +693,7 @@ gundam-news-discord/
 │   ├── filters.py          # Sistema de filtros
 │   ├── html_monitor.py     # Monitor HTML
 │   └── stats.py            # Estatísticas
+├── 📁 docs/                # Documentação (comandos, tutorial, arquitetura)
 ├── 📁 tests/               # Testes automatizados
 ├── 📁 translations/        # Internacionalização (i18n)
 ├── 📁 utils/               # Utilitários
@@ -757,9 +778,12 @@ Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](L
 
 ## 📚 Documentação Adicional
 
-- 🔒 [SECURITY_GRC_ANALYSIS.md](SECURITY_GRC_ANALYSIS.md) — Análise completa de segurança e GRC
-- 📝 [LOGGING_IMPROVEMENTS.md](LOGGING_IMPROVEMENTS.md) — Melhorias de logging e tratamento de exceções
-- 🐳 [DEPLOY.md](DEPLOY.md) — Guia completo de deploy com Docker
+- 📋 [docs/COMMANDS_LIST.md](docs/COMMANDS_LIST.md) — Lista de comandos (o que cada um faz)
+- 🧹 [docs/TUTORIAL_CLEAN_STATE.md](docs/TUTORIAL_CLEAN_STATE.md) — Tutorial do comando de limpeza
+- 🧱 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — Diagramas de arquitetura
+- 🔒 [analysis/SECURITY_GRC_ANALYSIS.md](analysis/SECURITY_GRC_ANALYSIS.md) — Análise de segurança e GRC
+- 📝 [analysis/LOGGING_IMPROVEMENTS.md](analysis/LOGGING_IMPROVEMENTS.md) — Melhorias de logging
+- 🐳 [docs/DEPLOY.md](docs/DEPLOY.md) — Guia de deploy com Docker
 
 ---
 
