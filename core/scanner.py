@@ -214,7 +214,10 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
             
         urls = load_sources()
         if not urls:
-            log.warning("Nenhuma URL válida em sources.json.")
+            log.warning(
+                "Nenhuma URL válida em sources.json. "
+                "Verifique o arquivo sources.json (chaves: rss_feeds, feeds, official_sites_reference_(not_rss), etc.)."
+            )
             _log_next_run()
             return
 
@@ -260,7 +263,9 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
 
         sent_count = 0
         cache_hits = 0
-        
+        # Evita log repetido "Canal X não encontrado" por (guild, channel) por varredura
+        invalid_channels_this_scan = set()
+
         MAX_CONCURRENT_FEEDS = 5
         semaphore = asyncio.Semaphore(MAX_CONCURRENT_FEEDS)
 
@@ -377,16 +382,30 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         if not isinstance(channel_id, int): continue
 
                         if not match_intel(str(gid), title, summary, config):
-                            log.debug(f"🛡️ [Filtro] Guild {gid} bloqueou: {title[:50]}...")
+                            log.debug(f"🛡️ [Filtro] Guild {gid} bloqueou: {title[:50]}... | fonte: {url}")
                             continue
-                        
-                        # Envio (código de envio inalterado abaixo)
-                        log.info(f"✨ [Match] Guild {gid} aprovou: {title[:50]}...")
 
+                        # Valida canal antes de processar (evita trabalho inútil + log repetido)
                         channel = bot.get_channel(channel_id)
                         if channel is None:
-                            log.warning(f"Canal {channel_id} não encontrado.")
+                            key = (str(gid), channel_id)
+                            if key not in invalid_channels_this_scan:
+                                invalid_channels_this_scan.add(key)
+                                guild_name = ""
+                                try:
+                                    g = bot.get_guild(int(gid))
+                                    if g:
+                                        guild_name = f" (servidor: {g.name})"
+                                except (ValueError, TypeError):
+                                    pass
+                                log.warning(
+                                    f"⚠️ Canal {channel_id} não encontrado — Guild {gid}{guild_name}. "
+                                    f"Use /set_canal ou /dashboard nesse servidor para configurar um canal válido."
+                                )
                             continue
+
+                        # Envio (código de envio inalterado abaixo)
+                        log.info(f"✨ [Match] Guild {gid} aprovou: {title[:50]}... | fonte: {url}")
 
                         t_clean = clean_html(title).strip()
                         s_clean = clean_html(summary).strip()[:2000]
@@ -537,7 +556,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         # APLICA FILTRO DE INTELIGÊNCIA TAMBÉM NO MONITOR HTML
                         # Isso impede que sites genéricos (Mantan, Eiga) spammem mudanças irrelevantes
                         if not match_intel(str(gid), u_title, u_summary, config):
-                            log.debug(f"🛡️ [Filtro HTML] Guild {gid} bloqueou site: {u_title}")
+                            log.debug(f"🛡️ [Filtro HTML] Guild {gid} bloqueou site: {u_title[:50]}... | página: {u_link}")
                             continue
 
                         if channel:

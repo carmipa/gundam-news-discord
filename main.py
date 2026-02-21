@@ -105,6 +105,28 @@ async def main():
                 except Exception as e:
                     log.error(f"Erro ao registrar view persistente para guild {gid}: {type(e).__name__}: {e}", exc_info=True)
 
+            # Valida canais configurados: avisa se algum canal não existe (ex.: foi deletado)
+            for gid, gdata in cfg.items():
+                if not isinstance(gdata, dict): continue
+                channel_id = gdata.get("channel_id")
+                if not channel_id: continue
+                try:
+                    ch = bot.get_channel(int(channel_id))
+                    if ch is None:
+                        guild_name = ""
+                        try:
+                            g = bot.get_guild(int(gid))
+                            if g:
+                                guild_name = f" (servidor: {g.name})"
+                        except (ValueError, TypeError):
+                            pass
+                        log.warning(
+                            f"⚠️ Canal configurado não encontrado ao iniciar: channel_id {channel_id}, Guild {gid}{guild_name}. "
+                            "Use /set_canal ou /dashboard nesse servidor para definir um canal válido."
+                        )
+                except (ValueError, TypeError):
+                    pass
+
         # 2. Sync Comandos (Slash)
         try:
             # Sincroniza global (pode demorar) ou por guild
