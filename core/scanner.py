@@ -10,7 +10,7 @@ import certifi
 from datetime import datetime, timedelta, timezone
 from dateutil import parser as dtparser
 from typing import List, Set, Tuple, Dict, Any
-from urllib.parse import urlparse, urlunparse
+from urllib.parse import urlparse, urlunparse, quote
 import time
 import os
 
@@ -446,16 +446,38 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                                 except Exception as e:
                                     log.warning(f"Erro inesperado ao processar thumbnail: {e}")
                             
+                            now_str = datetime.now().strftime('%d/%m/%Y %H:%M')
+                            
                             # Se for mídia, mandamos o LINK no content para o Discord gerar o player nativo
                             # E NÃO mandamos o embed, pois o Discord prioriza o embed sobre o player
                             if is_media:
-                                msg_content = f"📺 **{t_translated}**\n{link}"
+                                msg_content = f"📺 **{t_translated}**\n🕒 Postado em: {now_str}\n{link}"
                                 embed_to_send = None
                             else:
-                                msg_content = None
+                                msg_content = f"🕒 Postado em: {now_str}"
                                 embed_to_send = embed
                             
-                            await channel.send(content=msg_content, embed=embed_to_send)
+                            view = discord.ui.View()
+                            view.add_item(discord.ui.Button(
+                                style=discord.ButtonStyle.link,
+                                url=link[:512],
+                                label="Leia Mais",
+                                emoji="📖"
+                            ))
+                            view.add_item(discord.ui.Button(
+                                style=discord.ButtonStyle.link,
+                                url=f"https://api.whatsapp.com/send?text={quote(f'Confira essa notícia:\\n{t_translated}\\n{link}')}"[:512],
+                                label="WhatsApp",
+                                emoji="🟢"
+                            ))
+                            view.add_item(discord.ui.Button(
+                                style=discord.ButtonStyle.link,
+                                url=f"mailto:?subject={quote(t_translated[:100])}&body={quote(f'Confira essa notícia:\\n{link}')}"[:512],
+                                label="E-mail",
+                                emoji="✉️"
+                            ))
+                            
+                            await channel.send(content=msg_content, embed=embed_to_send, view=view)
 
                             posted_anywhere = True
                             sent_count += 1
@@ -515,7 +537,29 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                             continue
 
                         if channel:
-                            await channel.send(f"⚠️ **MAFTY INTEL ALERT**\n{u_title}\n{u_link}")
+                            now_str = datetime.now().strftime('%d/%m/%Y %H:%M')
+                            
+                            view = discord.ui.View()
+                            view.add_item(discord.ui.Button(
+                                style=discord.ButtonStyle.link,
+                                url=u_link[:512],
+                                label="Leia Mais",
+                                emoji="📖"
+                            ))
+                            view.add_item(discord.ui.Button(
+                                style=discord.ButtonStyle.link,
+                                url=f"https://api.whatsapp.com/send?text={quote(f'Atualização:\\n{u_title}\\n{u_link}')}"[:512],
+                                label="WhatsApp",
+                                emoji="🟢"
+                            ))
+                            view.add_item(discord.ui.Button(
+                                style=discord.ButtonStyle.link,
+                                url=f"mailto:?subject={quote('Nova Atualização')}&body={quote(f'{u_title}\\n{u_link}')}"[:512],
+                                label="E-mail",
+                                emoji="✉️"
+                            ))
+                            
+                            await channel.send(f"⚠️ **MAFTY INTEL ALERT**\n🕒 Postado em: {now_str}\n{u_title}\n{u_link}", view=view)
                             sent_count += 1
             else:
                  if new_hashes != html_hashes:
