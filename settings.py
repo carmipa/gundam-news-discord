@@ -16,3 +16,9 @@ except ValueError:
 
 # Logging Level (INFO, DEBUG, WARNING, ERROR)
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
+
+# HTTP client: timeout máximo de conexão e leitura (segundos) - evita bot "congelar" se API externa cair
+try:
+    HTTP_TIMEOUT = int(os.getenv("HTTP_TIMEOUT", "10"))
+except ValueError:
+    HTTP_TIMEOUT = 10

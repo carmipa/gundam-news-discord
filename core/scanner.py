@@ -17,7 +17,7 @@ import os
 import discord
 from discord.ext import tasks
 
-from settings import LOOP_MINUTES
+from settings import LOOP_MINUTES, HTTP_TIMEOUT
 from utils.storage import p, load_json_safe, save_json_safe
 from utils.html import clean_html
 from utils.cache import load_http_state, save_http_state, get_cache_headers, update_cache_state
@@ -255,7 +255,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
             "Accept-Language": "en-US,en;q=0.9",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
         }
-        timeout = aiohttp.ClientTimeout(total=30)
+        timeout = aiohttp.ClientTimeout(total=HTTP_TIMEOUT)
         connector = aiohttp.TCPConnector(ssl=ssl_ctx)
 
         sent_count = 0
