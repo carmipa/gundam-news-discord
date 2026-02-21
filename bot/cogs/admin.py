@@ -153,37 +153,40 @@ class AdminCog(commands.Cog):
             return
         
         # Confirmação recebida - procede com limpeza
+        from core.scanner import scan_lock
+        
         try:
-            state_file = p("state.json")
-            state = load_json_safe(state_file, {})
-            
-            if not state:
-                await interaction.followup.send(
-                    "⚠️ state.json está vazio ou não existe.",
-                    ephemeral=True
-                )
-                return
-            
-            # Estatísticas antes
-            stats_before = get_state_stats(state)
-            
-            # Cria backup antes de limpar
-            backup_path = create_backup(state_file)
-            if not backup_path:
-                await interaction.followup.send(
-                    "❌ Falha ao criar backup. Limpeza cancelada por segurança.",
-                    ephemeral=True
-                )
-                return
-            
-            # Limpa state
-            new_state, _ = clean_state(state, tipo)
-            
-            # Salva novo state
-            save_json_safe(state_file, new_state)
-            
-            # Estatísticas depois
-            stats_after = get_state_stats(new_state)
+            async with scan_lock:
+                state_file = p("state.json")
+                state = load_json_safe(state_file, {})
+                
+                if not state:
+                    await interaction.followup.send(
+                        "⚠️ state.json está vazio ou não existe.",
+                        ephemeral=True
+                    )
+                    return
+                
+                # Estatísticas antes
+                stats_before = get_state_stats(state)
+                
+                # Cria backup antes de limpar
+                backup_path = create_backup(state_file)
+                if not backup_path:
+                    await interaction.followup.send(
+                        "❌ Falha ao criar backup. Limpeza cancelada por segurança.",
+                        ephemeral=True
+                    )
+                    return
+                
+                # Limpa state
+                new_state, _ = clean_state(state, tipo)
+                
+                # Salva novo state
+                save_json_safe(state_file, new_state)
+                
+                # Estatísticas depois
+                stats_after = get_state_stats(new_state)
             
             # Log de auditoria
             log.info(
