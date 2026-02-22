@@ -14,7 +14,10 @@ log = logging.getLogger("MaftyIntel")
 
 # Caminho do arquivo de log (mesmo usado em utils.logger)
 LOG_FILE_PATH = os.path.abspath("logs/bot.log")
-MAX_LOG_DISPLAY_CHARS = 1900  # Limite para caber em code block no Discord
+DISCORD_MAX_MESSAGE_LENGTH = 2000
+# Espaço reservado para header (ex.: "📋 **Log do servidor** (últimas 99 linhas) — ...")
+LOG_HEADER_RESERVED = 120
+MAX_LOG_DISPLAY_CHARS = DISCORD_MAX_MESSAGE_LENGTH - LOG_HEADER_RESERVED - 7  # 7 = "```log\n" + "\n```"
 
 
 def _read_log_tail(filepath: str, n_lines: int = 50, max_chars: int = MAX_LOG_DISPLAY_CHARS) -> str:
@@ -41,6 +44,16 @@ def _read_log_tail(filepath: str, n_lines: int = 50, max_chars: int = MAX_LOG_DI
     except (OSError, IOError) as e:
         log.warning(f"Falha ao ler log para /server_log: {e}")
         return f"(erro ao ler arquivo: {e})"
+
+
+def _build_log_message(header: str, content: str) -> str:
+    """Monta mensagem header + code block do log garantindo <= 2000 caracteres (limite do Discord)."""
+    code_wrapper_len = 7  # "```log\n" + "\n```"
+    max_content = DISCORD_MAX_MESSAGE_LENGTH - len(header) - code_wrapper_len
+    if len(content) > max_content:
+        content = "...\n" + content[-(max_content - 4) :]
+    body = f"```log\n{content}\n```"
+    return header + body
 
 
 class AdminCog(commands.Cog):
@@ -359,11 +372,8 @@ class AdminCog(commands.Cog):
             )
             return
         header = f"📋 **Log do servidor** (últimas {linhas} linhas) — use **Atualizar** para ver o que entrou agora.\n"
-        body = f"```log\n{content}\n```"
-        if len(header) + len(body) > 2000:
-            body = f"```log\n{content[-MAX_LOG_DISPLAY_CHARS:]}\n```"
         view = _LogRefreshView(linhas=linhas, timeout=300)
-        await interaction.followup.send(header + body, ephemeral=True, view=view)
+        await interaction.followup.send(_build_log_message(header, content), ephemeral=True, view=view)
 
     @server_log.error
     async def server_log_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
@@ -399,10 +409,11 @@ class _LogRefreshView(discord.ui.View):
         await interaction.response.defer_update()
         content = _read_log_tail(LOG_FILE_PATH, n_lines=self.linhas)
         header = f"📋 **Log do servidor** (últimas {self.linhas} linhas) — atualizado.\n"
-        body = f"```log\n{content}\n```" if content else "```\n(arquivo vazio)\n```"
-        if len(header) + len(body) > 2000:
-            body = f"```log\n{content[-MAX_LOG_DISPLAY_CHARS:]}\n```"
-        await interaction.message.edit(content=header + body, view=self)
+        if not content or content.startswith("(erro"):
+            msg = header + (f"```\n{content or '(arquivo vazio)'}\n```" if content else "```\n(arquivo vazio)\n```")
+        else:
+            msg = _build_log_message(header, content)
+        await interaction.message.edit(content=msg[:DISCORD_MAX_MESSAGE_LENGTH], view=self)
 
 
 async def setup(bot, run_scan_once_func):
