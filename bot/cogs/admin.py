@@ -1,6 +1,7 @@
 """
 Admin cog - Administrative commands (/forcecheck, /clean_state, /server_log).
 """
+import io
 import discord
 from discord.ext import commands
 from discord import app_commands
@@ -18,7 +19,8 @@ DISCORD_MAX_MESSAGE_LENGTH = 2000
 # Espaço reservado para header (ex.: "📋 **Log do servidor** (últimas 99 linhas) — ...")
 LOG_HEADER_RESERVED = 120
 MAX_LOG_DISPLAY_CHARS = DISCORD_MAX_MESSAGE_LENGTH - LOG_HEADER_RESERVED - 7  # 7 = "```log\n" + "\n```"
-
+# Limite para o .txt anexado (últimas N linhas sem truncar por caractere; 200 KB)
+MAX_LOG_FILE_CHARS = 200 * 1024
 
 def _read_log_tail(filepath: str, n_lines: int = 50, max_chars: int = MAX_LOG_DISPLAY_CHARS) -> str:
     """
@@ -373,7 +375,14 @@ class AdminCog(commands.Cog):
             return
         header = f"📋 **Log do servidor** (últimas {linhas} linhas) — use **Atualizar** para ver o que entrou agora.\n"
         view = _LogRefreshView(linhas=linhas, timeout=300)
-        await interaction.followup.send(_build_log_message(header, content), ephemeral=True, view=view)
+        msg_content = _build_log_message(header, content)
+        # Anexo .txt com o log completo (até MAX_LOG_FILE_CHARS) para quando o resumo na mensagem é truncado
+        content_for_file = _read_log_tail(filepath, n_lines=linhas, max_chars=MAX_LOG_FILE_CHARS)
+        log_file = discord.File(
+            io.BytesIO(content_for_file.encode("utf-8")),
+            filename="bot_log.txt"
+        )
+        await interaction.followup.send(msg_content, ephemeral=True, view=view, files=[log_file])
 
     @server_log.error
     async def server_log_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
@@ -407,13 +416,24 @@ class _LogRefreshView(discord.ui.View):
     @discord.ui.button(label="Atualizar", emoji="🔄", style=discord.ButtonStyle.secondary)
     async def refresh(self, interaction: discord.Interaction, _button: discord.ui.Button):
         await interaction.response.defer_update()
-        content = _read_log_tail(LOG_FILE_PATH, n_lines=self.linhas)
-        header = f"📋 **Log do servidor** (últimas {self.linhas} linhas) — atualizado.\n"
-        if not content or content.startswith("(erro"):
-            msg = header + (f"```\n{content or '(arquivo vazio)'}\n```" if content else "```\n(arquivo vazio)\n```")
-        else:
-            msg = _build_log_message(header, content)
-        await interaction.message.edit(content=msg[:DISCORD_MAX_MESSAGE_LENGTH], view=self)
+        try:
+            content = _read_log_tail(LOG_FILE_PATH, n_lines=self.linhas)
+            header = f"📋 **Log do servidor** (últimas {self.linhas} linhas) — atualizado.\n"
+            if not content or content.startswith("(erro"):
+                msg = header + (f"```\n{content or '(arquivo vazio)'}\n```" if content else "```\n(arquivo vazio)\n```")
+            else:
+                msg = _build_log_message(header, content)
+            msg = msg[:DISCORD_MAX_MESSAGE_LENGTH]
+            await interaction.message.edit(content=msg, view=self)
+        except Exception as e:
+            log.exception("Erro ao atualizar log no botão Atualizar: %s", e)
+            try:
+                await interaction.followup.send(
+                    "Não foi possível atualizar o log. Tente **/server_log** de novo.",
+                    ephemeral=True
+                )
+            except Exception:
+                pass
 
 
 async def setup(bot, run_scan_once_func):
