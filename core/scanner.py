@@ -1,5 +1,11 @@
 """
 Scanner module - Feed fetching and processing logic.
+
+Responsabilidades:
+- Carregar sources (RSS/YouTube) e state (dedup, http_cache, html_hashes).
+- Executar varredura: buscar feeds, aplicar filtros (match_intel), enviar notícias e alertas de site.
+- Rodar HTML Monitor para sites oficiais; salvar state e history ao final.
+- Logs: INFO para início/fim de varredura e envios; WARNING para timeouts/canal ausente; ERROR para falhas de envio.
 """
 import ssl
 import asyncio

@@ -2,7 +2,12 @@
 # Gundam Intel Bot - "Mafty Sovereign" v2.1
 # main.py (Modularized)
 # =========================================================
-
+"""
+Ponto de entrada do bot Discord.
+- Carrega config, inicia web server, registra views e cogs.
+- Sobe o agendador de varreduras e, ao detectar novo commit, envia anúncio de atualização.
+- Exceções de libs (discord, aiohttp) não são convertidas; erros do domínio podem usar utils.exceptions.
+"""
 import logging
 import asyncio
 from datetime import datetime

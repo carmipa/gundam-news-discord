@@ -1,5 +1,9 @@
 """
 Storage utilities - JSON load/save functions.
+
+Erros de I/O são tratados internamente (log + retorno de valor padrão).
+Apenas clean_state() pode levantar exceção: InvalidCleanTypeError quando
+clean_type não é 'dedup', 'http_cache', 'html_hashes' ou 'tudo'.
 """
 import os
 import json
@@ -7,6 +11,8 @@ import logging
 import shutil
 from datetime import datetime
 from typing import Any, Dict, Tuple, Optional
+
+from utils.exceptions import InvalidCleanTypeError
 
 log = logging.getLogger("MaftyIntel")
 
@@ -202,7 +208,7 @@ def clean_state(state: Dict[str, Any], clean_type: str) -> Tuple[Dict[str, Any],
         log.info("🧹 Limpeza: tudo removido (exceto metadados), incluindo history.json")
     
     else:
-        raise ValueError(f"Tipo de limpeza inválido: {clean_type}")
+        raise InvalidCleanTypeError(f"Tipo de limpeza inválido: {clean_type}. Use: dedup, http_cache, html_hashes, tudo.")
     
     log.info(
         f"🧹 Limpeza concluída: tipo={clean_type} | antes: dedup={stats_before['dedup_total_links']} links, "

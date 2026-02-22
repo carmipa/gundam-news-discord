@@ -9,13 +9,14 @@ import shutil
 from datetime import datetime
 
 from utils.storage import (
-    load_json_safe, 
-    save_json_safe, 
-    create_backup, 
-    get_state_stats, 
+    load_json_safe,
+    save_json_safe,
+    create_backup,
+    get_state_stats,
     clean_state,
-    p
+    p,
 )
+from utils.exceptions import InvalidCleanTypeError
 
 
 class TestStateStats:
@@ -137,8 +138,11 @@ class TestCleanState:
         """Testa limpeza com tipo inválido."""
         state = {"dedup": {"feed1": ["link1"]}}
         
+        # InvalidCleanTypeError herda de ValueError (exceção personalizada didática)
         with pytest.raises(ValueError, match="Tipo de limpeza inválido"):
             clean_state(state, "invalid_type")
+        with pytest.raises(InvalidCleanTypeError, match="Tipo de limpeza inválido"):
+            clean_state(state, "outro_invalido")
 
 
 class TestBackup:

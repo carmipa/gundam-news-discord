@@ -261,6 +261,7 @@ class AdminCog(commands.Cog):
             await interaction.followup.send(embed=embed, ephemeral=True)
             
         except ValueError as e:
+            # Inclui InvalidCleanTypeError (herda de ValueError)
             log.error(f"Erro de validação em /clean_state: {e}")
             await interaction.followup.send(
                 f"❌ Erro: {e}",
