@@ -29,3 +29,32 @@ def get_current_hash():
     except Exception as e:
         log.debug(f"Falha ao obter hash do Git: {e}")
         return None
+
+
+def get_commits_since(last_announced_hash: str | None, max_commits: int = 15) -> list[str]:
+    """
+    Retorna os commits desde o último anúncio (ou os últimos N commits).
+    Cada item é "hash - mensagem" para exibir no anúncio de atualização.
+    """
+    fmt = "%h - %s"
+    try:
+        if last_announced_hash and last_announced_hash.strip():
+            out = subprocess.check_output(
+                ["git", "log", f"{last_announced_hash}..HEAD", f"--pretty=format:{fmt}"],
+                stderr=subprocess.DEVNULL, text=True, encoding="utf-8", errors="replace"
+            ).strip()
+        else:
+            out = subprocess.check_output(
+                ["git", "log", f"-{max_commits}", f"--pretty=format:{fmt}"],
+                stderr=subprocess.DEVNULL, text=True, encoding="utf-8", errors="replace"
+            ).strip()
+        if not out:
+            out = subprocess.check_output(
+                ["git", "log", "-1", f"--pretty=format:{fmt}"],
+                stderr=subprocess.DEVNULL, text=True, encoding="utf-8", errors="replace"
+            ).strip()
+        lines = [line.strip() for line in out.splitlines() if line.strip()]
+        return lines if lines else [get_git_changes()]
+    except Exception as e:
+        log.debug(f"get_commits_since failed: {e}")
+        return [get_git_changes()]

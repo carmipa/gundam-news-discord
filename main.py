@@ -14,7 +14,7 @@ from utils.storage import p, load_json_safe
 from bot.views.filter_dashboard import FilterDashboard
 from core.scanner import start_scheduler, run_scan_once
 from web.server import start_web_server  # Novo web server
-from utils.git_info import get_git_changes, get_current_hash
+from utils.git_info import get_git_changes, get_current_hash, get_commits_since
 from utils.storage import save_json_safe
 
 # Configuração de Logs
@@ -152,43 +152,57 @@ async def main():
             last_hash = state.get("last_announced_hash")
 
             if current_hash and current_hash != last_hash:
-                changes = get_git_changes()
+                # Texto do(s) último(s) commit(s) como "o que foi feito" nesta atualização
+                commits = get_commits_since(last_hash)
+                changes_block = "\n".join(f"• {c}" for c in commits)
+                if len(changes_block) > 3800:
+                    changes_block = changes_block[:3797] + "..."
                 repo_url = "https://github.com/carmipa/gundam-news-discord"
-                
-                # Encontra um canal para anunciar (prioridade: canal de logs ou primeiro canal de texto)
-                target_channel = None
-                
-                # Tenta achar um canal configurado primeiro
+                description = (
+                    f"**What changed in this update:**\n{changes_block}\n\n"
+                    f"**Repository:** [github.com/carmipa/gundam-news-discord]({repo_url})"
+                )
+
+                now = datetime.now()
+                date_str = now.strftime("%Y.%m.%d")
+                time_str = now.strftime("%H:%M")
+                # Cor e ícones próprios para anúncio de ATUALIZAÇÃO (diferente das notícias em vermelho/laranja)
+                UPDATE_COLOR = discord.Color.from_rgb(26, 188, 156)  # Teal — identidade visual de "atualização"
+                embed = discord.Embed(
+                    title=f"🔄 📦 System update — {date_str}",
+                    description=description,
+                    color=UPDATE_COLOR
+                )
+                embed.set_author(
+                    name="🔄 Stability update",
+                    icon_url=bot.user.display_avatar.url if bot.user and bot.user.display_avatar else None
+                )
+                embed.set_footer(text=f"🔄 Update applied | Deploy: {time_str} BRT")
+
+                # Envia para TODOS os canais configurados (cada servidor vê o anúncio)
+                sent = 0
                 if isinstance(cfg, dict):
                     for gid, gdata in cfg.items():
-                        if isinstance(gdata, dict) and gdata.get("channel_id"):
-                             target_channel = bot.get_channel(gdata["channel_id"])
-                             if target_channel: break
-                
-                if target_channel:
-                    log.info(f"📢 Anunciando nova versão {current_hash} no canal {target_channel.name}")
-                    
-                    # Mafty System Style Embed
-                    from datetime import datetime
-                    now = datetime.now()
-                    date_str = now.strftime("%Y.%m.%d")
-                    time_str = now.strftime("%H:%M")
-                    
-                    embed = discord.Embed(
-                        title=f"🛰️ MAFTY SYSTEM UPDATE - RELEASE DAY {date_str}",
-                        description=f"{changes}\n\n**Repositório:** [github.com/carmipa/gundam-news-discord](https://github.com/carmipa/gundam-news-discord)",
-                        color=discord.Color.from_rgb(255, 100, 0) # Orange/Red theme
-                    )
-                    
-                    embed.set_footer(text=f"Status: Operacional | Rede: 192.168.0.50 (Guarulhos) | Deploy: {time_str} BRT")
-                    
-                    await target_channel.send(embed=embed)
-                    
-                    # Atualiza estado para não repetir
+                        if not isinstance(gdata, dict):
+                            continue
+                        ch_id = gdata.get("channel_id")
+                        if not ch_id:
+                            continue
+                        ch = bot.get_channel(int(ch_id))
+                        if ch:
+                            try:
+                                await ch.send(embed=embed)
+                                sent += 1
+                                log.info(f"📢 Anúncio de atualização enviado ao canal {ch.name} (Guild {gid})")
+                            except Exception as e:
+                                log.warning(f"Falha ao enviar anúncio no canal {ch_id}: {e}")
+
+                if sent > 0:
                     state["last_announced_hash"] = current_hash
                     save_json_safe(state_file, state)
+                    log.info(f"📢 Atualização {current_hash} anunciada em {sent} canal(is).")
                 else:
-                     log.warning("⚠️ Nova versão detectada, mas nenhum canal encontrado para anunciar.")
+                    log.warning("⚠️ Nova versão detectada, mas nenhum canal encontrado para anunciar.")
             else:
                 log.info(f"ℹ️ Versão atual ({current_hash}) já anunciada anteriormente.")
 
