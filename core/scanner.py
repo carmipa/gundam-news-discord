@@ -561,31 +561,42 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
 
                         if channel:
                             now_str = datetime.now().strftime('%d/%m/%Y %H:%M')
-                            
+                            # Estilo próprio para atualização de site (teal + ícones, igual anúncio de sistema)
+                            SITE_UPDATE_COLOR = discord.Color.from_rgb(26, 188, 156)
+                            site_embed = discord.Embed(
+                                title=u_title[:256],
+                                description=f"{u_summary or 'Content updated.'}\n\n{u_link}",
+                                url=u_link,
+                                color=SITE_UPDATE_COLOR,
+                                timestamp=datetime.now()
+                            )
+                            site_embed.set_author(
+                                name="🔄 Site update",
+                                icon_url=bot.user.avatar.url if bot.user and bot.user.avatar else None
+                            )
+                            site_embed.set_footer(text=f"🔄 Page updated | {now_str}")
+
                             view = discord.ui.View()
                             view.add_item(discord.ui.Button(
                                 style=discord.ButtonStyle.link,
                                 url=u_link[:512],
-                                label="Leia Mais",
+                                label="Read more",
                                 emoji="📖"
                             ))
-                            wa_alert_text = f"Atualização:\n{u_title}\n{u_link}"
+                            wa_alert_text = f"Update:\n{u_title}\n{u_link}"
                             view.add_item(discord.ui.Button(
                                 style=discord.ButtonStyle.link,
                                 url=f"https://api.whatsapp.com/send?text={quote(wa_alert_text)}"[:512],
                                 label="WhatsApp",
                                 emoji="🟢"
                             ))
-                            
-                            email_alert_body = f"{u_title}\n{u_link}"
                             view.add_item(discord.ui.Button(
                                 style=discord.ButtonStyle.link,
-                                url=f"https://mail.google.com/mail/?view=cm&fs=1&su={quote('Nova Atualização')}&body={quote(email_alert_body)}"[:512],
+                                url=f"https://mail.google.com/mail/?view=cm&fs=1&su={quote('Site update')}&body={quote(u_link)}"[:512],
                                 label="E-mail",
                                 emoji="✉️"
                             ))
-                            
-                            await channel.send(f"⚠️ **MAFTY INTEL ALERT**\n🕒 Postado em: {now_str}\n{u_title}\n{u_link}", view=view)
+                            await channel.send(embed=site_embed, view=view)
                             sent_count += 1
             else:
                  if new_hashes != html_hashes:
