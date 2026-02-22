@@ -166,8 +166,8 @@ async def main():
                 now = datetime.now()
                 date_str = now.strftime("%Y.%m.%d")
                 time_str = now.strftime("%H:%M")
-                # Cor e ícones próprios para anúncio de ATUALIZAÇÃO (diferente das notícias em vermelho/laranja)
-                UPDATE_COLOR = discord.Color.from_rgb(26, 188, 156)  # Teal — identidade visual de "atualização"
+                # Alerta: atualização do sistema (deploy) — 🔄 📦 teal RGB(26,188,156)
+                UPDATE_COLOR = discord.Color.from_rgb(26, 188, 156)
                 embed = discord.Embed(
                     title=f"🔄 📦 System update — {date_str}",
                     description=description,

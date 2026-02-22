@@ -156,6 +156,10 @@ def parse_entry_dt(entry: Any) -> datetime:
         
     return None
 
+# Cores e ícones por tipo de alerta (notícias de feed):
+# - LEAK:   🚨 [LEAK]     → RGB(255, 69, 0)  (vermelho-laranja)
+# - RUMOR:  🕵️ [RUMOR]    → RGB(255, 140, 0) (laranja escuro)
+# - Padrão: (sem prefixo) → RGB(255, 0, 32)  (vermelho INTEL)
 def get_news_metadata(title: str, url: str) -> tuple[str, discord.Color]:
     """
     Retorna (prefixo, cor) baseado em keywords e source url.
@@ -165,18 +169,17 @@ def get_news_metadata(title: str, url: str) -> tuple[str, discord.Color]:
     leak_sources = ["hobbynotoriko", "reddit.com/r/Gunpla", "dengeki", "weibo", "5ch"]
 
     title_lower = title.lower()
-    
-    # 1. Palavras-Chave (Prioridade: Alerta Vermelho/Laranja)
+
+    # 1. LEAK — palavras-chave no título
     if any(k in title_lower for k in leak_keywords):
-        return ("🚨 **[LEAK]**", discord.Color.from_rgb(255, 69, 0)) # Red-Orange
-    
-    # 2. Fonte de Rumores (Prioridade: Espião/Detective)
+        return ("🚨 **[LEAK]**", discord.Color.from_rgb(255, 69, 0))
+
+    # 2. RUMOR — fonte de rumores na URL
     elif any(src in url for src in leak_sources):
-         return ("🕵️ **[RUMOR]**", discord.Color.from_rgb(255, 140, 0)) # Dark Orange
-    
-    # 3. Padrão
-    else:
-        return ("", discord.Color.from_rgb(255, 0, 32)) # Standard Red
+        return ("🕵️ **[RUMOR]**", discord.Color.from_rgb(255, 140, 0))
+
+    # 3. Padrão — notícia normal
+    return ("", discord.Color.from_rgb(255, 0, 32))
 
 # =========================================================
 # SCANNER LOGIC
@@ -467,11 +470,10 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                             
                             now_str = datetime.now().strftime('%d/%m/%Y %H:%M')
                             
-                            # Se for mídia, mandamos o LINK no content para o Discord gerar o player nativo
-                            # E NÃO mandamos o embed, pois o Discord prioriza o embed sobre o player
+                            # Mídia: link no content para o Discord gerar o player; enviamos o embed também para a cor/ícone (LEAK/RUMOR)
                             if is_media:
                                 msg_content = f"📺 **{t_translated}**\n🕒 Postado em: {now_str}\n{link}"
-                                embed_to_send = None
+                                embed_to_send = embed  # mantém cor e identidade do alerta
                             else:
                                 msg_content = f"🕒 Postado em: {now_str}"
                                 embed_to_send = embed
@@ -561,17 +563,20 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
 
                         if channel:
                             now_str = datetime.now().strftime('%d/%m/%Y %H:%M')
-                            # Estilo próprio para atualização de site (teal + ícones, igual anúncio de sistema)
+                            # Alerta: atualização de site — ⚠️ MAFTY INTEL ALERT, teal RGB(26,188,156)
                             SITE_UPDATE_COLOR = discord.Color.from_rgb(26, 188, 156)
                             site_embed = discord.Embed(
                                 title=u_title[:256],
-                                description=f"{u_summary or 'Content updated.'}\n\n{u_link}",
+                                description=(
+                                    f"🕒 **Postado em:** {now_str}\n\n"
+                                    f"{u_summary or 'Content updated.'}\n\n{u_link}"
+                                ),
                                 url=u_link,
                                 color=SITE_UPDATE_COLOR,
                                 timestamp=datetime.now()
                             )
                             site_embed.set_author(
-                                name="🔄 Site update",
+                                name="⚠️ MAFTY INTEL ALERT",
                                 icon_url=bot.user.avatar.url if bot.user and bot.user.avatar else None
                             )
                             site_embed.set_footer(text=f"🔄 Page updated | {now_str}")
@@ -580,7 +585,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                             view.add_item(discord.ui.Button(
                                 style=discord.ButtonStyle.link,
                                 url=u_link[:512],
-                                label="Read more",
+                                label="Leia Mais",
                                 emoji="📖"
                             ))
                             wa_alert_text = f"Update:\n{u_title}\n{u_link}"
