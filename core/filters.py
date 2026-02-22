@@ -75,6 +75,48 @@ FILTER_OPTIONS = {
     "fashion": ("Fashion", "👕"),
 }
 
+# =========================================================
+# FONTES GUNDAM-DEDICADAS (não exige termo "Gundam" no título)
+# =========================================================
+# Só entram aqui fontes realmente específicas de Gundam/Gunpla.
+# Fontes genéricas (Netflix, Crunchyroll, Amazon, ANN, Deadline, Variety,
+# Kotaku, Natalie, Yaraon, Esuteru, etc.) exigem cuidado redobrado: continuamos
+# exigindo termo Gundam no título para não deixar passar matérias não relacionadas.
+TRUSTED_GUNDAM_SOURCE_DOMAINS = [
+    # Notícias e blogs Gundam
+    "gundamnews.org", "gunpla101.com", "gunjap.net", "usagundamstore.com",
+    "gundamkitscollection.com", "gundam-base.net", "gundamplanet.com",
+    "vcagundam.com", "gundamworld.it", "gundamhangar.com", "planetagundam.com",
+    "gundamplacestore.com", "gundam-ab.com", "strict-g.com",
+    # Oficiais e séries
+    "gundam-official.com", "gundam.info", "gundam.jp", "gundam-seed.net",
+    "gundam-tb.net", "gundam-the-origin.net", "g-tekketsu.com", "gundam-unicorn.net",
+    "g-reco.net", "gundam-bf.net", "gundam-age.net", "gundam00.net", "gundam-san.net",
+    "gundam-zz.net", "g-twilight-axis.net", "gundam-gcg.com", "gundamfc.com",
+    "gundam-next-future-pavilion", "gundam-navi", "unicorn-gundam-statue",
+    "gundam_ch", "gundam_hathaway", "gundam-uce.ggame.jp",
+    # Bandai / Hobby / Tamashii
+    "p-bandai.com", "tamashiiweb.com", "bandai-hobby.net", "bandai.com/blog",
+    "hobby.dengeki.com", "bandainamco.co.jp", "gmpj.bn-ent.net",
+    "bandai.co.jp/candy/gundam", "bandai.co.jp/candy/gunpla",
+    # Sunrise / Sotsu (estúdio e direitos Gundam)
+    "sunrise-inc.co.jp", "sunrise-music.co.jp", "sotsu.co.jp",
+    # Jogos Gundam (GBO2, etc.)
+    "bo2.ggame.jp", "gget.ggame.jp", "gb.ggame.jp",
+    # Reddit e lojas/hobby
+    "reddit.com/r/Gundam", "reddit.com/r/Gunpla",
+    "1999.co.jp/eng/gundam", "bandaibrasil.com.br/collections/gundam",
+]
+
+
+def is_trusted_gundam_source(source_url: str) -> bool:
+    """True se a URL é de fonte Gundam-dedicada (podemos dispensar termo no título).
+    Fontes genéricas (streaming, anime em geral) exigem termo Gundam para evitar matérias fora do universo."""
+    if not source_url:
+        return False
+    url_lower = source_url.lower()
+    return any(domain in url_lower for domain in TRUSTED_GUNDAM_SOURCE_DOMAINS)
+
 
 # =========================================================
 # HELPER FUNCTIONS
@@ -126,23 +168,31 @@ def _contains_any(text: str, keywords: List[str]) -> bool:
     return bool(re.search(pattern_str, text))
 
 
-def match_intel(guild_id: str, title: str, summary: str, config: Dict[str, Any]) -> bool:
+def match_intel(
+    guild_id: str,
+    title: str,
+    summary: str,
+    config: Dict[str, Any],
+    source_url: str | None = None,
+) -> bool:
     """
     Decide se notícia deve ir para a guild.
-    
+
     Lógica:
       1. Exige filtros configurados
       2. Corta blacklist (animes não-Gundam)
-      3. Exige termos Gundam core
+      3. Em fontes genéricas (streaming, anime em geral), exige termo Gundam para não
+         publicar matérias não relacionadas; em fontes Gundam-dedicadas dispensa essa exigência
       4. "todos" libera tudo
       5. Senão, precisa bater em categoria selecionada
-    
+
     Args:
         guild_id: ID da guild
         title: Título da notícia
         summary: Resumo da notícia
         config: Configuração carregada
-    
+        source_url: URL do feed/fonte (opcional). Se for fonte confiável, não exige termo Gundam.
+
     Returns:
         True se notícia deve ser postada
     """
@@ -154,12 +204,13 @@ def match_intel(guild_id: str, title: str, summary: str, config: Dict[str, Any])
 
     content = f"{clean_html(title)} {clean_html(summary)}".lower()
 
-    # Bloqueia blacklist
+    # Bloqueia blacklist (sempre)
     if _contains_any(content, BLACKLIST):
         return False
 
-    # Exige pelo menos um termo Gundam
-    if not _contains_any(content, GUNDAM_CORE):
+    # Exige pelo menos um termo Gundam — exceto em fontes Gundam-dedicadas
+    is_trusted = is_trusted_gundam_source(source_url or "")
+    if not is_trusted and not _contains_any(content, GUNDAM_CORE):
         return False
 
     # "todos" libera tudo
