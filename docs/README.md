@@ -1,8 +1,17 @@
 # 📚 Documentação — Gundam News Bot
 
 [![Docs](https://img.shields.io/badge/docs-GitHub%20ready-green)](../readme.md)
+[![GRC](https://img.shields.io/badge/GRC-Visão_Governança_Riscos_Controle-blue)](OVERVIEW.md)
 
 Índice da documentação do projeto. Tudo adaptado para leitura no **GitHub** (Markdown, Mermaid, shields, links relativos).
+
+---
+
+## 🛡️ Visão GRC
+
+| Documento | Descrição |
+|-----------|------------|
+| [**OVERVIEW.md**](OVERVIEW.md) | Visão **Governança, Riscos e Conformidade** — comandos por pilar, diagrama e fluxo de uso. |
 
 ---
 

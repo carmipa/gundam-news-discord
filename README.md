@@ -83,7 +83,7 @@
 
 ### Análise de Segurança
 
-📄 **Documentação completa:** Veja [analysis/SECURITY_GRC_ANALYSIS.md](analysis/SECURITY_GRC_ANALYSIS.md) para análise detalhada.
+📄 **Visão GRC (governança, riscos, controle):** [docs/OVERVIEW.md](docs/OVERVIEW.md) · **Análise de segurança:** [analysis/SECURITY_GRC_ANALYSIS.md](analysis/SECURITY_GRC_ANALYSIS.md)
 
 **Principais melhorias:**
 - ✅ Validação de URLs antes de fazer requisições HTTP
@@ -783,6 +783,7 @@ Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](L
 
 ## 📚 Documentação Adicional
 
+- 🛡️ [docs/OVERVIEW.md](docs/OVERVIEW.md) — Visão GRC: governança, riscos, controle e rastreabilidade
 - 📋 [docs/COMMANDS_LIST.md](docs/COMMANDS_LIST.md) — Lista de comandos (o que cada um faz)
 - 🧹 [docs/TUTORIAL_CLEAN_STATE.md](docs/TUTORIAL_CLEAN_STATE.md) — Tutorial do comando de limpeza
 - 🧱 [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — Diagramas de arquitetura
