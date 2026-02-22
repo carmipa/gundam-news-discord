@@ -76,12 +76,11 @@ FILTER_OPTIONS = {
 }
 
 # =========================================================
-# FONTES GUNDAM-DEDICADAS (não exige termo "Gundam" no título)
+# FONTES GUNDAM-DEDICADAS (referência; não usado na lógica atual)
 # =========================================================
-# Só entram aqui fontes realmente específicas de Gundam/Gunpla.
-# Fontes genéricas (Netflix, Crunchyroll, Amazon, ANN, Deadline, Variety,
-# Kotaku, Natalie, Yaraon, Esuteru, etc.) exigem cuidado redobrado: continuamos
-# exigindo termo Gundam no título para não deixar passar matérias não relacionadas.
+# Regra atual: SEMPRE exige termo Gundam (GUNDAM_CORE) no título/resumo, em todas as fontes.
+# Lista abaixo mantida apenas como referência (ex.: usagundamstore, hobby.dengeki postam
+# conteúdo não-Gundam; por isso a palavra Gundam é obrigatória na matéria).
 TRUSTED_GUNDAM_SOURCE_DOMAINS = [
     # Notícias e blogs Gundam
     "gundamnews.org", "gunpla101.com", "gunjap.net", "usagundamstore.com",
@@ -110,8 +109,7 @@ TRUSTED_GUNDAM_SOURCE_DOMAINS = [
 
 
 def is_trusted_gundam_source(source_url: str) -> bool:
-    """True se a URL é de fonte Gundam-dedicada (podemos dispensar termo no título).
-    Fontes genéricas (streaming, anime em geral) exigem termo Gundam para evitar matérias fora do universo."""
+    """True se a URL é de fonte Gundam-dedicada. Não usado na lógica atual (sempre exigimos termo Gundam)."""
     if not source_url:
         return False
     url_lower = source_url.lower()
@@ -181,9 +179,8 @@ def match_intel(
     Lógica:
       1. Exige filtros configurados
       2. Corta blacklist (animes não-Gundam)
-      3. Em fontes genéricas (streaming, anime em geral), exige termo Gundam para não
-         publicar matérias não relacionadas; em fontes Gundam-dedicadas dispensa essa exigência
-      4. "todos" libera tudo
+      3. Exige sempre pelo menos um termo Gundam (GUNDAM_CORE) no título/resumo em todas as fontes
+      4. "todos" libera tudo (desde que passe 2 e 3)
       5. Senão, precisa bater em categoria selecionada
 
     Args:
@@ -191,7 +188,7 @@ def match_intel(
         title: Título da notícia
         summary: Resumo da notícia
         config: Configuração carregada
-        source_url: URL do feed/fonte (opcional). Se for fonte confiável, não exige termo Gundam.
+        source_url: URL do feed/fonte (opcional, reservado para uso futuro).
 
     Returns:
         True se notícia deve ser postada
@@ -208,9 +205,8 @@ def match_intel(
     if _contains_any(content, BLACKLIST):
         return False
 
-    # Exige pelo menos um termo Gundam — exceto em fontes Gundam-dedicadas
-    is_trusted = is_trusted_gundam_source(source_url or "")
-    if not is_trusted and not _contains_any(content, GUNDAM_CORE):
+    # Exige sempre pelo menos um termo Gundam no título/resumo (todas as fontes)
+    if not _contains_any(content, GUNDAM_CORE):
         return False
 
     # "todos" libera tudo
