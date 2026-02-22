@@ -377,6 +377,7 @@ O bot aceita múltiplos formatos:
 | `/setlang` | Define o idioma do bot para o servidor | `/setlang idioma:pt_BR` |
 | `/forcecheck` | Força uma varredura imediata de feeds | `/forcecheck` |
 | `/clean_state` | Limpa partes do state.json (com backup automático) | `/clean_state tipo:dedup confirmar:sim` |
+| `/server_log` | Exibe últimas linhas do log do servidor (botão Atualizar) | `/server_log [linhas:50]` |
 
 ### 📊 Comandos Informativos
 
@@ -422,6 +423,10 @@ O bot aceita múltiplos formatos:
 # - http_cache: Cache HTTP (ETags)
 # - html_hashes: Hashes de monitoramento HTML
 # - tudo: Limpa tudo (use com cuidado!)
+
+# Ver log do servidor (últimas linhas)
+/server_log                   # Últimas 50 linhas (padrão)
+/server_log linhas:20         # Últimas 20 linhas (10–100)
 
 # Forçar varredura manual
 /forcecheck                   # Executa scan imediato

@@ -73,7 +73,7 @@ class DashboardCog(commands.Cog):
         await self.run_scan_once(trigger="dashboard")
     
     @app_commands.command(name="set_canal", description="Define o canal onde o bot enviará notícias.")
-    @app_commands.describe(canal="Canal onde as notícias serão enviadas (opcional, usa o canal atual se não especificado)")
+    @app_commands.describe(canal="Canal de texto para notícias (opcional: usa o atual)")
     @app_commands.checks.has_permissions(administrator=True)
     async def set_canal(self, interaction: discord.Interaction, canal: discord.TextChannel = None):
         """

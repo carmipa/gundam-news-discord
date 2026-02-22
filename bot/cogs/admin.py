@@ -89,8 +89,8 @@ class AdminCog(commands.Cog):
     
     @app_commands.command(name="clean_state", description="Limpa partes do state.json (requer confirmação).")
     @app_commands.describe(
-        tipo="Tipo de limpeza: dedup (histórico), http_cache (cache HTTP), html_hashes (monitor HTML), ou tudo",
-        confirmar="Escolha 'Sim' para executar a limpeza; 'Não' só mostra o que seria feito"
+        tipo="Limpar: dedup, http_cache, html_hashes ou tudo",
+        confirmar="Sim = executar limpeza; Não = só mostrar preview"
     )
     @app_commands.choices(tipo=[
         app_commands.Choice(name="🧹 Dedup (Histórico de links)", value="dedup"),
@@ -342,9 +342,9 @@ class AdminCog(commands.Cog):
 
     @app_commands.command(
         name="server_log",
-        description="Exibe as últimas linhas do log do bot (o mesmo que aparece no servidor/docker). Apenas administradores."
+        description="Exibe as últimas linhas do log do servidor. Botão Atualizar renova. (Admin)"
     )
-    @app_commands.describe(linhas="Quantidade de linhas a exibir (padrão 50, máx. 100)")
+    @app_commands.describe(linhas="Número de linhas (10-100, padrão 50)")
     @app_commands.checks.has_permissions(administrator=True)
     async def server_log(self, interaction: discord.Interaction, linhas: int = 50):
         """Envia as últimas N linhas do logs/bot.log (mesmo log que roda no servidor/docker) e botão Atualizar."""

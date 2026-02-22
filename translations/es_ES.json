@@ -9,6 +9,8 @@
             "config": "🛠️ Configuración (Admin)",
             "dashboard": "**/dashboard** - Panel visual para configurar filtros",
             "forcecheck": "**/forcecheck** - Fuerza un escaneo inmediato",
+            "clean_state": "**/clean_state** - Limpiar state.json (con backup)",
+            "server_log": "**/server_log** - Ver log del servidor (últimas líneas)",
             "info": "📊 Información",
             "status": "**/status** - Estadísticas de uptime y rendimiento",
             "feeds": "**/feeds** - Lista fuentes monitoreadas",

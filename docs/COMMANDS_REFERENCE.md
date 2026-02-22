@@ -137,6 +137,30 @@
 
 ---
 
+### `/server_log`
+
+**Descrição:** Exibe as últimas linhas do log do servidor (o mesmo que aparece ao rodar o bot, ex.: `docker-compose logs -f`). Apenas administradores.
+
+**Sintaxe:**
+```
+/server_log [linhas:50]
+```
+
+**Parâmetros:**
+- `linhas` (opcional): Número de linhas a exibir (10 a 100, padrão 50).
+
+**Uso:**
+- Ver em tempo quase real o que o bot está logando (varreduras, erros, avisos).
+- Clicar em **Atualizar** na mensagem para renovar com as linhas mais recentes.
+
+**Resposta:**
+- 📋 Mensagem com as últimas N linhas em bloco de código `log`.
+- Botão **Atualizar** para recarregar sem rodar o comando de novo.
+
+**Nota:** Requer permissão de **Administrador**. O arquivo lido é `logs/bot.log` (no Docker: volume `./logs:/app/logs`).
+
+---
+
 ### `/clean_state`
 
 **Descrição:** Limpa partes específicas do `state.json` com backup automático.

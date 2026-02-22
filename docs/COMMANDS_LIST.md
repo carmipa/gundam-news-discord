@@ -18,6 +18,7 @@ Lista rápida do que **cada comando faz**. Para detalhes, sintaxe e exemplos, ve
 | `/setlang` | Define o idioma do bot para o servidor (pt_BR, en_US, es_ES, it_IT, ja_JP). |
 | `/forcecheck` | Força uma varredura imediata de todos os feeds (não espera o ciclo automático). |
 | `/clean_state` | Limpa partes do `state.json` (dedup, cache HTTP, hashes HTML ou tudo), com backup e confirmação. |
+| `/server_log` | Exibe as últimas linhas do log do servidor (como no docker). Botão **Atualizar** renova. (Admin) |
 
 ---
 

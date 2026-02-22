@@ -11,6 +11,7 @@
             "dashboard": "**/dashboard** - Visual panel to configure filters",
             "forcecheck": "**/forcecheck** - Force immediate scan",
             "clean_state": "**/clean_state** - Clean parts of state.json (with backup)",
+            "server_log": "**/server_log** - View server log (last lines)",
             "info": "📊 Information",
             "status": "**/status** - Uptime and performance stats",
             "feeds": "**/feeds** - List monitored sources",
