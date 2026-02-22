@@ -596,7 +596,10 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                                 label="E-mail",
                                 emoji="✉️"
                             ))
+                            # 1) Mensagem com embed (estilo Site update)
                             await channel.send(embed=site_embed, view=view)
+                            # 2) Mensagem só com o link para o Discord exibir preview com imagens/vídeos
+                            await channel.send(u_link)
                             sent_count += 1
             else:
                  if new_hashes != html_hashes:
