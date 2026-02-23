@@ -46,7 +46,7 @@
 
 | Feature | Descrição |
 |---------|-----------|
-| 📡 **Scanner Periódico** | Varredura de feeds RSS/Atom/YouTube a cada 30 minutos (configurável) |
+| 📡 **Scanner Periódico** | Varredura de feeds RSS/Atom/YouTube a cada 12h (configurável via LOOP_MINUTES) |
 | 🕵️ **HTML Watcher** | Monitora sites oficiais sem RSS (ex: Gundam Official) detectando mudanças visuais |
 | 🎛️ **Dashboard Persistente** | Painel interativo com botões que funciona mesmo após restart |
 | 🎯 **Filtros por Categoria** | Gunpla, Filmes, Games, Música, Fashion + opção "TUDO" |
@@ -316,7 +316,7 @@ DISCORD_TOKEN=seu_token_aqui
 
 # ⚙️ OPCIONAL
 COMMAND_PREFIX=!
-LOOP_MINUTES=30
+LOOP_MINUTES=720
 LOG_LEVEL=INFO  # Use DEBUG para logs detalhados
 
 # 🔒 Segurança do Servidor Web (Opcional)
@@ -654,7 +654,7 @@ O bot possui um sistema de logging profissional com:
 ```
 2026-02-13 10:30:45 - [INFO] ℹ️ Bot conectado como: Mafty#1234 (ID: 123456789)
 2026-02-13 10:30:46 - [INFO] ℹ️ 📊 Servidores conectados: 3
-2026-02-13 10:30:47 - [INFO] ℹ️ 🔄 Agendador de tarefas iniciado (30 min).
+2026-02-13 10:30:47 - [INFO] ℹ️ 🔄 Agendador de tarefas iniciado (12h).
 2026-02-13 10:31:15 - [INFO] ℹ️ 🔎 Iniciando varredura de inteligência... (trigger=loop)
 2026-02-13 10:31:20 - [WARNING] ⚠️ 🔒 URL bloqueada por segurança: http://localhost/test - IP privado/local não permitido
 2026-02-13 10:31:25 - [INFO] ℹ️ ✅ Varredura concluída. (enviadas=5, cache_hits=12/15, trigger=loop)

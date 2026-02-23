@@ -41,7 +41,7 @@
 
 | Funzionalità | Descrizione |
 |---------|-----------|
-| 📡 **Scanner Periodico** | Scansione di feed RSS/Atom/YouTube ogni 30 minuti (configurabile) |
+| 📡 **Scanner Periodico** | Scansione di feed RSS/Atom/YouTube ogni 12h (configurabile) |
 | 🕵️ **HTML Watcher** | Monitora siti ufficiali senza RSS (es: Gundam Official) rilevando cambiamenti visivi |
 | 🎛️ **Dashboard Persistente** | Pannello interattivo con pulsanti che funzionano anche dopo il riavvio |
 | 🎯 **Filtri per Categoria** | Gunpla, Film, Giochi, Musica, Moda + opzione "TUTTO" |
@@ -129,7 +129,7 @@ DISCORD_TOKEN=il_tuo_token_qui
 
 # Opzionale
 COMMAND_PREFIX=!
-LOOP_MINUTES=30
+LOOP_MINUTES=720
 LOG_LEVEL=INFO  # Usa DEBUG per log GRC dettagliati
 ```
 

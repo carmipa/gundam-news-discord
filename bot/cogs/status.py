@@ -8,7 +8,7 @@ from discord import app_commands
 from datetime import datetime, timedelta
 
 from core.stats import stats
-from settings import LOOP_MINUTES
+from settings import LOOP_MINUTES, LOOP_INTERVAL_STR
 
 log = logging.getLogger("MaftyIntel")
 
@@ -102,7 +102,7 @@ class StatusCog(commands.Cog):
             inline=True
         )
         
-        embed.set_footer(text=f"Bot v2.1 | Intervalo: {LOOP_MINUTES} min")
+        embed.set_footer(text=f"Bot v2.1 | Intervalo: {LOOP_INTERVAL_STR}")
         
         # Adiciona o botão de scan
         view = ScanButton(self.run_scan_once)

@@ -25,7 +25,7 @@ Abre o **Painel de Controle** interativo.
 Força uma varredura **imediata** de todas as fontes de notícias.
 **Uso:** `/forcecheck`
 
-* Útil para testar se o bot está funcionando ou quando você sabe que saiu uma notícia urgente e não quer esperar o ciclo automático (30 min).
+* Útil para testar se o bot está funcionando ou quando você sabe que saiu uma notícia urgente e não quer esperar o ciclo automático (ex.: 12h).
 
 ### `/set_canal`
 
