@@ -9,10 +9,11 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 
 # Operação (opcional via env)
 COMMAND_PREFIX = os.getenv("COMMAND_PREFIX", "!")
+# Intervalo entre varreduras (minutos). Padrão: 720 = 12 em 12 horas
 try:
-    LOOP_MINUTES = int(os.getenv("LOOP_MINUTES", "45"))
+    LOOP_MINUTES = int(os.getenv("LOOP_MINUTES", "720"))
 except ValueError:
-    LOOP_MINUTES = 60
+    LOOP_MINUTES = 720
 
 # Logging Level (INFO, DEBUG, WARNING, ERROR)
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()

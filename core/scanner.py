@@ -194,7 +194,8 @@ def get_news_metadata(title: str, url: str) -> tuple[str, discord.Color]:
 def _log_next_run() -> None:
     """Log explícito do próximo horário de varredura."""
     nxt = datetime.now() + timedelta(minutes=LOOP_MINUTES)
-    log.info(f"⏳ Aguardando próxima varredura às {nxt:%Y-%m-%d %H:%M:%S} (em {LOOP_MINUTES} min)...")
+    interval_msg = f"{LOOP_MINUTES // 60}h" if LOOP_MINUTES >= 60 else f"{LOOP_MINUTES} min"
+    log.info(f"⏳ Aguardando próxima varredura às {nxt:%Y-%m-%d %H:%M:%S} (em {interval_msg})...")
 
 
 async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
@@ -665,4 +666,5 @@ def start_scheduler(bot: discord.Client):
     
     loop_task = intelligence_gathering
     loop_task.start()
-    log.info(f"🔄 Agendador de tarefas iniciado ({LOOP_MINUTES} min).")
+    interval_msg = f"{LOOP_MINUTES // 60}h" if LOOP_MINUTES >= 60 else f"{LOOP_MINUTES} min"
+    log.info(f"🔄 Agendador de tarefas iniciado (a cada {interval_msg}).")

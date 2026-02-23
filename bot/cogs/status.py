@@ -102,7 +102,8 @@ class StatusCog(commands.Cog):
             inline=True
         )
         
-        embed.set_footer(text=f"Bot v2.1 | Intervalo: {LOOP_MINUTES} min")
+        interval_str = f"{LOOP_MINUTES // 60}h" if LOOP_MINUTES >= 60 else f"{LOOP_MINUTES} min"
+        embed.set_footer(text=f"Bot v2.1 | Intervalo: {interval_str}")
         
         # Adiciona o botão de scan
         view = ScanButton(self.run_scan_once)
