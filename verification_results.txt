@@ -1,220 +1,302 @@
-📂 Carregando sources.json...
+============================================================
+REVISÃO DE FONTES — sources.json
+============================================================
 
-🔎 --- TESTANDO FEEDS RSS ---
+--- FEEDS RSS ---
 ✅ https://www.animenewsnetwork.com/news/rss.xml?ann-edition=us
-   └── ✅ OK (40 posts, Último: Thu, 19 Feb 2026 10:15:00 -0500)
+   └── OK — 40 entradas, último: Mon, 23 Feb 2026 00:13:37 -0500
 ✅ https://gundamnews.org/feed
-   └── ✅ OK (10 posts, Último: Mon, 16 Feb 2026 21:55:54 +0000)
+   └── OK — 10 entradas, último: Mon, 16 Feb 2026 21:55:54 +0000
 ✅ https://gunpla101.com/feed
-   └── ✅ OK (10 posts, Último: Tue, 17 Feb 2026 13:00:03 +0000)
+   └── OK — 10 entradas, último: Tue, 17 Feb 2026 13:00:03 +0000
 ✅ https://www.gunjap.net/site/?feed=rss2
-   └── ✅ OK (10 posts, Último: Tue, 17 Feb 2026 23:55:58 +0000)
+   └── OK — 10 entradas, último: Thu, 19 Feb 2026 22:32:27 +0000
 ✅ https://www.usagundamstore.com/blogs/usa-gundam-blog.atom
-   └── ✅ OK (30 posts, Último: 2026-02-18T00:00:00-05:00)
+   └── OK — 30 entradas, último: 2026-02-19T00:00:00-05:00
 ✅ https://www.bandai.com/blog/rss/feed
-   └── ✅ OK (10 posts, Último: 2026-01-21T23:55:00+00:00)
+   └── OK — 10 entradas, último: 2026-02-19T00:34:00+00:00
 ✅ https://www.gundamkitscollection.com/feeds/posts/default?alt=rss
-   └── ✅ OK (25 posts, Último: Thu, 19 Feb 2026 13:54:00 +0000)
-✅ https://stelasub.blogspot.com/feeds/posts/default
-   └── ✅ OK (9 posts, Último: 2020-03-24T11:34:00.056-07:00)
+   └── OK — 25 entradas, último: Mon, 23 Feb 2026 03:07:00 +0000
 ✅ https://nyaa.si/?page=rss&q=gundam&c=1_2&f=0
-   └── ✅ OK (75 posts, Último: Wed, 18 Feb 2026 05:30:18 -0000)
-❌ https://www.crunchyroll.com/news/rss
-   └── Bozo Error: <unknown>:9:8166: not well-formed (invalid token)
+   └── OK — 75 entradas, último: Wed, 18 Feb 2026 05:30:18 -0000
+❌ https://www.crunchyroll.com/news/rss?lang=en-us
+   └── Parse error: <unknown>:9:8166: not well-formed (invalid token)
 ✅ https://www.whats-on-netflix.com/feed/
-   └── ✅ OK (50 posts, Último: Thu, 19 Feb 2026 14:30:03 +0000)
+   └── OK — 50 entradas, último: Sun, 22 Feb 2026 16:35:53 +0000
 ✅ http://blog.esuteru.com/index.rdf
-   └── ✅ OK (50 posts, Último: 2026-02-20T00:00:17+09:00)
+   └── OK — 50 entradas, último: 2026-02-23T15:30:13+09:00
 ✅ https://natalie.mu/comic/feed/news
-   └── ✅ OK (30 posts, Último: 2026-02-20T00:00:00+09:00)
+   └── OK — 30 entradas, último: 2026-02-23T15:00:00+09:00
 ✅ http://yaraon-blog.com/feed
-   └── ✅ OK (30 posts, Último: Thu, 19 Feb 2026 14:50:03 +0000)
+   └── OK — 30 entradas, último: Mon, 23 Feb 2026 06:23:06 +0000
 ✅ https://deadline.com/feed/
-   └── ✅ OK (12 posts, Último: Thu, 19 Feb 2026 15:12:46 +0000)
+   └── OK — 12 entradas, último: Mon, 23 Feb 2026 06:12:38 +0000
 ✅ https://variety.com/feed/
-   └── ✅ OK (10 posts, Último: Thu, 19 Feb 2026 15:24:10 +0000)
+   └── OK — 10 entradas, último: Mon, 23 Feb 2026 03:30:00 +0000
 ✅ https://kotaku.com/rss
-   └── ✅ OK (20 posts, Último: Thu, 19 Feb 2026 14:30:48 +0000)
-✅ https://www.alltheanime.com/blogs/news.atom
-   └── ✅ OK (3 posts, Último: 2014-11-28T17:27:00+00:00)
+   └── OK — 20 entradas, último: Sun, 22 Feb 2026 23:03:26 +0000
 ✅ https://www.reddit.com/r/Gundam/.rss
-   └── ✅ OK (25 posts, Último: 2026-02-09T16:48:49+00:00)
-✅ https://omochajapan.com/blogs/news.atom
-   └── ✅ OK (5 posts, Último: 2023-12-04T13:23:44+09:00)
+   └── OK — 25 entradas, último: 2026-02-09T16:48:49+00:00
+❌ https://www.gundamkitscollection.com/feeds/posts/default/-/The%20Gundam%20Base
+   └── 0 entradas (feed vazio)
+❌ https://www.gundamkitscollection.com/feeds/posts/default/-/Gundam%20Card%20Game
+   └── 0 entradas (feed vazio)
+❌ https://www.gundamkitscollection.com/feeds/posts/default/-/Gundam%20Hangar
+   └── 0 entradas (feed vazio)
+❌ https://tamashiiweb.com/rss/news/?wovn=en
+   └── HTTP 404
+❌ https://p-bandai.com/us/news/rss
+   └── HTTP 400
+✅ https://hobby.dengeki.com/feed/
+   └── OK — 10 entradas, último: Mon, 23 Feb 2026 06:00:00 +0000
+✅ https://www.reddit.com/r/Gunpla/search.rss?q=flair%3ANews&restrict_sr=on&sort=new
+   └── OK — 25 entradas, último: 2026-02-22T05:39:58+00:00
+✅ https://www.gundam-base.net/feed
+   └── OK — 10 entradas, último: Fri, 20 Feb 2026 08:00:57 +0000
+✅ https://www.gundam-base.net/rss
+   └── OK — 10 entradas, último: Fri, 20 Feb 2026 08:00:57 +0000
+❌ https://www.gundam-base.net/rss.xml
+   └── Erro: ReadTimeout: 
+❌ https://www.gundam-base.net/index.rdf
+   └── Erro: ReadTimeout: 
+❌ https://www.gundam-base.net/news/rss.xml
+   └── Erro: ReadTimeout: 
+❌ https://www.gundam-base.net/news/feed
+   └── 0 entradas (feed vazio)
 
-🔎 --- TESTANDO CANAIS YOUTUBE (RSS) ---
+--- CANAIS YOUTUBE (RSS) ---
 ✅ https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw
-   └── ✅ OK (15 posts, Último: 2026-02-18T23:00:39+00:00)
+   └── OK — 15 entradas, último: 2026-02-20T00:00:50+00:00
 ✅ https://www.youtube.com/feeds/videos.xml?channel_id=UCbJM_Y06iuUOl3hVPqYcvng
-   └── ✅ OK (15 posts, Último: 2026-02-17T15:00:00+00:00)
-❌ https://www.youtube.com/feeds/videos.xml?channel_id=UCjO7_R8sP5-uPzZ4C00000Q
-   └── HTTP 404
-✅ https://www.youtube.com/feeds/videos.xml?channel_id=UCamRLcYia0SOlSsIcbbGiag
-   └── ✅ OK (15 posts, Último: 2026-02-17T11:01:09+00:00)
-✅ https://www.youtube.com/feeds/videos.xml?channel_id=UCl2aT0nRejTCQO_LHZAftBw
-   └── ✅ OK (15 posts, Último: 2026-02-18T03:00:20+00:00)
-✅ https://www.youtube.com/feeds/videos.xml?channel_id=UCPjmdJSt7kxP5jjkRVuI-7A
-   └── ✅ OK (15 posts, Último: 2026-02-02T03:00:46+00:00)
+   └── OK — 15 entradas, último: 2026-02-20T09:00:00+00:00
+❌ https://www.youtube.com/feeds/videos.xml?channel_id=UCamRLcYia0SOlSsIcbbGiag
+   └── HTTP 500
+❌ https://www.youtube.com/feeds/videos.xml?channel_id=UCl2aT0nRejTCQO_LHZAftBw
+   └── HTTP 500
+❌ https://www.youtube.com/feeds/videos.xml?channel_id=UCPjmdJSt7kxP5jjkRVuI-7A
+   └── HTTP 500
 ✅ https://www.youtube.com/feeds/videos.xml?channel_id=UCfVoNfQvw41CoanNW_5gOiw
-   └── ✅ OK (15 posts, Último: 2026-02-14T08:01:08+00:00)
+   └── OK — 15 entradas, último: 2026-02-21T08:00:59+00:00
 ✅ https://www.youtube.com/feeds/videos.xml?channel_id=UCWJ5MfdQZ6jXbF5gYuSAf5Q
-   └── ✅ OK (15 posts, Último: 2026-02-18T18:55:09+00:00)
+   └── OK — 15 entradas, último: 2026-02-20T15:49:00+00:00
 ✅ https://www.youtube.com/feeds/videos.xml?channel_id=UCS_zFUPZOlLkXLAybjYuCxQ
-   └── ✅ OK (15 posts, Último: 2021-04-24T22:30:03+00:00)
-❌ https://www.youtube.com/feeds/videos.xml?channel_id=UC7_uS7n6vM6idS_Esh7L_vA
+   └── OK — 15 entradas, último: 2021-04-24T22:30:03+00:00
+❌ https://www.youtube.com/feeds/videos.xml?channel_id=UCmDLyFjSutfb1MK7F6cMVSA
    └── HTTP 404
-❌ https://www.youtube.com/feeds/videos.xml?channel_id=UC9S26T_0W5zN4mGfWre9naw
-   └── HTTP 404
-✅ https://www.youtube.com/feeds/videos.xml?channel_id=UCmDLyFjSutfb1MK7F6cMVSA
-   └── ✅ OK (15 posts, Último: 2026-02-19T11:00:06+00:00)
 ✅ https://www.youtube.com/feeds/videos.xml?channel_id=UCuxB1suCoCqAKiljh_0xE4A
-   └── ✅ OK (15 posts, Último: 2026-02-19T07:46:17+00:00)
-✅ https://www.youtube.com/feeds/videos.xml?channel_id=UC7wu64jFsV02bbu6UHUd7JA
-   └── ✅ OK (15 posts, Último: 2026-02-19T12:00:06+00:00)
+   └── OK — 15 entradas, último: 2026-02-23T00:00:43+00:00
+❌ https://www.youtube.com/feeds/videos.xml?channel_id=UC7wu64jFsV02bbu6UHUd7JA
+   └── HTTP 500
 ✅ https://www.youtube.com/feeds/videos.xml?channel_id=UCWOA1ZGywLbqmigxE4Qlvuw
-   └── ✅ OK (15 posts, Último: 2026-02-19T15:00:00+00:00)
+   └── OK — 15 entradas, último: 2026-02-20T18:03:07+00:00
 
-🔎 --- TESTANDO HTML MONITOR (SITES OFICIAIS) ---
+--- HTML MONITOR (SITES OFICIAIS) ---
 ✅ https://gundam-official.com/
-   └── ✅ OK (Título: Sem Título)
+   └── OK — título: Sem título
 ✅ https://en.gundam-official.com/news
-   └── ✅ OK (Título: Sem Título)
+   └── OK — título: Sem título
 ✅ https://www.gundam-seed.net/news/
-   └── ✅ OK (Título: 新着情報 | 機動戦士ガンダムSEEDシリーズ公式サイト)
+   └── OK — título: 新着情報 | 機動戦士ガンダムSEEDシリーズ公式サイト
 ✅ https://bo2.ggame.jp/en/info/
-   └── ✅ OK (Título: INFORMATION | Mobile Suit Gundam Battle Operation 2 | BANDAI NAMCO Entertainment Official Website)
+   └── OK — título: INFORMATION | Mobile Suit Gundam Battle Operation 2 | BANDAI…
 ✅ https://global.bandai-hobby.net/en-us/news/
-   └── ✅ OK (Título: NEWS｜BANDAI HOBBY SITE)
+   └── OK — título: NEWS｜BANDAI HOBBY SITE
 ✅ https://bandai-hobby.net/news/
-   └── ✅ OK (Título: ニュース｜バンダイ ホビーサイト)
-✅ https://www.gundam-base.net/news
-   └── ✅ OK (Título: 記事一覧 − ニュース｜THE GUNDAM BASE - ガンダムベース公式サイト)
+   └── OK — título: ニュース｜バンダイ ホビーサイト
 ✅ https://www.gundam-base.net/staffblog/
-   └── ✅ OK (Título: スタッフブログ一覧 − STAFF BLOG｜THE GUNDAM BASE - ガンダムベース公式サイト)
+   └── OK — título: スタッフブログ一覧 − STAFF BLOG｜THE GUNDAM BASE - ガンダムベース公式サイト
 ✅ https://www.bandai.com/News
-   └── ✅ OK (Título: News)
+   └── OK — título: News
 ✅ https://www.sunrise-music.co.jp/
-   └── ✅ OK (Título: サンライズ ミュージック)
-❌ https://en.gundam-official.com/video-music
-   └── HTTP 404
+   └── OK — título: サンライズ ミュージック
 ✅ https://www.gundamplanet.com/
-   └── ✅ OK (Título: Gundam Planet | Your #1 Store for Gunpla, Model Kits & Collectibles)
+   └── OK — título: Gundam Planet | Your #1 Store for Gunpla, Model Kits & Colle…
 ✅ https://bandaibrasil.com.br/collections/gundam
-   └── ✅ OK (Título: Gundam
- – Bandai Brasil)
+   └── OK — título: Gundam
+ – Bandai Brasil
 ✅ https://www.gundamkitscollection.com/
-   └── ✅ OK (Título: Gundam Kits Collection News and Reviews)
+   └── OK — título: Gundam Kits Collection News and Reviews
 ✅ https://www.vcagundam.com/
-   └── ✅ OK (Título: Official Bandai® โมเดลกันดั้ม กันพลา จากร้าน VCA Gundam Gunpla Bangkok Thailand : Inspired by LnwShop.com (v2))
-✅ https://gundamnews.org/
-   └── ✅ OK (Título: Gundam News – Promoting the spread of knowledge and understanding.)
+   └── OK — título: Official Bandai® โมเดลกันดั้ม กันพลา จากร้าน VCA Gundam Gunp…
 ✅ https://www.gundam-seed.net/
-   └── ✅ OK (Título: 機動戦士ガンダムSEEDシリーズ公式サイト)
+   └── OK — título: 機動戦士ガンダムSEEDシリーズ公式サイト
 ✅ https://en.bandainamcoent.eu/
-   └── ✅ OK (Título: Bandai Namco Europe | Official Site)
+   └── OK — título: Bandai Namco Europe | Official Site
 ✅ https://www.sunrise-inc.co.jp/international/
-   └── ✅ OK (Título: SUNRISE)
-❌ https://www.facebook.com/gundamglobalportal/?ref=embed_page#
-   └── HTTP 400
-❌ https://www.facebook.com/gundam.info.en/?locale=pt_BR
-   └── HTTP 400
-✅ https://www.gunjap.net/
-   └── ✅ OK (Título: GUNJAP – Daily Gunpla Gundam News and Other since April 7th 2011)
+   └── OK — título: SUNRISE
 ✅ https://gundam-official.com/hathaway/
-   └── ✅ OK (Título: 『機動戦士ガンダム 閃光のハサウェイ キルケーの魔女』公式サイト)
+   └── OK — título: 『機動戦士ガンダム 閃光のハサウェイ キルケーの魔女』公式サイト
 ✅ https://gundam-official.com/hathaway/news/
-   └── ✅ OK (Título: 『機動戦士ガンダム 閃光のハサウェイ キルケーの魔女』公式サイト)
+   └── OK — título: 『機動戦士ガンダム 閃光のハサウェイ キルケーの魔女』公式サイト
 ✅ https://www.gundamfc.com/
-   └── ✅ OK (Título: ガンダムファンクラブ)
+   └── OK — título: ガンダムファンクラブ
 ✅ https://mao.5ch.net/test/read.cgi/eq/1740193892
-   └── ✅ OK (Título: 宏観】そういえば？不思議な現象【場所必須】735)
+   └── OK — título: 宏観】そういえば？不思議な現象【場所必須】735
 ✅ https://mantan-web.jp/
-   └── ✅ OK (Título: MANTANWEB（まんたんウェブ）- ポップカルチャーの総合ニュースサイト)
+   └── OK — título: MANTANWEB（まんたんウェブ）- ポップカルチャーの総合ニュースサイト
 ✅ https://eiga.com/
-   └── ✅ OK (Título: 映画.com - 映画のことなら映画.com)
+   └── OK — título: 映画.com - 映画のことなら映画.com
 ✅ https://www.bilibili.com/
-   └── ✅ OK (Título: 哔哩哔哩 (゜-゜)つロ 干杯~-bilibili)
+   └── OK — título: 验证码_哔哩哔哩
 ✅ https://bbs.a9vg.com/forum-661-1.html
-   └── ✅ OK (Título: Switch 2综合讨论区 -  A9VG电玩部落论坛 -  Powered by Discuz!)
+   └── OK — título: Switch 2综合讨论区 -  A9VG电玩部落论坛 -  Powered by Discuz!
 ✅ https://www.1999.co.jp/eng/gundam/
-   └── ✅ OK (Título: HobbySearch Gundam Model Kits Store)
+   └── OK — título: HobbySearch Gundam Model Kits Store
 ✅ https://www.sotsu.co.jp/en/
-   └── ✅ OK (Título: SOTSU・創通)
+   └── OK — título: SOTSU・創通
 ✅ https://www.catsuka.com/
-   └── ✅ OK (Título: Catsuka)
-❌ https://www.manga-news.com/
-   └── HTTP 403
+   └── OK — título: Catsuka
 ✅ https://www.gundamworld.it/
-   └── ✅ OK (Título: SwiteFrontendNg)
+   └── OK — título: SwiteFrontendNg
 ✅ https://www.animeclick.it/video-intro?r=/
-   └── ✅ OK (Título: AnimeClick.it - video intro)
+   └── OK — título: AnimeClick.it - video intro
 ✅ https://www.bandai.com/
-   └── ✅ OK (Título: Bandai Namco - Fun for All into the Future)
+   └── OK — título: Bandai Namco - Fun for All into the Future
 ✅ https://www.youtube.com/hashtag/%E9%96%83%E5%85%89%E3%81%AE%E3%83%8F%E3%82%B5%E3%82%A6%E3%82%A4
-   └── ✅ OK (Título: Sem Título)
-✅ https://gundamhangar.com/
-   └── ✅ OK (Título: Canadian Gundam Hangar)
-❌ https://hobbyalley.biz/
-   └── HTTP 403
+   └── OK — título: Sem título
 ✅ https://www.hlj.com/search/?itemGroup=BANDAIHOBBY202506&utm_source=gundamkitscollection&utm_medium=affiliate
-   └── ✅ OK (Título: Search | HLJ.com)
+   └── OK — título: Search | HLJ.com
 ✅ https://www.gundam-gcg.com/en/news/
-   └── ✅ OK (Título: NEWS | GUNDAM CARD GAME Official Website)
+   └── OK — título: NEWS | GUNDAM CARD GAME Official Website
 ✅ https://gundam-official.com/series/hathaway-i
-   └── ✅ OK (Título: Sem Título)
+   └── OK — título: Sem título
 ✅ https://www.bnfw.co.jp/
-   └── ✅ OK (Título: バンダイナムコフィルムワークス | Bandai Namco Filmworks INC.)
+   └── OK — título: バンダイナムコフィルムワークス | Bandai Namco Filmworks INC.
 ✅ https://www.sunrise-inc.co.jp/
-   └── ✅ OK (Título: サンライズ｜SUNRISE)
+   └── OK — título: サンライズ｜SUNRISE
 ✅ https://x.com/gundam_hathaway
-   └── ✅ OK (Título: Sem Título)
+   └── OK — título: Sem título
 ✅ https://en.gundam-official.com/
-   └── ✅ OK (Título: Sem Título)
+   └── OK — título: Sem título
 ✅ https://www.bandainamcoent.com/
-   └── ✅ OK (Título: Official Site | Bandai Namco Entertainment America)
+   └── OK — título: Official Site | Bandai Namco Entertainment America
 ✅ https://planetagundam.com/blog
-   └── ✅ OK (Título: Planeta Gundam: O mundo dos newtypes | Blog)
+   └── OK — título: Planeta Gundam: O mundo dos newtypes | Blog
 ✅ https://global.bandai-hobby.net/es/
-   └── ✅ OK (Título: BANDAI HOBBY SITE)
+   └── OK — título: BANDAI HOBBY SITE
 ✅ https://gget.ggame.jp/en/
-   └── ✅ OK (Título: HOME｜SD Gundam G Generation ETERNAL｜Bandai Namco Entertainment Official Website)
+   └── OK — título: HOME｜SD Gundam G Generation ETERNAL｜Bandai Namco Entertainme…
 ✅ https://p-bandai.com/us/
-   └── ✅ OK (Título: PREMIUM BANDAI USA [Official] Online Store for Action Figures, Model Kits, Card Games, Toys, and more.)
+   └── OK — título: PREMIUM BANDAI USA [Official] Online Store for Action Figure…
 ✅ https://en.gundam-official.com/news/jy757u7j45nlih4nip2rzfxn
-   └── ✅ OK (Título: Sem Título)
-✅ https://store.bandainamcoent.com/
-   └── ✅ OK (Título: Bandai Namco Store | Bandai Namco Entertainment America Inc.)
-✅ https://en.gundam.info/content/special-collaboration/
-   └── ✅ OK (Título: Gundam:THE Pinnacle of Mecha Anime | GUNDAM.INFO)
-✅ https://www.bandainamco.co.jp/en/gundam-next-future-pavilion/index.php
-   └── ✅ OK (Título: EXPO2025 Osaka,Kansai,Japan "GUNDAM NEXT FUTURE PAVILION" | Bandai Namco Holdings Inc)
-✅ https://www.bandainamco.co.jp/en/gundam-next-future-pavilion/withfans/index.php
-   └── ✅ OK (Título: WITH FANS - EXPO2025 Osaka,Kansai,Japan "GUNDAM NEXT FUTURE PAVILION" | Bandai Namco Holdings Inc)
-✅ https://x.com/GUNDAMPAVILION
-   └── ✅ OK (Título: Sem Título)
-✅ https://global.bandai-hobby.net/es/series/gundam/
-   └── ✅ OK (Título: MOBILE SUIT GUNDAM｜BANDAI HOBBY SITE)
-✅ https://en.gundam-official.com/series
-   └── ✅ OK (Título: Sem Título)
-✅ https://gundam-uce.ggame.jp/en/
-   └── ✅ OK (Título: Mobile Suit Gundam U.C. ENGAGE.)
-✅ https://www.gundam-ab.com/
-   └── ✅ OK (Título: 機動戦士ガンダム アーセナルベース 公式サイト)
-✅ http://gundam-ab.com/news/
-   └── ✅ OK (Título: NEWS｜機動戦士ガンダム アーセナルベース 公式サイト)
-✅ https://www.gundam-base.net/
-   └── ✅ OK (Título: THE GUNDAM BASE - ガンダムベース公式サイト)
-✅ https://www.gundam-zz.net/
-   └── ✅ OK (Título: 機動戦士ガンダムZZ 公式サイト)
-❌ https://gundam.fandom.com/wiki/Mobile_Suit_Gundam
+   └── OK — título: Sem título
+❌ https://store.bandainamcoent.com/
    └── HTTP 403
+✅ https://en.gundam.info/content/special-collaboration/
+   └── OK — título: Gundam:THE Pinnacle of Mecha Anime | GUNDAM.INFO
+✅ https://www.bandainamco.co.jp/en/gundam-next-future-pavilion/index.php
+   └── OK — título: EXPO2025 Osaka,Kansai,Japan "GUNDAM NEXT FUTURE PAVILION" | …
+✅ https://www.bandainamco.co.jp/en/gundam-next-future-pavilion/withfans/index.php
+   └── OK — título: WITH FANS - EXPO2025 Osaka,Kansai,Japan "GUNDAM NEXT FUTURE …
+✅ https://x.com/GUNDAMPAVILION
+   └── OK — título: Sem título
+✅ https://global.bandai-hobby.net/es/series/gundam/
+   └── OK — título: MOBILE SUIT GUNDAM｜BANDAI HOBBY SITE
+✅ https://en.gundam-official.com/series
+   └── OK — título: Sem título
+✅ https://gundam-uce.ggame.jp/en/
+   └── OK — título: Mobile Suit Gundam U.C. ENGAGE.
+✅ https://www.gundam-ab.com/
+   └── OK — título: 機動戦士ガンダム アーセナルベース 公式サイト
+✅ http://gundam-ab.com/news/
+   └── OK — título: NEWS｜機動戦士ガンダム アーセナルベース 公式サイト
+✅ https://www.gundam-zz.net/
+   └── OK — título: 機動戦士ガンダムZZ 公式サイト
 ✅ https://www.instagram.com/mobilesuitgundam_oficial/
-   └── ✅ OK (Título: Instagram)
+   └── OK — título: Mobile Suit Gundam (@mobilesuitgundam_oficial) • Instagram p…
 ✅ https://en.gundam.info/about-gundam/series-pages/buildmetaverse/
-   └── ✅ OK (Título: GUNDAM BUILD METAVERSE)
+   └── OK — título: GUNDAM BUILD METAVERSE
 ✅ https://www.strict-g.com/
-   └── ✅ OK (Título: STRICT-G)
+   └── OK — título: STRICT-G
 ✅ https://p-bandai.jp/global_newpc.html
-   └── ✅ OK (Título: �y�v���~�A���o���_�C�zINTERNATIONAL SHIPPING AVAILABLE�bPREMIUM BANDAI)
+   └── OK — título: �y�v���~�A���o���_�C�zINTERNATIONAL SHIPPING AVAILABLE�bPREM…
 ✅ https://x.com/gundam_ch
-   └── ✅ OK (Título: Sem Título)
+   └── OK — título: Sem título
+✅ https://weibo.com/n/BandaiNamcoChina
+   └── OK — título: Sina Visitor System
+❌ https://mevius.5ch.net/mecha/
+   └── HTTP 404
+✅ https://en.gundam.info/about-gundam/series-pages/gquuuuuux/
+   └── OK — título: Mobile Suit Gundam GQuuuuuuX Official Website
+✅ https://www.gundam.jp/tv/index.html
+   └── OK — título: 機動戦士ガンダム公式Web
+✅ https://mimorin2014.com/blog-date-202401-1.html
+   └── OK — título: 2024年01月 - 興行収入を見守りたい！
+✅ https://gb.ggame.jp/2024/
+   └── OK — título: TOP｜ガンダムブレイカー4｜バンダイナムコエンターテインメント公式サイト
+✅ https://toyokeizai.net/
+   └── OK — título: 東洋経済オンライン | 社会をよくする経済ニュース
+✅ https://gundamnews.org/
+   └── OK — título: Gundam News – Promoting the spread of knowledge and understa…
+✅ https://en.gundam-official.com/series/seed
+   └── OK — título: Sem título
+✅ https://www.gundam-seed.net/freedom/
+   └── OK — título: 『機動戦士ガンダムSEED FREEDOM』公式サイト
+✅ https://en.gundam.info/about-gundam/series-pages/seed/
+   └── OK — título: MOBILE SUIT GUNDAM SEED
+✅ https://www.sotsu.co.jp/
+   └── OK — título: SOTSU・創通
+✅ https://www.gundam-tb.net/
+   └── OK — título: 『機動戦士ガンダム サンダーボルト』
+✅ https://www.gundam-the-origin.net/
+   └── OK — título: 機動戦士ガンダム THE ORIGIN 公式サイト
+✅ https://www.g-twilight-axis.net/top.html
+   └── OK — título: アニメ『機動戦士ガンダム Twilight AXIS（トワイライトアクシズ）』
+✅ https://www.g-tekketsu.com/
+   └── OK — título: 機動戦士ガンダム 鉄血のオルフェンズ
+✅ https://www.gundam-unicorn.net/
+   └── OK — título: 機動戦士ガンダムUC[ユニコーン]
+✅ https://www.g-reco.net/
+   └── OK — título: Ｇのレコンギスタ
+✅ https://www.gundam-bf.net/
+   └── OK — título: ガンダムビルドファイターズ
+✅ https://www.gundam-age.net/
+   └── OK — título: 機動戦士ガンダムAGE 公式サイト
+✅ https://www.gundam00.net/
+   └── OK — título: 機動戦士ガンダム００[ダブルオー]
+✅ https://www.gundam-san.net/
+   └── OK — título: ガンダムさん 公式サイト
+✅ https://1kuji.com/products/gunpla-03
+   └── OK — título: 一番くじコラボ 機動戦士ガンダム ガンプラ｜一番くじ倶楽部｜BANDAI SPIRITS公式 一番くじ情報サイト
+✅ https://www.gundam.info/feature/gundam-navi-app/
+   └── OK — título: ガンダムナビアプリ
+✅ https://en.gundam-official.com/series/seed-freedom
+   └── OK — título: Sem título
+✅ https://tamashiiweb.com/tn_blog/129/?wovn=en
+   └── OK — título: Celebrating the release of MOBILE SUIT GUNDAM SEED FREEDOM! …
+✅ https://bandai.co.jp/candy/gundam/mobilityJoint/
+   └── OK — título: ガンダム食玩ポータル MOBILITY JOINT｜バンダイ キャンディ公式サイト
+✅ https://en.gundam-official.com/news/i/news/gunpla/01_13746
+   └── OK — título: Sem título
+✅ https://bandai-hobby.net/site/seed/seed-freedom/
+   └── OK — título: 機動戦士ガンダムSEED FREEDOMガンプラ特設ページ | バンダイ ホビーサイト
+✅ https://bo2.ggame.jp/en/
+   └── OK — título: Mobile Suit Gundam Battle Operation 2 | BANDAI NAMCO Enterta…
+✅ https://www.gundam-gcg.com/en/products/
+   └── OK — título: PRODUCTS | GUNDAM CARD GAME Official Website
+✅ https://gundamplacestore.com/
+   └── OK — título: The Gundam Place Store LLC – Georgia’s Premier Gunpla & Mode…
+❌ https://www.toy-people.com/en/
+   └── HTTP 403
+✅ https://sugoi.co/
+   └── OK — título: Sugoi Co | Anime Distribution Specialists
+✅ https://www.usagundamstore.com/
+   └── OK — título: USAGS - Gundam Models, Gunpla Models, Star Wars Nendoroids K…
+✅ https://bandai-hobby.net/gunpla/
+   └── OK — título: ガンプラ｜バンダイ ホビーサイト
+✅ https://gmpj.bn-ent.net/en
+   └── OK — título: GUNDAM METAVERSE PROJECT Official Site
+✅ https://www.unicorn-gundam-statue.jp/en/
+   └── OK — título: 実物大ユニコーンガンダム立像公式サイト
+✅ https://www.bandainamco.co.jp/guda/goi/en/
+   └── OK — título: Bandai Namco Group｜GOI｜GUNDAM OPEN INNOVATION
+
+============================================================
+RESUMO
+============================================================
+RSS:    20 OK, 10 falhas
+YouTube: 7 OK, 5 falhas
+HTML:   96 OK, 3 falhas
+TOTAL:  123 OK, 18 falhas
+
+Relatório salvo em: G:\PROJETOS-OPEN\projeto-gundam\gundam-news-discord\verification_results.txt

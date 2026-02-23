@@ -33,6 +33,7 @@
 | [**ARCHITECTURE.md**](ARCHITECTURE.md) | Arquitetura do sistema: fluxo de dados, componentes, segurança, ciclo de vida. |
 | [**DEPLOY.md**](DEPLOY.md) | Deploy com Docker e systemd. |
 | [**CHANGELOG.md**](CHANGELOG.md) | Histórico de mudanças. |
+| [**SOURCES_VERIFICATION.md**](SOURCES_VERIFICATION.md) | Revisão e teste de fontes (RSS, YouTube, HTML) — como rodar e limpar. |
 
 ---
 
