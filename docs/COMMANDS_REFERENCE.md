@@ -127,7 +127,7 @@
 **Uso:**
 - Útil para testar se o bot está funcionando
 - Quando você sabe que saiu uma notícia urgente
-- Não quer esperar o ciclo automático (30 min)
+- Não quer esperar o ciclo automático (ex.: 12h)
 
 **Resposta:**
 - ✅ Confirmação quando varredura concluída

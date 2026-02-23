@@ -23,7 +23,7 @@ import os
 import discord
 from discord.ext import tasks
 
-from settings import LOOP_MINUTES, HTTP_TIMEOUT
+from settings import LOOP_MINUTES, LOOP_INTERVAL_STR, HTTP_TIMEOUT
 from utils.storage import p, load_json_safe, save_json_safe
 from utils.html import clean_html
 from utils.cache import load_http_state, save_http_state, get_cache_headers, update_cache_state
@@ -194,8 +194,7 @@ def get_news_metadata(title: str, url: str) -> tuple[str, discord.Color]:
 def _log_next_run() -> None:
     """Log explícito do próximo horário de varredura."""
     nxt = datetime.now() + timedelta(minutes=LOOP_MINUTES)
-    interval_msg = f"{LOOP_MINUTES // 60}h" if LOOP_MINUTES >= 60 else f"{LOOP_MINUTES} min"
-    log.info(f"⏳ Aguardando próxima varredura às {nxt:%Y-%m-%d %H:%M:%S} (em {interval_msg})...")
+    log.info(f"⏳ Aguardando próxima varredura às {nxt:%Y-%m-%d %H:%M:%S} (em {LOOP_INTERVAL_STR})...")
 
 
 async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
@@ -666,5 +665,4 @@ def start_scheduler(bot: discord.Client):
     
     loop_task = intelligence_gathering
     loop_task.start()
-    interval_msg = f"{LOOP_MINUTES // 60}h" if LOOP_MINUTES >= 60 else f"{LOOP_MINUTES} min"
-    log.info(f"🔄 Agendador de tarefas iniciado (a cada {interval_msg}).")
+    log.info(f"🔄 Agendador de tarefas iniciado ({LOOP_INTERVAL_STR}).")

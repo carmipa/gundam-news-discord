@@ -95,7 +95,7 @@ DISCORD_TOKEN=seu_token_discord_aqui
 
 # ⚙️ OPCIONAL (valores padrão)
 COMMAND_PREFIX=!
-LOOP_MINUTES=30
+LOOP_MINUTES=720
 ```
 
 **Dica:** Obtenha seu token em <https://discord.com/developers/applications>
@@ -141,7 +141,7 @@ docker-compose logs -f
 
 ```
 ✅ Bot conectado como Mafty#1234
-📡 Iniciando loop de varredura (30 min)
+📡 Iniciando loop de varredura (12h)
 ```
 
 ---
