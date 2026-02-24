@@ -465,8 +465,6 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                             if hasattr(entry, "media_thumbnail") and entry.media_thumbnail:
                                 try:
                                     thumb_url = entry.media_thumbnail[0].get("url")
-                                    # Se for mídia (video), as vezes a thumb do RSS é ruim ou duplica o player.
-                                    # Mas vamos manter por enquanto.
                                     if thumb_url:
                                         embed.set_thumbnail(url=thumb_url)
                                 except (IndexError, AttributeError, KeyError) as e:
@@ -476,9 +474,10 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                             
                             now_str = datetime.now().strftime('%d/%m/%Y %H:%M')
                             
-                            # Mídia: link no content para o Discord gerar o player; enviamos o embed também para a cor/ícone (LEAK/RUMOR)
+                            # Para mídias (YouTube, Twitch, etc.), precisamos de UM embed customizado
+                            # + UMA mensagem separada apenas com o link para o Discord criar o player nativo.
                             if is_media:
-                                msg_content = f"📺 **{t_translated}**\n🕒 Postado em: {now_str}\n{link}"
+                                msg_content = f"📺 **{t_translated}**\n🕒 Postado em: {now_str}"
                                 embed_to_send = embed  # mantém cor e identidade do alerta
                             else:
                                 msg_content = f"🕒 Postado em: {now_str}"
@@ -508,7 +507,12 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                                 emoji="✉️"
                             ))
                             
+                            # 1) Mensagem estilizada com embed + botões
                             await channel.send(content=msg_content, embed=embed_to_send, view=view)
+
+                            # 2) Se for mídia, manda o link puro em outra mensagem para o Discord exibir o player nativo
+                            if is_media:
+                                await channel.send(link)
 
                             posted_anywhere = True
                             sent_count += 1
