@@ -17,15 +17,15 @@ GUNDAM_CORE = [
     # Universal Century (U.C.)
     "rx-78", "08th ms team", "0080", "war in the pocket", "0083", "stardust memory",
     "zeta gundam", "zz gundam", "char's counterattack", "cca", "hathaway's flash", 
-    "hathaway noa", "xi gundam", "penelope", "unicorn gundam", "rx-0", "banshee", 
-    "narrative", "gundam f91", "victory gundam", "cucuruz doan", "cucuruz doan's island",
-    "thunderbolt", "requiem for vengeance", "gundam the origin", "u.c. engage", "engage", "uce",
+    "hathaway noa", "xi gundam", "gundam penelope", "unicorn gundam", "rx-0", "gundam banshee", 
+    "gundam narrative", "gundam f91", "victory gundam", "cucuruz doan", "cucuruz doan's island",
+    "gundam thunderbolt", "requiem for vengeance", "gundam the origin", "u.c. engage", "gundam engage", "uce",
     
     # Alternate Universes (A.U.)
     "g gundam", "gundam wing", "endless waltz", "gundam x", "turn a gundam",
-    "gundam seed", "seed destiny", "seed freedom", "astray", "stargazer", 
+    "gundam seed", "seed destiny", "seed freedom", "gundam astray", "gundam stargazer", 
     "gundam 00", "double 00", "gundam age", "g reconguista", "iron-blooded orphans", 
-    "ibo", "barbatos", "witch from mercury", "suletta", "miorine", "aerial",
+    "ibo", "barbatos", "witch from mercury", "suletta", "miorine", "gundam aerial",
     
     # Build Series & SD
     "build fighters", "build divers", "build metaverse", "sd gundam", "gundam breakers",
