@@ -19,7 +19,16 @@
     "https://hobby.dengeki.com/feed/",
     "https://www.reddit.com/r/Gunpla/search.rss?q=flair%3ANews&restrict_sr=on&sort=new",
     "https://www.gundam-base.net/feed",
-    "https://www.gundam-base.net/rss"
+    "https://www.gundam-base.net/rss",
+    "https://en.gundam-official.com/news/feed",
+    "https://tamashiiweb.com/tn_blog/rss/",
+    "https://www.reddit.com/r/Gundam/new/.rss",
+    "https://www.reddit.com/r/Gunpla/.rss",
+    "https://bandai-hobby.net/feed/",
+    "https://www.gundam-gcg.com/asia-en/news?format=rss",
+    "https://saint-ism.com/feed",
+    "https://p-bandai.com/us/rss",
+    "https://goodguydan.blogspot.com/feeds/posts/default?alt=rss"
   ],
   "youtube_feeds": [
     "https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw",

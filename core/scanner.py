@@ -532,7 +532,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                             log.error(f"🚫 Sem permissão para enviar mensagem no canal {channel_id} (guild {gid}): {e}")
                         except discord.HTTPException as e:
                             log.error(f"🌐 Erro HTTP ao enviar mensagem no canal {channel_id}: {e.status} - {e.text}")
-                        except discord.InvalidArgument as e:
+                        except ValueError as e:
                             log.error(f"⚠️ Argumento inválido ao criar embed/mensagem: {e}")
                         except Exception as e:
                             log.exception(f"❌ Falha inesperada ao enviar no canal {channel_id} (guild {gid}): {type(e).__name__}: {e}")
