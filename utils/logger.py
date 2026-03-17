@@ -1,11 +1,18 @@
 
+import io
 import logging
 import sys
 from colorama import init, Fore, Style
 
 # Inicializa colorama para funcionar no Windows
-# Inicializa colorama para funcionar no Windows e forçar cores
 init(autoreset=True, strip=False)
+
+
+def _console_stream():
+    """No Windows, usa UTF-8 no console para emojis/Unicode (evita UnicodeEncodeError com cp1252)."""
+    if sys.platform == "win32" and hasattr(sys.stdout, "buffer"):
+        return io.TextIOWrapper(sys.stdout.buffer, encoding="utf-8", errors="replace", line_buffering=True)
+    return sys.stdout
 
 class SecurityFilter(logging.Filter):
     """
@@ -118,8 +125,8 @@ def setup_logger(name="MaftyIntel", log_file="logs/bot.log", level=logging.INFO)
     file_handler.addFilter(SecurityFilter())
     logger.addHandler(file_handler)
 
-    # --- Console Handler (Com cores) ---
-    console_handler = logging.StreamHandler(sys.stdout)
+    # --- Console Handler (Com cores; no Windows usa UTF-8 para emojis) ---
+    console_handler = logging.StreamHandler(_console_stream())
     console_handler.setFormatter(ColorfulFormatter())
     # Adiciona filtro de segurança também no console
     console_handler.addFilter(SecurityFilter())

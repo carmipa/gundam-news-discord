@@ -294,6 +294,13 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         
                     request_headers = get_cache_headers(url, http_cache)
                     
+                    # Se o URL não está no dedup (foi zerado ou é novo), precisamos forçar o download
+                    # para que o bot possa repopular o dedup e aplicar a lógica de Cold Start,
+                    # ignorando o cache HTTP (304) provisoriamente.
+                    if url not in state.get("dedup", {}):
+                        request_headers = {}
+
+                    
                     async with session.get(url, headers=request_headers) as resp:
                         if resp.status == 304:
                             cache_hits += 1
