@@ -31,7 +31,7 @@ GUNDAM_CORE = [
     "build fighters", "build divers", "build metaverse", "sd gundam", "gundam breakers",
     
     # Japanese Terms
-    "ガンダム", "機動戦士", "ハサウェイ", "マフティー", "閃光のハサウェイ", "エンゲージ", "ガンプラ"
+    "ガンダム", "機動戦士", "ハサウェイ", "マフティー", "閃光のハサウェイ", "エンゲージ", "ガンプラ", "宇宙世紀", "nt"
 ]
 
 BLACKLIST = [
@@ -43,7 +43,7 @@ BLACKLIST = [
 
 CAT_MAP = {
     "gunpla":  ["gunpla", "model kit", "kit", "ver.ka", "p-bandai", "premium bandai", "hg ", "mg ", "rg ", "pg ", "sd ", "fm ", "re/100", "perfect grade", "real grade", "high grade", "master grade", "metal build", "robot spirits", "ガンプラ"],
-    "filmes":  ["anime", "episode", "episódio", "episodio", "movie", "film", "pv", "trailer", "teaser", "series", "season", "seed freedom", "witch from mercury", "hathaway", "requiem for vengeance", "cucuruz doan"],
+    "filmes":  ["anime", "episode", "episódio", "episodio", "movie", "film", "pv", "trailer", "teaser", "series", "season", "seed freedom", "witch from mercury", "hathaway", "requiem for vengeance", "cucuruz doan", "話", "phase", "cm", "blu-ray", "dvd"],
     "games":   ["game", "steam", "ps5", "xbox", "gbo2", "battle operation", "breaker", "gundam breaker", "uc engage", "crossrays", "maxiboost", "extreme vs"],
     "musica":  ["music", "ost", "soundtrack", "album", "opening", "ending"],
     "fashion": ["fashion", "clothing", "apparel", "t-shirt", "hoodie", "jacket", "merch"],

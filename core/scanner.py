@@ -294,6 +294,13 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         
                     request_headers = get_cache_headers(url, http_cache)
                     
+                    # Se o URL não está no dedup (foi zerado ou é novo), precisamos forçar o download
+                    # para que o bot possa repopular o dedup e aplicar a lógica de Cold Start,
+                    # ignorando o cache HTTP (304) provisoriamente.
+                    if url not in state.get("dedup", {}):
+                        request_headers = {}
+
+                    
                     async with session.get(url, headers=request_headers) as resp:
                         if resp.status == 304:
                             cache_hits += 1
@@ -525,7 +532,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                             log.error(f"🚫 Sem permissão para enviar mensagem no canal {channel_id} (guild {gid}): {e}")
                         except discord.HTTPException as e:
                             log.error(f"🌐 Erro HTTP ao enviar mensagem no canal {channel_id}: {e.status} - {e.text}")
-                        except discord.InvalidArgument as e:
+                        except ValueError as e:
                             log.error(f"⚠️ Argumento inválido ao criar embed/mensagem: {e}")
                         except Exception as e:
                             log.exception(f"❌ Falha inesperada ao enviar no canal {channel_id} (guild {gid}): {type(e).__name__}: {e}")
