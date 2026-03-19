@@ -24,10 +24,11 @@ class ScanButton(discord.ui.View):
         await interaction.response.defer(ephemeral=True)
         try:
             # Feedback imediato
-            await interaction.followup.send("🔎 Iniciando verificação manual...", ephemeral=True)
+            await interaction.followup.send("🔎 Iniciando verificação manual em segundo plano...", ephemeral=True)
             
-            # Executa o scan
-            await self.run_scan(trigger="manual_button")
+            # Executa o scan em background (anti-timeout)
+            import asyncio
+            asyncio.create_task(self.run_scan(trigger="manual_button"))
             
             # Confirmação
             await interaction.followup.send("✅ Verificação concluída! Se houver notícias novas, elas foram enviadas para o canal.", ephemeral=True)
@@ -115,9 +116,10 @@ class StatusCog(commands.Cog):
         """Verifica notícias imediatamente."""
         await interaction.response.defer(ephemeral=True)
         try:
-            await interaction.followup.send("🚀 Iniciando varredura manual (comando /now)...", ephemeral=True)
-            await self.run_scan_once(trigger="command_now")
-            await interaction.followup.send("✅ Scan finalizado.", ephemeral=True)
+            await interaction.followup.send("🚀 Iniciando varredura manual em background (comando /now)...", ephemeral=True)
+            import asyncio
+            asyncio.create_task(self.run_scan_once(trigger="command_now"))
+            await interaction.followup.send("✅ Scan enviado para processamento.", ephemeral=True)
         except Exception as e:
             log.exception(f"Erro ao executar comando /now: {type(e).__name__}: {e}")
             try:

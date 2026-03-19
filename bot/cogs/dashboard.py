@@ -65,12 +65,13 @@ class DashboardCog(commands.Cog):
         
         # Confirma ao usuário
         await interaction.followup.send(
-            f"✅ Dashboard criado! Canal configurado: <#{channel_id}>",
+            f"✅ Dashboard criado! Canal configurado: <#{channel_id}>\nIniciando primeira varredura em segundo plano...",
             ephemeral=True
         )
         
-        # Dispara varredura
-        await self.run_scan_once(trigger="dashboard")
+        # Dispara varredura em background
+        import asyncio
+        asyncio.create_task(self.run_scan_once(trigger="dashboard"))
     
     @app_commands.command(name="set_canal", description="Define o canal onde o bot enviará notícias.")
     @app_commands.describe(canal="Canal de texto para notícias (opcional: usa o atual)")
@@ -213,8 +214,8 @@ class DashboardCog(commands.Cog):
             # Última tentativa: enviar no canal
             try:
                 await target_channel.send(f"{interaction.user.mention}: ✅ Canal configurado: <#{channel_id}>")
-            except:
-                pass
+            except Exception as e:
+                log.warning(f"⚠️ Falha final inesperada ao confirmar canal: {e}")
     
     @set_canal.error
     async def set_canal_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
