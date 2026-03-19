@@ -395,8 +395,8 @@ class AdminCog(commands.Cog):
                     "❌ Você precisa de **Administrador** para ver o log do servidor.",
                     ephemeral=True
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                log.warning(f"⚠️ Falha silenciosa ao notificar erro de permissão ao administrador: {e}")
             return
         log.exception("Erro no comando /server_log", exc_info=error)
         try:
@@ -404,8 +404,8 @@ class AdminCog(commands.Cog):
                 await interaction.response.send_message("❌ Erro ao ler o log.", ephemeral=True)
             else:
                 await interaction.followup.send("❌ Erro ao ler o log.", ephemeral=True)
-        except Exception:
-            pass
+        except Exception as e:
+            log.warning(f"⚠️ Falha silenciosa ao enviar feedback de erro de log ao administrador: {e}")
 
 
 class _LogRefreshView(discord.ui.View):
@@ -434,8 +434,8 @@ class _LogRefreshView(discord.ui.View):
                     "Não foi possível atualizar o log. Tente **/server_log** de novo.",
                     ephemeral=True
                 )
-            except Exception:
-                pass
+            except Exception as e:
+                log.warning(f"⚠️ Falha silenciosa ao notificar erro de atualização da view: {e}")
 
 
 async def setup(bot, run_scan_once_func):

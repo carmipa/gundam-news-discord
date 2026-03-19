@@ -263,7 +263,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         # SSL Configuration
         ssl_ctx = ssl.create_default_context(cafile=certifi.where())
         base_headers = {
-            "User-Agent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
             "Accept-Language": "en-US,en;q=0.9",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
         }
@@ -589,7 +589,8 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
 
                         try:
                             channel = bot.get_channel(int(channel_id))
-                        except Exception:
+                        except Exception as e:
+                            log.warning(f"⚠️ Erro ao obter canal '{channel_id}' para guilda '{gid}': {e}")
                             channel = None
                         
                         # APLICA FILTRO DE INTELIGÊNCIA TAMBÉM NO MONITOR HTML
