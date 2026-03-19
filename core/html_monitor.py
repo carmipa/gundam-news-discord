@@ -35,7 +35,16 @@ async def fetch_page_hash(client: httpx.AsyncClient, url: str) -> tuple[str, str
         
         resp = await client.get(url, follow_redirects=True)
         if resp.status_code != 200:
-            log.debug(f"HTML Monitor: {url} returned {resp.status_code}")
+            if resp.status_code == 403:
+                log.warning(f"🚫 Acesso Negado HTML Monitor (403): O site '{url}' bloqueou o bot.")
+            elif resp.status_code == 404:
+                log.warning(f"👻 Não Encontrado HTML Monitor (404): O site '{url}' parece não existir mais.")
+            elif resp.status_code == 429:
+                log.warning(f"⏳ Rate Limit HTML Monitor (429): Servidor do site '{url}' pediu para aguardar.")
+            elif resp.status_code >= 500:
+                log.warning(f"🔥 Erro de Servidor HTML Monitor ({resp.status_code}): O site '{url}' está instável/caiu.")
+            else:
+                log.warning(f"⚠️ Erro HTTP HTML Monitor ({resp.status_code}): Falha ao acessar '{url}'.")
             return url, "", ""
         
         content = resp.text

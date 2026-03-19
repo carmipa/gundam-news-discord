@@ -310,6 +310,26 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         if resp.status == 431:
                             log.warning(f"⚠️ Twitter/X Error: Header value too long (431) - {url}")
                             return None
+                            
+                        if resp.status == 403:
+                            log.warning(f"🚫 Acesso Negado (403 Forbidden): A fonte '{url}' bloqueou o bot. Pode ser proteção Cloudflare/WAF.")
+                            return None
+                        
+                        if resp.status == 404:
+                            log.warning(f"👻 Não Encontrado (404 Not Found): A feed '{url}' parece não existir mais.")
+                            return None
+                            
+                        if resp.status == 429:
+                            log.warning(f"⏳ Rate Limit Excedido (429 Too Many Requests): Servidor da feed '{url}' pediu para aguardar.")
+                            return None
+                            
+                        if resp.status >= 500:
+                            log.warning(f"🔥 Erro de Servidor ({resp.status}): O site '{url}' está passando por instabilidades/caiu.")
+                            return None
+
+                        if resp.status >= 400:
+                            log.warning(f"⚠️ Erro HTTP Genérico ({resp.status}): Falha inesperada ao acessar '{url}'.")
+                            return None
 
                         update_cache_state(url, resp.headers, http_cache)
                         text = await resp.text(errors="ignore")
