@@ -341,7 +341,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                 # Se a URL não estiver no dedup, é um cold start ou reset deste feed
                 is_cold_start = url not in state["dedup"]
                 if is_cold_start:
-                    log.info(f"❄️ [Cold Start] Detectado para {url}. Ignorando travas de tempo para os 3 primeiros posts.")
+                    log.info(f"❄️ [Cold Start] Detectado para {url}. Processando todos os posts disponíveis na feed inicial (sem limite de quantidade).")
                     state["dedup"][url] = []
                 
                 feed_posted_count = 0
@@ -362,9 +362,9 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         state["dedup"][url].append(link)
                         continue
 
-                    # Cold Start Limit Check overrules everything
-                    if is_cold_start and feed_posted_count >= 3:
-                         continue
+                    # Cold Start Limit Check overrules everything (Removido a pedido para liberar tudo)
+                    # O limite 'feed_posted_count >= 3' existia para evitar flood no Discord.
+                    # Manteve-se o feed_posted_count local para controle de insercoes no if final.
 
                     # Filtragem por data
                     entry_dt = parse_entry_dt(entry)
