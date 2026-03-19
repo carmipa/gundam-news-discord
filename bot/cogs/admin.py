@@ -70,14 +70,16 @@ class AdminCog(commands.Cog):
     async def forcecheck(self, interaction: discord.Interaction):
         """Força uma varredura imediata sem abrir o dashboard."""
         try:
-            await interaction.response.defer(ephemeral=True)
-            await self.run_scan_once(trigger="forcecheck")
-            now_str = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            await interaction.followup.send(f"✅ Varredura forçada concluída! ({now_str})", ephemeral=True)
+            await interaction.response.send_message("⏳ Varredura forçada iniciada em segundo plano. Pode demorar devido à quantidade de notícias. Acompanhe o canal!", ephemeral=True)
+            import asyncio
+            asyncio.create_task(self.run_scan_once(trigger="forcecheck"))
         except Exception as e:
             log.exception(f"❌ Erro crítico em /forcecheck: {e}")
             try:
-                await interaction.followup.send("❌ Falha ao executar varredura.", ephemeral=True)
+                if not interaction.response.is_done():
+                    await interaction.response.send_message("❌ Falha ao iniciar varredura.", ephemeral=True)
+                else:
+                    await interaction.followup.send("❌ Falha ao iniciar varredura.", ephemeral=True)
             except discord.HTTPException as http_err:
                 log.warning(f"Falha ao enviar mensagem de erro ao usuário: {http_err}")
             except Exception as unexpected_err:

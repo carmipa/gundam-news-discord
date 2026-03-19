@@ -42,11 +42,11 @@ BLACKLIST = [
 ]
 
 CAT_MAP = {
-    "gunpla":  ["gunpla", "model kit", "kit", "ver.ka", "p-bandai", "premium bandai", "hg ", "mg ", "rg ", "pg ", "sd ", "fm ", "re/100", "perfect grade", "real grade", "high grade", "master grade", "metal build", "robot spirits", "ガンプラ"],
-    "filmes":  ["anime", "episode", "episódio", "episodio", "movie", "film", "pv", "trailer", "teaser", "series", "season", "seed freedom", "witch from mercury", "hathaway", "requiem for vengeance", "cucuruz doan", "話", "phase", "cm", "blu-ray", "dvd"],
-    "games":   ["game", "steam", "ps5", "xbox", "gbo2", "battle operation", "breaker", "gundam breaker", "uc engage", "crossrays", "maxiboost", "extreme vs"],
-    "musica":  ["music", "ost", "soundtrack", "album", "opening", "ending"],
-    "fashion": ["fashion", "clothing", "apparel", "t-shirt", "hoodie", "jacket", "merch"],
+    "gunpla":  ["gunpla", "model kit", "kit", "ver.ka", "p-bandai", "premium bandai", "hg ", "mg ", "rg ", "pg ", "sd ", "fm ", "re/100", "perfect grade", "real grade", "high grade", "master grade", "metal build", "robot spirits", "ガンプラ", "プラモデル", "プレバン"],
+    "filmes":  ["anime", "episode", "episódio", "episodio", "movie", "film", "pv", "trailer", "teaser", "series", "season", "seed freedom", "witch from mercury", "hathaway", "requiem for vengeance", "cucuruz doan", "話", "phase", "cm", "blu-ray", "dvd", "アニメ", "映画", "劇場版", "第", "閃光のハサウェイ", "水星の魔女", "ククルス・ドアン", "復讐のレクイエム", "予告", "特報"],
+    "games":   ["game", "steam", "ps5", "xbox", "gbo2", "battle operation", "breaker", "gundam breaker", "uc engage", "crossrays", "maxiboost", "extreme vs", "ゲーム", "バトルオペレーション", "バトオペ", "ガンダムブレイカー", "エンゲージ", "クロスレイズ", "マキシブースト", "エクバ"],
+    "musica":  ["music", "ost", "soundtrack", "album", "opening", "ending", "音楽", "サウンドトラック", "主題歌", "オープニング", "エンディング"],
+    "fashion": ["fashion", "clothing", "apparel", "t-shirt", "hoodie", "jacket", "merch", "アパレル", "Tシャツ", "パーカー", "グッズ"],
 }
 
 # =========================================================

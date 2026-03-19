@@ -27,15 +27,13 @@ class TestDeepVerification(unittest.TestCase):
         self.assertTrue(match_intel("1", title, "", self.config_all, "url"))
 
     def test_match_intel_filmes_japanese(self):
-        # Current behavior: this will fail because "閃光のハサウェイ" is not in mapped 'filmes'.
+        # Now this should pass because "閃光のハサウェイ" is in mapped 'filmes'.
         title = "ネタバレありの座談会#2｜『機動戦士ガンダム 閃光のハサウェイ』"
-        # Since I am writing deep test, I want to see if it *fails* exactly as I suspect.
-        # This assert proves the limitation.
-        self.assertFalse(match_intel("1", title, "", self.config_filmes, "url"), "Hathaway in JP shouldn't pass without JP keywords in CAT_MAP['filmes']")
+        self.assertTrue(match_intel("1", title, "", self.config_filmes, "url"), "Hathaway in JP should pass with new JP keywords in CAT_MAP['filmes']")
 
     def test_match_intel_games_japanese(self):
         title = "機動戦士ガンダム バトルオペレーション２" # Only Japanese
-        self.assertFalse(match_intel("1", title, "", self.config_games, "url"), "GBO2 in JP shouldn't pass without JP keywords in CAT_MAP['games']")
+        self.assertTrue(match_intel("1", title, "", self.config_games, "url"), "GBO2 in JP should pass with new JP keywords in CAT_MAP['games']")
 
     def test_match_intel_filmes_english(self):
         title = "Mobile Suit Gundam Hathaway's Flash - Episode 1"
