@@ -156,15 +156,16 @@ async def main():
             state = load_json_safe(state_file, {})
             last_hash = state.get("last_announced_hash")
 
-            if current_hash and current_hash != last_hash:
+            if current_hash:
                 # Texto do(s) último(s) commit(s) como "o que foi feito" nesta atualização
-                commits = get_commits_since(last_hash)
+                # Como o usuário pediu para anunciar a cada reinício, mostramos sempre as últimas alterações.
+                commits = get_commits_since(last_hash if current_hash != last_hash else None, max_commits=1)
                 changes_block = "\n".join(f"• {c}" for c in commits)
                 if len(changes_block) > 3800:
                     changes_block = changes_block[:3797] + "..."
                 repo_url = "https://github.com/carmipa/gundam-news-discord"
                 description = (
-                    f"**What changed in this update:**\n{changes_block}\n\n"
+                    f"**Última atualização/correção aplicada:**\n{changes_block}\n\n"
                     f"**Repository:** [github.com/carmipa/gundam-news-discord]({repo_url})"
                 )
 
@@ -207,9 +208,9 @@ async def main():
                     save_json_safe(state_file, state)
                     log.info(f"📢 Atualização {current_hash} anunciada em {sent} canal(is).")
                 else:
-                    log.warning("⚠️ Nova versão detectada, mas nenhum canal encontrado para anunciar.")
+                    log.warning("⚠️ Erro ao encontrar canais para anunciar o reinício/atualização do bot.")
             else:
-                log.info(f"ℹ️ Versão atual ({current_hash}) já anunciada anteriormente.")
+                log.info("ℹ️ Não foi possível obter o hash do Git para anúncio.")
 
         except Exception as e:
             log.exception(f"❌ Falha ao processar anúncio de versão: {type(e).__name__}: {e}")
