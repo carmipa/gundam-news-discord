@@ -57,13 +57,14 @@ CAT_MAP = {
 # e queremos apenas conteúdo específico (ex: cutscenes de história).
 
 SPECIAL_SOURCE_RULES = {
-    # Gundam Channel (Official) -> Apenas U.C. Engage (Story/Animation)
-    # ID: UC7wu64jFsV02bbu6UHUd7JA (Gundam Channel)
-    # ID: UC7wu64jGxCwSuxOR7XfS88g (Gundam Channel - Another URL format, same channel?)
-    # Let's support both just in case, or list the specific one we are adding.
-    # The user provided: UC7wu64jGxCwSuxOR7XfS88g
-    "UC7wu64jFsV02bbu6UHUd7JA": r"(?i)(UCE|ENGAGE|エンゲージ|story|cutscene|アニメ|epis[oó]dio|episode|第\d+話)", 
-    "UC7wu64jGxCwSuxOR7XfS88g": r"(?i)(UCE|ENGAGE|エンゲージ|story|cutscene|アニメ|epis[oó]dio|episode|第\d+話)"
+    # As outras fontes gundam permanecem sem filtro estrito pois o usuário informou
+    # que já estão perfeitas. Deixamos apenas Netflix no controle rigoroso.
+    
+    # Netflix / Canais de Anime Geral -> Filtro ESTRITO
+    # Whats on Netflix RSS e Netflix Japan YouTube (UCv2ejD5B1xOYtGB2cf80B8g)
+    # Garante que pelo menos o nome EXATO de Gundam, Gunpla, séries centrais ou o termo oficial japonês esteja presente
+    "whats-on-netflix.com": r"(?i)(gundam|gunpla|requiem|hathaway|cucuruz|iron-blooded|witch from mercury|ガンダム|機動戦士)",
+    "UCv2ejD5B1xOYtGB2cf80B8g": r"(?i)(gundam|gunpla|requiem|hathaway|cucuruz|iron-blooded|witch from mercury|ガンダム|機動戦士)"
 }
 
 FILTER_OPTIONS = {
@@ -208,6 +209,16 @@ def match_intel(
     # Exige sempre pelo menos um termo Gundam no título/resumo (todas as fontes)
     if not _contains_any(content, GUNDAM_CORE):
         return False
+
+    # Filtro FORTE / Específico por Fonte (SPECIAL_SOURCE_RULES)
+    # Evita que canais de conteúdo geral (como Netflix) liberem coisas aleatórias
+    if source_url:
+        for src_key, strict_pattern in SPECIAL_SOURCE_RULES.items():
+            if src_key in source_url:
+                # Se for fonte especial, DEVE satisfazer o regex forte
+                # Analisamos title e summary também, mas com o pattern restrito
+                if not re.search(strict_pattern, f"{title} {summary}"):
+                    return False
 
     # "todos" libera tudo
     if "todos" in filters:
