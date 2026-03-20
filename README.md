@@ -96,54 +96,56 @@
 
 ## 🧱 Arquitetura
 
+> **Renderização no GitHub:** os diagramas usam [Mermaid](https://github.blog/2022-02-14-include-diagrams-markdown-files-github/) (GFM). Evitamos aspas simples dentro de rótulos e caracteres que quebram o parser.
+
 ### 1) Visão Macro — Fluxo Completo de Dados
 
 ```mermaid
 flowchart TB
-    subgraph "📥 Entrada"
-        A["sources.json<br/>Feeds RSS/Atom/YouTube"]
-        A2["sources.json<br/>Sites Oficiais HTML"]
+    subgraph ent["Entrada"]
+        A["sources.json - RSS Atom YouTube"]
+        A2["sources.json - sites HTML sem RSS"]
     end
-    
-    subgraph "🔍 Processamento"
-        B["Scanner<br/>core/scanner.py"]
-        J["HTML Monitor<br/>core/html_monitor.py"]
-        C["Normalização<br/>URL + entries"]
-        D["Filtros Mafty<br/>core/filters.py"]
-        E["Tradutor<br/>utils/translator.py"]
-        S["Validação Segurança<br/>utils/security.py"]
+
+    subgraph proc["Processamento"]
+        B["Scanner core/scanner.py"]
+        J["HTML Monitor core/html_monitor.py"]
+        C["Normalizacao URL e entries"]
+        D["Filtros Mafty core/filters.py"]
+        E["Tradutor utils/translator.py"]
+        S["Validacao utils/security.py"]
     end
-    
-    subgraph "💾 Armazenamento"
-        H["config.json<br/>canal + filtros + idioma"]
-        I["history.json<br/>links enviados"]
-        K["state.json<br/>hashes HTML + cache"]
+
+    subgraph stor["Armazenamento"]
+        H["config.json canal filtros idioma"]
+        I["history.json dedup"]
+        K["state.json cache e hashes HTML"]
     end
-    
-    subgraph "📤 Saída"
-        F["Postagem Discord<br/>Canal por guild"]
-        W["Web Dashboard<br/>aiohttp :8080"]
+
+    subgraph out["Saida"]
+        F["Postagem Discord por guild"]
+        W["Web Dashboard aiohttp"]
     end
-    
-    A -->|"🔒 Validação"| S
-    S -->|"✅ Aprovado"| B
+
+    A -->|validacao anti-SSRF| S
+    S -->|aprovado| B
     A2 --> J
     B --> C
-    J -->|"Mudança Detectada"| D
+    J -->|mudanca| D
     C --> D
-    D -->|"Aprovado"| E
-    D -->|"Reprovado"| G["❌ Ignorado"]
+    D -->|aprovado| E
+    D -->|reprovado| G["Ignorado"]
     E --> F
-    
+
     H --> D
     H --> E
     I --> D
     F --> I
     F --> K
     J --> K
-    
-    W -.->|"Monitora"| H
-    W -.->|"Monitora"| I
+
+    W -.->|monitora| H
+    W -.->|monitora| I
 ```
 
 > **Legenda:**
@@ -160,33 +162,31 @@ flowchart TB
 
 ```mermaid
 sequenceDiagram
-    participant Admin as 👤 Admin Discord
-    participant Bot as 🤖 Gundam News Bot
-    participant Disk as 💾 config.json
-    participant Security as 🔒 Security Module
-    
-    Note over Admin,Security: Configuração de Canal
-    
-    Admin->>Bot: /set_canal [canal]
-    Bot->>Security: Valida permissões do bot
-    Security-->>Bot: ✅ Permissões OK
-    Bot->>Disk: Salva channel_id da guild
-    Bot-->>Admin: ✅ Canal configurado!
-    
-    Note over Admin,Security: Configuração de Filtros
-    
+    participant Admin
+    participant Bot
+    participant Disk as config.json
+    participant Security as utils/security
+
+    Note over Admin,Security: Configuracao de canal
+    Admin->>Bot: /set_canal canal
+    Bot->>Security: valida permissoes do bot
+    Security-->>Bot: permissoes OK
+    Bot->>Disk: salva channel_id da guild
+    Bot-->>Admin: canal configurado
+
+    Note over Admin,Security: Filtros via dashboard
     Admin->>Bot: /dashboard
-    Bot->>Disk: Salva channel_id (canal atual)
-    Bot-->>Admin: Envia painel com botões
-    Admin->>Bot: Clica em filtros (Gunpla/Filmes...)
-    Bot->>Disk: Atualiza filtros da guild
-    Bot-->>Admin: Atualiza cores dos botões
-    
-    Note over Bot: Restart do bot
-    Bot->>Disk: Lê config.json
-    Bot-->>Admin: Re-registra Views persistentes
-    Admin->>Bot: Clica em botões antigos
-    Bot-->>Admin: ✅ Funciona após restart!
+    Bot->>Disk: salva channel_id canal atual
+    Bot-->>Admin: painel com botoes
+    Admin->>Bot: clica filtros categoria
+    Bot->>Disk: atualiza filtros da guild
+    Bot-->>Admin: botoes atualizados
+
+    Note over Bot: Apos restart
+    Bot->>Disk: le config.json
+    Bot-->>Admin: views persistentes registradas
+    Admin->>Bot: botoes antigos
+    Bot-->>Admin: interacao valida
 ```
 
 > **Destaques:**
@@ -204,16 +204,14 @@ sequenceDiagram
 stateDiagram-v2
     [*] --> Conectando
     Conectando --> Online: Token OK
-    Online --> SyncGuild: on_ready()
-    SyncGuild --> ViewsPersistentes: add_view por guild do config
+    Online --> SyncGuild: on_ready
+    SyncGuild --> ViewsPersistentes: add_view por guild
     ViewsPersistentes --> ScannerAtivo: inicia loop
-    ScannerAtivo --> ScannerAtivo: varre feeds / posta / salva histórico
-    ScannerAtivo --> Online: erro em feed (tratado / log detalhado)
-    
+    ScannerAtivo --> ScannerAtivo: varredura feeds
+    ScannerAtivo --> Online: erro tratado no feed
     note right of ScannerAtivo
-        🔒 Validação de URLs
-        📝 Logs coloridos
-        🛡️ Rate limiting
+        Validacao URL anti-SSRF
+        Logs e rate limit web
     end note
 ```
 
@@ -231,22 +229,22 @@ stateDiagram-v2
 
 ```mermaid
 flowchart LR
-    subgraph "🌐 Requisições HTTP"
-        A["URL de Feed"] --> B["🔒 Validação<br/>utils/security.py"]
-        B -->|"✅ Válida"| C["Requisição HTTP"]
-        B -->|"❌ Inválida"| D["Bloqueada<br/>Log de Segurança"]
+    subgraph http["Requisicoes HTTP"]
+        A["URL de feed"] --> B["utils/security.py"]
+        B -->|valida| C["Request HTTP"]
+        B -->|bloqueia| D["Log seguranca"]
     end
-    
-    subgraph "🖥️ Servidor Web"
-        E["Requisição"] --> F["🛡️ Rate Limiting"]
-        F --> G["🔐 Autenticação<br/>Token Opcional"]
-        G --> H["📊 Dashboard"]
+
+    subgraph web["Servidor web"]
+        E["Request"] --> F["Rate limiting"]
+        F --> G["Auth token opcional"]
+        G --> H["Dashboard"]
     end
-    
-    subgraph "📝 Sistema de Logs"
-        I["Log Event"] --> J["🔒 Sanitização"]
-        J --> K["🎨 Formatação<br/>Cores + Traceback"]
-        K --> L["Arquivo + Console"]
+
+    subgraph logsys["Logs"]
+        I["Evento"] --> J["Sanitizacao"]
+        J --> K["Formatacao e traceback"]
+        K --> L["Arquivo e console"]
     end
 ```
 
@@ -318,6 +316,7 @@ DISCORD_TOKEN=seu_token_aqui
 COMMAND_PREFIX=!
 LOOP_MINUTES=720
 LOG_LEVEL=INFO  # Use DEBUG para logs detalhados
+HTTP_TIMEOUT=10  # Timeout HTTP em segundos (feeds e sites oficiais)
 
 # 🔒 Segurança do Servidor Web (Opcional)
 WEB_AUTH_TOKEN=seu_token_secreto_aqui  # Recomendado para produção
@@ -523,20 +522,20 @@ A filtragem **não é simples** — o bot usa um sistema em **camadas** para gar
 
 ```mermaid
 flowchart TD
-    A["📰 Notícia Recebida"] --> B{"🔒 URL Válida?"}
-    B -->|"❌ Inválida"| C["❌ Bloqueada<br/>Log de Segurança"]
-    B -->|"✅ Válida"| D{"🚫 Está na BLACKLIST?"}
-    D -->|Sim| C
-    D -->|Não| E{"🎯 Contém termo GUNDAM_CORE?"}
-    E -->|Não| C
-    E -->|Sim| F{"🌟 Filtro 'todos' ativo?"}
-    F -->|Sim| G["✅ Aprovada para postagem"]
-    F -->|Não| H{"📂 Bate com categoria selecionada?"}
-    H -->|Sim| G
-    H -->|Não| C
-    G --> I{"🔄 Link já está no histórico?"}
-    I -->|Sim| C
-    I -->|Não| J["📤 Envia para o Discord"]
+    A["Noticia recebida"] --> B{"URL valida anti-SSRF?"}
+    B -->|nao| C["Bloqueada log seguranca"]
+    B -->|sim| D{"Blacklist?"}
+    D -->|sim| C
+    D -->|nao| E{"Termos GUNDAM_CORE?"}
+    E -->|nao| C
+    E -->|sim| F{"Filtro todos ativo?"}
+    F -->|sim| G["Aprovada"]
+    F -->|nao| H{"Categoria selecionada OK?"}
+    H -->|sim| G
+    H -->|nao| C
+    G --> I{"Link ja em history.json?"}
+    I -->|sim| C
+    I -->|nao| J["Envia ao Discord"]
 ```
 
 ### ✅ Regras de Filtragem (ordem real)
@@ -684,8 +683,10 @@ grep WARNING logs/bot.log
 gundam-news-discord/
 ├── 📄 main.py              # Bot principal
 ├── 📄 settings.py          # Carrega configurações do .env
-├── 📄 sources.json         # Lista de feeds monitorados
+├── 📄 sources.json         # RSS, YouTube e sites oficiais (HTML)
 ├── 📄 requirements.txt     # Dependências Python
+├── 📄 Dockerfile           # Imagem Docker do bot
+├── 📄 docker-compose.yml   # Orquestração (volumes: config, history, state)
 ├── 📄 .env.example         # Exemplo de configuração
 ├── 📄 .gitignore           # Arquivos ignorados pelo Git
 ├── 🖼️ icon.png            # Ícone do bot
@@ -702,7 +703,7 @@ gundam-news-discord/
 ├── 📁 tests/               # Testes automatizados
 ├── 📁 translations/        # Internacionalização (i18n)
 ├── 📁 utils/               # Utilitários
-│   ├── logger.py           # Sistema de logging
+│   ├── logger.py           # Logging (console UTF-8 no Windows, arquivo rotativo)
 │   ├── security.py         # Validação e segurança
 │   ├── storage.py          # Armazenamento JSON
 │   ├── translator.py       # Tradução
@@ -753,6 +754,15 @@ gundam-news-discord/
 **Causa:** URL contém IP privado ou domínio local (proteção anti-SSRF).
 
 **Solução:** Verifique se a URL em `sources.json` está correta e é pública.
+
+</details>
+
+<details>
+<summary><b>⚠️ UnicodeEncodeError / emojis no console (Windows)</b></summary>
+
+**Causa:** Terminal em encoding regional (ex.: cp1252) ao imprimir emojis nos logs.
+
+**Solução:** O `utils/logger.py` usa stream UTF-8 no Windows quando possível. Se ainda falhar, defina antes de rodar: `set PYTHONIOENCODING=utf-8` (CMD) ou `$env:PYTHONIOENCODING="utf-8"` (PowerShell). Os logs em `logs/bot.log` permanecem em UTF-8.
 
 </details>
 

@@ -4,7 +4,7 @@
 [![discord.py](https://img.shields.io/badge/discord.py-2.x-5865F2?logo=discord&logoColor=white)](../readme.md)
 [![Arquitetura](https://img.shields.io/badge/Arquitetura-Modular-green)](../readme.md)
 
-Visão geral da arquitetura do **Mafty Intelligence System**: fluxo de dados, componentes e segurança. Adaptado para leitura no GitHub (Mermaid + ícones).
+Visão geral da arquitetura do **Mafty Intelligence System**: fluxo de dados, componentes e segurança. Diagramas Mermaid compatíveis com o renderizador do GitHub (sem aspas simples em rótulos que quebrem o parser).
 
 ---
 
@@ -92,19 +92,19 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    subgraph Disco["💾 Disco"]
+    subgraph disco["Disco"]
         C["config.json"]
         S["state.json"]
         H["history.json"]
-        B["backups/"]
-        L["logs/"]
+        B["backups"]
+        L["logs"]
     end
 
-    C -->|"Leitura/Escrita"| Bot["🤖 Bot"]
+    C -->|leitura escrita| Bot["Bot"]
     S --> Bot
     H --> Bot
-    Bot -->|"Backup antes de limpar"| B
-    Bot -->|"Logs"| L
+    Bot -->|backup clean_state| B
+    Bot -->|gravacao| L
 ```
 
 ---
@@ -131,21 +131,21 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    subgraph HTTP["🌐 Requisições HTTP"]
-        A["URL de Feed"] --> B["🔒 Validação<br/>utils/security.py"]
-        B -->|"✅ Válida"| C["Requisição HTTP"]
-        B -->|"❌ Inválida"| D["Bloqueada<br/>Log"]
+    subgraph HTTP["HTTP"]
+        A["URL de feed"] --> B["utils/security.py"]
+        B -->|valida| C["Request HTTP"]
+        B -->|bloqueia| D["Log seguranca"]
     end
 
-    subgraph Web["🖥️ Servidor Web"]
-        E["Requisição"] --> F["🛡️ Rate Limiting"]
-        F --> G["🔐 Token opcional"]
-        G --> H["📊 Dashboard"]
+    subgraph Web["Servidor web"]
+        E["Request"] --> F["Rate limiting"]
+        F --> G["Token opcional"]
+        G --> H["Dashboard"]
     end
 
-    subgraph Logs["📝 Logs"]
-        I["Evento"] --> J["🔒 Sanitização"]
-        J --> K["Arquivo + Console"]
+    subgraph Logs["Logs"]
+        I["Evento"] --> J["Sanitizacao"]
+        J --> K["Arquivo e console"]
     end
 ```
 
@@ -161,10 +161,10 @@ flowchart LR
 stateDiagram-v2
     [*] --> Conectando
     Conectando --> Online: Token OK
-    Online --> SyncGuild: on_ready()
+    Online --> SyncGuild: on_ready
     SyncGuild --> ViewsPersistentes: add_view por guild
     ViewsPersistentes --> ScannerAtivo: inicia loop
-    ScannerAtivo --> ScannerAtivo: varre feeds / posta / salva
+    ScannerAtivo --> ScannerAtivo: varredura
     ScannerAtivo --> Online: erro tratado
 ```
 
@@ -180,19 +180,19 @@ stateDiagram-v2
 
 ```mermaid
 flowchart TB
-    subgraph Opcoes["Formas de execução"]
+    subgraph Opcoes["Execucao"]
         L["python main.py"]
         D["docker-compose up"]
         S["systemd service"]
     end
 
     subgraph Ambiente["Ambiente"]
-        L --> Env["Variáveis .env<br/>DISCORD_TOKEN, etc."]
+        L --> Env[".env DISCORD_TOKEN e demais"]
         D --> Env
         S --> Env
     end
 
-    Env --> Bot["🤖 Bot + Scanner + Web"]
+    Env --> Bot["Bot scanner e web"]
 ```
 
 - **Local:** `python main.py` (desenvolvimento).
