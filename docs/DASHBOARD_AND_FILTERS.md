@@ -1,6 +1,6 @@
-# 🎛️ Dashboard e sistema de filtros
+# Dashboard e sistema de filtros
 
-← [Voltar ao índice da documentação](README.md)
+[Voltar ao índice da documentação](https://github.com/carmipa/gundam-news-discord/blob/main/docs/README.md)
 
 ---
 
@@ -8,31 +8,31 @@
 
 O painel interativo permite configurar quais categorias monitorar:
 
-| Botão | Função |
+| Botao | Funcao |
 |-------|--------|
-| 🌟 **TUDO** | Liga/desliga todas as categorias |
-| 🤖 **Gunpla** | Kits, P-Bandai, Ver.Ka, HG/MG/RG/PG |
-| 🎬 **Filmes** | Anime, trailers, séries, Hathaway, SEED |
-| 🎮 **Games** | Jogos Gundam (GBO2, Breaker, etc.) |
-| 🎵 **Música** | OST, álbuns, openings/endings |
-| 👕 **Fashion** | Roupas e merchandise |
-| 🌐 **Idioma** | Seleciona idioma (🇺🇸 🇧🇷 🇪🇸 🇮🇹 🇯🇵) |
-| 📌 **Ver filtros** | Mostra filtros ativos |
-| 🔄 **Reset** | Limpa todos os filtros |
+| **TUDO** | Liga/desliga todas as categorias |
+| **Gunpla** | Kits, P-Bandai, Ver.Ka, HG/MG/RG/PG |
+| **Filmes** | Anime, trailers, series, Hathaway, SEED |
+| **Games** | Jogos Gundam (GBO2, Breaker, etc.) |
+| **Musica** | OST, albuns, openings/endings |
+| **Fashion** | Roupas e merchandise |
+| **Idioma** | Seleciona idioma (EN, PT, ES, IT, JA) |
+| **Ver filtros** | Mostra filtros ativos |
+| **Reset** | Limpa todos os filtros |
 
 ### Indicadores visuais
 
-- 🟢 **Verde** = Filtro ativo
-- ⚪ **Cinza** = Filtro inativo
-- 🔵 **Azul** = Idioma selecionado
+- **Verde** = Filtro ativo
+- **Cinza** = Filtro inativo
+- **Azul** = Idioma selecionado
 
 ---
 
 ## Sistema de filtros
 
-A filtragem **não é simples** — o bot usa um sistema em **camadas** para garantir precisão cirúrgica.
+A filtragem usa um sistema em **camadas**.
 
-### Fluxo de decisão
+### Fluxo de decisao
 
 ```mermaid
 flowchart TD
@@ -54,16 +54,16 @@ flowchart TD
 
 ### Regras de filtragem (ordem real)
 
-| Etapa | Verificação | Ação |
+| Etapa | Verificacao | Acao |
 |-------|-------------|------|
-| 0️⃣ | **Validação de Segurança** | Verifica URL (anti-SSRF) |
-| 1️⃣ | Junta `title + summary` | Concatena texto |
-| 2️⃣ | Limpa HTML e normaliza | Remove tags, espaços extras |
-| 3️⃣ | **BLACKLIST** | Se aparecer (ex: *One Piece*), bloqueia |
-| 4️⃣ | **GUNDAM_CORE** | Se não houver termos Gundam, bloqueia |
-| 5️⃣ | Filtro `todos` ativo? | Libera tudo se sim |
-| 6️⃣ | Categoria selecionada | Precisa bater com palavras-chave |
-| 7️⃣ | **Deduplicação** | Se link já está em `history.json`, ignora |
+| 0 | **Validacao de Seguranca** | Verifica URL (anti-SSRF) |
+| 1 | Junta `title + summary` | Concatena texto |
+| 2 | Limpa HTML e normaliza | Remove tags, espacos extras |
+| 3 | **BLACKLIST** | Se aparecer (ex: One Piece), bloqueia |
+| 4 | **GUNDAM_CORE** | Se nao houver termos Gundam, bloqueia |
+| 5 | Filtro `todos` ativo? | Libera tudo se sim |
+| 6 | Categoria selecionada | Precisa bater com palavras-chave |
+| 7 | **Deduplicacao** | Se link ja esta em `history.json`, ignora |
 
 ### Termos do GUNDAM_CORE
 
@@ -82,4 +82,4 @@ attack on titan, jujutsu, demon slayer
 
 ---
 
-**Relacionado:** [Arquitetura](ARCHITECTURE.md) · [Comandos](COMMANDS_REFERENCE.md)
+**Relacionado:** [Arquitetura](https://github.com/carmipa/gundam-news-discord/blob/main/docs/ARCHITECTURE.md) · [Comandos](https://github.com/carmipa/gundam-news-discord/blob/main/docs/COMMANDS_REFERENCE.md)

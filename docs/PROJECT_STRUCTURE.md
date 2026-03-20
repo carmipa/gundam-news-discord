@@ -1,46 +1,45 @@
-# 🗂️ Estrutura do projeto
+# Estrutura do projeto
 
-← [Voltar ao índice da documentação](README.md)
+[Voltar ao índice da documentação](https://github.com/carmipa/gundam-news-discord/blob/main/docs/README.md)
 
 ---
 
 ```
 gundam-news-discord/
-├── 📄 main.py              # Bot principal
-├── 📄 settings.py          # Carrega configurações do .env
-├── 📄 sources.json         # RSS, YouTube e sites oficiais (HTML)
-├── 📄 requirements.txt     # Dependências Python
-├── 📄 Dockerfile           # Imagem Docker do bot
-├── 📄 docker-compose.yml   # Orquestração (volumes: config, history, state)
-├── 📄 .env.example         # Exemplo de configuração
-├── 📄 .gitignore           # Arquivos ignorados pelo Git
-├── 🖼️ icon.png            # Ícone do bot
-├── 📁 .github/             # Workflows do GitHub Actions
-├── 📁 bot/                 # Lógica do bot (Cogs, Views)
-│   ├── cogs/               # Comandos (admin, dashboard, status, info)
-│   └── views/              # Views persistentes (FilterDashboard)
-├── 📁 core/                # Core do sistema
-│   ├── scanner.py          # Scanner de feeds
-│   ├── filters.py          # Sistema de filtros
-│   ├── html_monitor.py     # Monitor HTML
-│   └── stats.py            # Estatísticas
-├── 📁 docs/                # Documentação (comandos, tutorial, arquitetura)
-├── 📁 tests/               # Testes automatizados
-├── 📁 translations/        # Internacionalização (i18n)
-├── 📁 utils/               # Utilitários
-│   ├── logger.py           # Logging (console UTF-8 no Windows, arquivo rotativo)
-│   ├── security.py         # Validação e segurança
-│   ├── storage.py          # Armazenamento JSON
-│   ├── translator.py       # Tradução
-│   └── cache.py            # Cache HTTP
-├── 📁 web/                 # Web Dashboard
-│   ├── server.py           # Servidor aiohttp
-│   └── templates/          # Templates HTML
-└── 📄 README.md            # Visão geral do repositório
+├── main.py              # Bot principal
+├── settings.py          # Carrega configuracoes do .env
+├── sources.json         # RSS, YouTube e sites oficiais (HTML)
+├── requirements.txt     # Dependencias Python
+├── Dockerfile
+├── docker-compose.yml
+├── .env.example
+├── .gitignore
+├── icon.png
+├── .github/             # Workflows GitHub Actions
+├── bot/                 # Cogs, Views
+│   ├── cogs/
+│   └── views/
+├── core/
+│   ├── scanner.py
+│   ├── filters.py
+│   ├── html_monitor.py
+│   └── stats.py
+├── docs/
+├── tests/
+├── translations/
+├── utils/
+│   ├── logger.py
+│   ├── security.py
+│   ├── storage.py
+│   ├── translator.py
+│   └── cache.py
+└── web/
+    ├── server.py
+    └── templates/
 ```
 
-> **Nota:** Os arquivos `config.json`, `history.json` e `state.json` são gerados automaticamente em runtime e estão no `.gitignore`.
+> **Nota:** `config.json`, `history.json` e `state.json` sao gerados em runtime e estao no `.gitignore`.
 
 ---
 
-**Relacionado:** [Arquitetura](ARCHITECTURE.md)
+**Relacionado:** [Arquitetura](https://github.com/carmipa/gundam-news-discord/blob/main/docs/ARCHITECTURE.md)

@@ -1,8 +1,8 @@
 # 🧱 Arquitetura — Gundam News Bot
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](../readme.md)
-[![discord.py](https://img.shields.io/badge/discord.py-2.x-5865F2?logo=discord&logoColor=white)](../readme.md)
-[![Arquitetura](https://img.shields.io/badge/Arquitetura-Modular-green)](../readme.md)
+[![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://github.com/carmipa/gundam-news-discord/blob/main/README.md)
+[![discord.py](https://img.shields.io/badge/discord.py-2.x-5865F2?logo=discord&logoColor=white)](https://github.com/carmipa/gundam-news-discord/blob/main/README.md)
+[![Docs](https://img.shields.io/badge/Índice-docs-green)](https://github.com/carmipa/gundam-news-discord/blob/main/docs/README.md)
 
 Visão geral da arquitetura do **Mafty Intelligence System**: fluxo de dados, componentes e segurança. Diagramas Mermaid compatíveis com o renderizador do GitHub (sem aspas simples em rótulos que quebrem o parser).
 
@@ -23,39 +23,39 @@ Visão geral da arquitetura do **Mafty Intelligence System**: fluxo de dados, co
 
 ```mermaid
 flowchart TB
-    subgraph Entrada["📥 Entrada"]
-        A["sources.json<br/>Feeds RSS/Atom/YouTube"]
-        A2["sources.json<br/>Sites Oficiais HTML"]
+    subgraph ent["Entrada"]
+        A["sources.json RSS Atom YouTube"]
+        A2["sources.json sites HTML sem RSS"]
     end
 
-    subgraph Processamento["🔍 Processamento"]
-        B["Scanner<br/>core/scanner.py"]
-        J["HTML Monitor<br/>core/html_monitor.py"]
-        C["Normalização<br/>URL + entries"]
-        D["Filtros Mafty<br/>core/filters.py"]
-        E["Tradutor<br/>utils/translator.py"]
-        S["Validação Segurança<br/>utils/security.py"]
+    subgraph proc["Processamento"]
+        B["Scanner core/scanner.py"]
+        J["HTML Monitor core/html_monitor.py"]
+        C["Normalizacao URL e entries"]
+        D["Filtros Mafty core/filters.py"]
+        E["Tradutor utils/translator.py"]
+        S["Validacao utils/security.py"]
     end
 
-    subgraph Armazenamento["💾 Armazenamento"]
-        H["config.json<br/>canal + filtros + idioma"]
-        I["history.json<br/>links enviados"]
-        K["state.json<br/>dedup + cache + hashes"]
+    subgraph stor["Armazenamento"]
+        H["config.json"]
+        I["history.json"]
+        K["state.json"]
     end
 
-    subgraph Saida["📤 Saída"]
-        F["Postagem Discord<br/>Canal por guild"]
-        W["Web Dashboard<br/>:8080"]
+    subgraph out["Saida"]
+        F["Postagem Discord"]
+        W["Web Dashboard porta 8080"]
     end
 
-    A -->|"🔒 Validação"| S
-    S -->|"✅ Aprovado"| B
+    A -->|validacao| S
+    S -->|aprovado| B
     A2 --> J
     B --> C
-    J -->|"Mudança detectada"| D
+    J -->|mudanca| D
     C --> D
-    D -->|"Aprovado"| E
-    D -->|"Reprovado"| G["❌ Ignorado"]
+    D -->|aprovado| E
+    D -->|reprovado| G["Ignorado"]
     E --> F
 
     H --> D
@@ -65,8 +65,8 @@ flowchart TB
     F --> K
     J --> K
 
-    W -.->|"Monitora"| H
-    W -.->|"Monitora"| K
+    W -.->|monitora| H
+    W -.->|monitora| K
 ```
 
 | Símbolo | Significado |
@@ -198,4 +198,4 @@ flowchart TB
 - **Local:** `python main.py` (desenvolvimento).
 - **Produção:** Docker (recomendado) ou systemd; variáveis em `.env`.
 
-Para detalhes de instalação e configuração, veja o [readme principal](../readme.md).
+Para detalhes de instalação e configuração, veja o [README principal](https://github.com/carmipa/gundam-news-discord/blob/main/README.md) e [Instalação](https://github.com/carmipa/gundam-news-discord/blob/main/docs/INSTALLATION.md).

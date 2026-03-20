@@ -1,53 +1,80 @@
-# 📚 Documentação — Gundam News Bot
+# Documentação — Gundam News Bot
 
-[![Docs](https://img.shields.io/badge/docs-GitHub%20ready-green)](../readme.md)
-[![GRC](https://img.shields.io/badge/GRC-Visão_Governança_Riscos_Controle-blue)](OVERVIEW.md)
+Índice central: cada tópico em **arquivo próprio**. Links absolutos (`blob/main`) para o GitHub abrirem sempre o ficheiro certo.
 
-Índice da documentação do projeto. Tudo adaptado para leitura no **GitHub** (Markdown, Mermaid, shields, links relativos).
-
----
-
-## 🛡️ Visão GRC
-
-| Documento | Descrição |
-|-----------|------------|
-| [**OVERVIEW.md**](OVERVIEW.md) | Visão **Governança, Riscos e Conformidade** — comandos por pilar, diagrama e fluxo de uso. |
+**Raiz do projeto:** [README.md na raiz](https://github.com/carmipa/gundam-news-discord/blob/main/README.md)
 
 ---
 
-## 📋 Comandos
+## Início rápido
 
 | Documento | Descrição |
 |-----------|-----------|
-| [**COMMANDS_LIST.md**](COMMANDS_LIST.md) | Lista em tabela: **o que cada comando faz** (referência rápida). |
-| [**COMMANDS_REFERENCE.md**](COMMANDS_REFERENCE.md) | Referência completa: sintaxe, parâmetros, exemplos e troubleshooting. |
-| [**TUTORIAL_CLEAN_STATE.md**](TUTORIAL_CLEAN_STATE.md) | Tutorial do comando de **limpeza** (`/clean_state`): diagramas, 2 passos, proteções. |
-| [**TUTORIAL.md**](TUTORIAL.md) | Tutorial geral de todos os comandos. |
+| [INSTALLATION.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/INSTALLATION.md) | Pré-requisitos, venv, pip, Docker |
+| [CONFIGURATION.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/CONFIGURATION.md) | `.env`, `sources.json` |
+| [DEPLOY.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/DEPLOY.md) | Docker, systemd, produção |
 
 ---
 
-## 🧱 Arquitetura e deploy
+## Arquitetura e operação
 
 | Documento | Descrição |
 |-----------|-----------|
-| [**ARCHITECTURE.md**](ARCHITECTURE.md) | Arquitetura do sistema: fluxo de dados, componentes, segurança, ciclo de vida. |
-| [**DEPLOY.md**](DEPLOY.md) | Deploy com Docker e systemd. |
-| [**CHANGELOG.md**](CHANGELOG.md) | Histórico de mudanças. |
-| [**SOURCES_VERIFICATION.md**](SOURCES_VERIFICATION.md) | Revisão e teste de fontes (RSS, YouTube, HTML) — como rodar e limpar. |
+| [ARCHITECTURE.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/ARCHITECTURE.md) | Fluxo de dados, componentes, diagramas Mermaid |
+| [DASHBOARD_AND_FILTERS.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/DASHBOARD_AND_FILTERS.md) | Painel de filtros e pipeline de filtragem |
+| [PROJECT_STRUCTURE.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/PROJECT_STRUCTURE.md) | Árvore de pastas do repositório |
+| [MONITORING_AND_LOGS.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/MONITORING_AND_LOGS.md) | Logs, `tail`, Docker |
+| [LOGGING_AND_EXCEPTIONS.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/LOGGING_AND_EXCEPTIONS.md) | Exceções do domínio e níveis de log |
 
 ---
 
-## 🌐 Outros idiomas
+## Comandos e tutoriais
 
-| Idioma | Documento |
-|--------|-----------|
-| 🇺🇸 English | [README_EN.md](README_EN.md) |
-| 🇪🇸 Español | [README_ES.md](README_ES.md) |
-| 🇮🇹 Italiano | [README_IT.md](README_IT.md) |
-| 🇯🇵 日本語 | [README_JP.md](README_JP.md) |
+| Documento | Descrição |
+|-----------|-----------|
+| [COMMANDS_LIST.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/COMMANDS_LIST.md) | Tabela: o que cada comando faz |
+| [COMMANDS_REFERENCE.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/COMMANDS_REFERENCE.md) | Sintaxe, parâmetros, exemplos |
+| [TUTORIAL.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/TUTORIAL.md) | Tutorial geral dos comandos |
+| [TUTORIAL_CLEAN_STATE.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/TUTORIAL_CLEAN_STATE.md) | `/clean_state` passo a passo |
 
 ---
 
-## 🔗 Raiz do projeto
+## Segurança e governança
 
-- [**../readme.md**](../readme.md) — Visão geral, instalação, configuração e funcionalidades.
+| Documento | Descrição |
+|-----------|-----------|
+| [OVERVIEW.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/OVERVIEW.md) | Visão GRC (governança, riscos, controle) |
+| [SOURCES_VERIFICATION.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/SOURCES_VERIFICATION.md) | Testar e revisar fontes RSS/HTML |
+
+---
+
+## Manutenção e problemas
+
+| Documento | Descrição |
+|-----------|-----------|
+| [TROUBLESHOOTING.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/TROUBLESHOOTING.md) | Erros comuns e soluções |
+| [CHANGELOG.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/CHANGELOG.md) | Histórico de versões |
+
+---
+
+## Outros idiomas (README)
+
+| Idioma | Arquivo |
+|--------|---------|
+| English | [README_EN.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/README_EN.md) |
+| Español | [README_ES.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/README_ES.md) |
+| Italiano | [README_IT.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/README_IT.md) |
+| 日本語 | [README_JP.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/README_JP.md) |
+
+---
+
+## Análises (`analysis/`)
+
+| Documento | Descrição |
+|-----------|-----------|
+| [SECURITY_GRC_ANALYSIS.md](https://github.com/carmipa/gundam-news-discord/blob/main/analysis/SECURITY_GRC_ANALYSIS.md) | Análise de segurança e GRC |
+| [LOGGING_IMPROVEMENTS.md](https://github.com/carmipa/gundam-news-discord/blob/main/analysis/LOGGING_IMPROVEMENTS.md) | Melhorias de logging |
+
+---
+
+*Diagramas Mermaid: evitar rótulos com aspas simples que quebrem o parser do GitHub.*

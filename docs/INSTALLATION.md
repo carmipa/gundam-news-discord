@@ -1,6 +1,6 @@
-# 🚀 Instalação
+# Instalação
 
-← [Voltar ao índice da documentação](README.md)
+[Voltar ao índice da documentação](https://github.com/carmipa/gundam-news-discord/blob/main/docs/README.md)
 
 ---
 
@@ -47,8 +47,8 @@ docker-compose up -d
 docker-compose logs -f
 ```
 
-📖 **Deploy detalhado:** [DEPLOY.md](DEPLOY.md)
+**Deploy detalhado:** [DEPLOY.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/DEPLOY.md)
 
 ---
 
-**Próximo passo:** [Configuração](CONFIGURATION.md) · [Comandos](COMMANDS_LIST.md)
+**Próximo passo:** [Configuração](https://github.com/carmipa/gundam-news-discord/blob/main/docs/CONFIGURATION.md) · [Comandos](https://github.com/carmipa/gundam-news-discord/blob/main/docs/COMMANDS_LIST.md)
