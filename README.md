@@ -22,6 +22,25 @@
   <i>Segurança aprimorada • Logs detalhados • Proteção anti-SSRF</i>
 </p>
 
+=== 
+<p align="center">
+  Link de download do bot: https://discord.com/discovery/applications/1456658169769234525
+</p>
+
+---
+
+<p align="center">
+  <video src="https://youtu.be/rZGLuvKVZ9s" width="600" controls>
+  </video>
+</p>
+
+---
+
+<p align="center">
+  <video src="https://youtu.be/FDLcXdPmolA" width="600" controls>
+  </video>
+</p>
+
 ---
 
 ## Índice
