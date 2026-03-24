@@ -28,7 +28,10 @@
     "https://www.gundam-gcg.com/asia-en/news?format=rss",
     "https://saint-ism.com/feed",
     "https://p-bandai.com/us/rss",
-    "https://goodguydan.blogspot.com/feeds/posts/default?alt=rss"
+    "https://goodguydan.blogspot.com/feeds/posts/default?alt=rss",
+    "https://kimithebuilderblog.com/feed",
+    "https://kusakusa.wordpress.com/feed",
+    "https://www.reddit.com/r/freedomisgunpla/.rss"
   ],
   "youtube_feeds": [
     "https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw",
@@ -167,6 +170,10 @@
     "https://bandaibrasil.com.br/",
     "https://www.gundam-gcg.com/en/",
     "https://www.reddit.com/r/Gundam/",
-    "https://global.bandai-hobby.net/en-us/"
+    "https://global.bandai-hobby.net/en-us/",
+    "https://harmonizers-jp.com/",
+    "https://x.com/GundamInfoNA",
+    "https://x.com/IhiZ8mk0vZciTY9",
+    "https://x.com/JQo8kZjEX7qKkSx"
   ]
 }
