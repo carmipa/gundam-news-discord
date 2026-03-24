@@ -36,8 +36,6 @@
     "https://kimithebuilderblog.com/feed",
     "https://kusakusa.wordpress.com/feed",
     "https://www.reddit.com/r/freedomisgunpla/.rss",
-    "https://en.gundam.info/news/rss/",
-    "https://www.gundamplanet.com/feed/",
     "https://comicbook.com/rss/"
   ],
   "youtube_feeds": [
@@ -55,10 +53,7 @@
     "https://www.youtube.com/feeds/videos.xml?channel_id=UCWOA1ZGywLbqmigxE4Qlvuw",
     "https://www.youtube.com/feeds/videos.xml?channel_id=UCv2ejD5B1xOYtGB2cf80B8g",
     "https://www.youtube.com/feeds/videos.xml?channel_id=UCrubey1wynXddSM6xLQYLGQ",
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCBw3rioEDVWdaCl-bxuRmeQ",
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UC7YtPtQ4hK_34XUoIm8e8Cg",
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCZq0m9k9YyU1x5M1p9tU6Og",
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCrj3G2aRk7pD0hH8mO7aWzg"
+    "https://www.youtube.com/feeds/videos.xml?channel_id=UCBw3rioEDVWdaCl-bxuRmeQ"
   ],
   "official_sites_reference_(not_rss)": [
     "https://gundam-official.com/",
