@@ -10,7 +10,8 @@ async def simulate_scan():
     print("🚀 Iniciando Simulação do Scanner...")
     try:
         with open('sources.json', 'r', encoding='utf-8') as f:
-            sources = json.load(f).get('youtube_feeds', [])
+            data = json.load(f)
+            sources = data.get('youtube_feeds', []) + data.get('rss_feeds', [])
     except Exception as e:
         print(f"Erro lendo sources.json: {e}")
         return
