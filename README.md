@@ -22,7 +22,8 @@
   <i>Segurança aprimorada • Logs detalhados • Proteção anti-SSRF</i>
 </p>
 
-=== 
+---
+
 <p align="center">
   Link de download do bot: https://discord.com/discovery/applications/1456658169769234525
 </p>
@@ -46,6 +47,7 @@
     <img src="https://img.shields.io/badge/▶_Reproduzir_Vídeo-Clique_para_Assistir-red?style=flat-square" alt="Play" />
   </a>
 </p>
+
 ---
 
 ## Índice
