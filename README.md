@@ -30,15 +30,17 @@
 ---
 
 <p align="center">
-  <video src="https://youtu.be/rZGLuvKVZ9s" width="600" controls>
-  </video>
+  <a href="https://www.youtube.com/watch?v=rZGLuvKVZ9s">
+    <img src="https://img.youtube.com/vi/rZGLuvKVZ9s/0.jpg" alt="Assista ao Vídeo 1" width="600" />
+  </a>
 </p>
 
 ---
 
 <p align="center">
-  <video src="https://youtu.be/FDLcXdPmolA" width="600" controls>
-  </video>
+  <a href="https://www.youtube.com/watch?v=FDLcXdPmolA">
+    <img src="https://img.youtube.com/vi/FDLcXdPmolA/0.jpg" alt="Assista ao Vídeo 2" width="600" />
+  </a>
 </p>
 
 ---
