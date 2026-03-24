@@ -31,7 +31,9 @@
 
 <p align="center">
   <a href="https://www.youtube.com/watch?v=rZGLuvKVZ9s">
-    <img src="https://img.youtube.com/vi/rZGLuvKVZ9s/0.jpg" alt="Assista ao Vídeo 1" width="600" />
+    <img src="https://img.youtube.com/vi/rZGLuvKVZ9s/mqdefault.jpg" alt="Reproduzir Vídeo 1" width="400" />
+    <br>
+    <img src="https://img.shields.io/badge/▶_Reproduzir_Vídeo-Clique_para_Assistir-red?style=flat-square" alt="Play" />
   </a>
 </p>
 
@@ -39,10 +41,11 @@
 
 <p align="center">
   <a href="https://www.youtube.com/watch?v=FDLcXdPmolA">
-    <img src="https://img.youtube.com/vi/FDLcXdPmolA/0.jpg" alt="Assista ao Vídeo 2" width="600" />
+    <img src="https://img.youtube.com/vi/FDLcXdPmolA/mqdefault.jpg" alt="Reproduzir Vídeo 2" width="400" />
+    <br>
+    <img src="https://img.shields.io/badge/▶_Reproduzir_Vídeo-Clique_para_Assistir-red?style=flat-square" alt="Play" />
   </a>
 </p>
-
 ---
 
 ## Índice
