@@ -30,6 +30,7 @@ from settings import (
     FEED_FETCH_MAX_ATTEMPTS,
     FEED_FETCH_RETRY_BACKOFF_SEC,
     FEED_HTTP_TIMEOUT_MAX_SEC,
+    FEED_FIRST_DELAY_MAX_SEC,
 )
 from utils.storage import p, load_json_safe, save_json_safe
 from utils.html import clean_html
@@ -112,10 +113,42 @@ def load_sources() -> List[str]:
     return out
 
 
+# Cabeçalhos opcionais por feed (whitelist; chaves em sources.json podem ser qualquer capitalização)
+_EXTRA_FEED_HEADER_KEYS = {
+    "referer": "Referer",
+    "origin": "Origin",
+    "accept": "Accept",
+    "accept-language": "Accept-Language",
+    "accept-encoding": "Accept-Encoding",
+    "cache-control": "Cache-Control",
+    "pragma": "Pragma",
+}
+
+
+def sanitize_feed_extra_headers(raw: Any) -> Dict[str, str]:
+    """Filtra extra_headers do JSON contra whitelist e tamanho (anti-abuso)."""
+    if not isinstance(raw, dict):
+        return {}
+    out: Dict[str, str] = {}
+    for k, v in raw.items():
+        if not isinstance(k, str) or not isinstance(v, str):
+            continue
+        key = k.strip().lower()
+        if key not in _EXTRA_FEED_HEADER_KEYS:
+            continue
+        canon = _EXTRA_FEED_HEADER_KEYS[key]
+        val = v.strip()
+        if not val or len(val) > 512 or "\n" in val or "\r" in val:
+            continue
+        out[canon] = val
+    return out
+
+
 def load_feed_fetch_overrides() -> Dict[str, Dict[str, Any]]:
     """
     Opcional em sources.json: chave feed_fetch_overrides →
-    { "https://.../feed": { "unstable": true, "http_timeout_sec": 28, "note": "..." } }.
+    { "https://.../feed": { unstable, http_timeout_sec, first_request_delay_sec,
+    extra_headers, note } }.
     """
     sources_raw = load_json_safe(p("sources.json"), [])
     if not isinstance(sources_raw, dict):
@@ -265,6 +298,22 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
             o = feed_overrides.get(url)
             return isinstance(o, dict) and bool(o.get("unstable"))
 
+        def _feed_extra_headers(url: str) -> Dict[str, str]:
+            o = feed_overrides.get(url)
+            if not isinstance(o, dict):
+                return {}
+            return sanitize_feed_extra_headers(o.get("extra_headers"))
+
+        def _feed_first_request_delay_sec(url: str) -> float:
+            o = feed_overrides.get(url)
+            if not isinstance(o, dict) or o.get("first_request_delay_sec") is None:
+                return 0.0
+            try:
+                d = float(o["first_request_delay_sec"])
+            except (TypeError, ValueError):
+                return 0.0
+            return max(0.0, min(d, float(FEED_FIRST_DELAY_MAX_SEC)))
+
         if not urls:
             log.warning(
                 "Nenhuma URL válida em sources.json. "
@@ -339,9 +388,17 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         if attempt == 0 and ("youtube.com" in url or "youtu.be" in url):
                             await asyncio.sleep(2)
 
+                        if attempt == 0:
+                            delay_first = _feed_first_request_delay_sec(url)
+                            if delay_first > 0:
+                                await asyncio.sleep(delay_first)
+
                         request_headers = get_cache_headers(url, http_cache)
                         if url not in state.get("dedup", {}):
                             request_headers = {}
+                        extra_h = _feed_extra_headers(url)
+                        if extra_h:
+                            request_headers = {**request_headers, **extra_h}
 
                         req_timeout = _feed_timeout_for_url(url)
                         async with session.get(

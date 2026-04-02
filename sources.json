@@ -183,10 +183,20 @@
   "feed_fetch_overrides": {
     "https://kimithebuilderblog.wordpress.com/feed/": {
       "unstable": true,
+      "first_request_delay_sec": 1.5,
+      "extra_headers": {
+        "Referer": "https://kimithebuilderblog.wordpress.com/",
+        "Accept": "application/rss+xml, application/xml;q=0.9, application/atom+xml;q=0.8, */*;q=0.7"
+      },
       "note": "WordPress; falhas intermitentes de conexão/redirecionamento no ambiente do bot — fonte viva"
     },
     "https://kusakusa.wordpress.com/feed": {
       "unstable": true,
+      "first_request_delay_sec": 1.5,
+      "extra_headers": {
+        "Referer": "https://kusakusa.wordpress.com/",
+        "Accept": "application/rss+xml, application/xml;q=0.9, application/atom+xml;q=0.8, */*;q=0.7"
+      },
       "note": "WordPress; instabilidade de rede — fonte viva"
     },
     "https://www.gunjap.net/site/?feed=rss2": {

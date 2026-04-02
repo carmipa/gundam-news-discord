@@ -48,3 +48,10 @@ try:
 except ValueError:
     FEED_HTTP_TIMEOUT_MAX_SEC = 120
 FEED_HTTP_TIMEOUT_MAX_SEC = max(HTTP_TIMEOUT, FEED_HTTP_TIMEOUT_MAX_SEC)
+
+# Teto (s) para first_request_delay_sec em feed_fetch_overrides
+try:
+    FEED_FIRST_DELAY_MAX_SEC = float(os.getenv("FEED_FIRST_DELAY_MAX_SEC", "30"))
+except ValueError:
+    FEED_FIRST_DELAY_MAX_SEC = 30.0
+FEED_FIRST_DELAY_MAX_SEC = max(0.0, min(FEED_FIRST_DELAY_MAX_SEC, 60.0))
