@@ -19,6 +19,8 @@ Entre tentativas o bot usa **backoff exponencial** (base configurável, teto 30 
 
 Variáveis: `FEED_FETCH_MAX_ATTEMPTS`, `FEED_FETCH_RETRY_BACKOFF_SEC` — ver [CONFIGURATION.md](CONFIGURATION.md).
 
+**Fontes lentas ou instáveis:** use a chave opcional `feed_fetch_overrides` no mesmo `sources.json` (URL exata → `unstable`, `http_timeout_sec`, `note`). Ver secção “Fontes de feeds” em [CONFIGURATION.md](CONFIGURATION.md).
+
 ---
 
 ## 🧹 Ajustes recentes em `sources.json` (manutenção)

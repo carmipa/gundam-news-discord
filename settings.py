@@ -41,3 +41,10 @@ try:
     FEED_FETCH_RETRY_BACKOFF_SEC = float(os.getenv("FEED_FETCH_RETRY_BACKOFF_SEC", "2.0"))
 except ValueError:
     FEED_FETCH_RETRY_BACKOFF_SEC = 2.0
+
+# Teto (s) para http_timeout_sec por feed em sources.json → feed_fetch_overrides
+try:
+    FEED_HTTP_TIMEOUT_MAX_SEC = int(os.getenv("FEED_HTTP_TIMEOUT_MAX_SEC", "120"))
+except ValueError:
+    FEED_HTTP_TIMEOUT_MAX_SEC = 120
+FEED_HTTP_TIMEOUT_MAX_SEC = max(HTTP_TIMEOUT, FEED_HTTP_TIMEOUT_MAX_SEC)

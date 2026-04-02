@@ -29,6 +29,7 @@ from settings import (
     HTTP_TIMEOUT,
     FEED_FETCH_MAX_ATTEMPTS,
     FEED_FETCH_RETRY_BACKOFF_SEC,
+    FEED_HTTP_TIMEOUT_MAX_SEC,
 )
 from utils.storage import p, load_json_safe, save_json_safe
 from utils.html import clean_html
@@ -108,6 +109,25 @@ def load_sources() -> List[str]:
         if u not in seen:
             seen.add(u)
             out.append(u)
+    return out
+
+
+def load_feed_fetch_overrides() -> Dict[str, Dict[str, Any]]:
+    """
+    Opcional em sources.json: chave feed_fetch_overrides →
+    { "https://.../feed": { "unstable": true, "http_timeout_sec": 28, "note": "..." } }.
+    """
+    sources_raw = load_json_safe(p("sources.json"), [])
+    if not isinstance(sources_raw, dict):
+        return {}
+    raw = sources_raw.get("feed_fetch_overrides")
+    if not isinstance(raw, dict):
+        return {}
+    out: Dict[str, Dict[str, Any]] = {}
+    for k, v in raw.items():
+        if isinstance(k, str) and k.startswith(("http://", "https://")):
+            if isinstance(v, dict):
+                out[k.strip()] = v
     return out
 
 
@@ -228,6 +248,23 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
             return
             
         urls = load_sources()
+        feed_overrides = load_feed_fetch_overrides()
+
+        def _feed_timeout_for_url(url: str) -> aiohttp.ClientTimeout:
+            total = float(HTTP_TIMEOUT)
+            o = feed_overrides.get(url)
+            if isinstance(o, dict) and o.get("http_timeout_sec") is not None:
+                try:
+                    total = float(o["http_timeout_sec"])
+                except (TypeError, ValueError):
+                    total = float(HTTP_TIMEOUT)
+            total = max(1.0, min(total, float(FEED_HTTP_TIMEOUT_MAX_SEC)))
+            return aiohttp.ClientTimeout(total=total)
+
+        def _feed_is_unstable(url: str) -> bool:
+            o = feed_overrides.get(url)
+            return isinstance(o, dict) and bool(o.get("unstable"))
+
         if not urls:
             log.warning(
                 "Nenhuma URL válida em sources.json. "
@@ -306,7 +343,10 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         if url not in state.get("dedup", {}):
                             request_headers = {}
 
-                        async with session.get(url, headers=request_headers) as resp:
+                        req_timeout = _feed_timeout_for_url(url)
+                        async with session.get(
+                            url, headers=request_headers, timeout=req_timeout
+                        ) as resp:
                             status = resp.status
                             if status == 304:
                                 cache_hits += 1
@@ -337,9 +377,15 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                                     )
                                     await asyncio.sleep(_feed_retry_sleep(attempt))
                                     continue
-                                log.warning(
-                                    f"🔥 Erro de Servidor ({status}): O site '{url}' está passando por instabilidades/caiu."
-                                )
+                                if _feed_is_unstable(url):
+                                    log.warning(
+                                        f"⚠️ Fonte instável — HTTP {status} após "
+                                        f"{FEED_FETCH_MAX_ATTEMPTS} tentativas: {url}"
+                                    )
+                                else:
+                                    log.warning(
+                                        f"🔥 Erro de Servidor ({status}): O site '{url}' está passando por instabilidades/caiu."
+                                    )
                                 return None
 
                             if status >= 400:
@@ -366,7 +412,13 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                             )
                             await asyncio.sleep(_feed_retry_sleep(attempt))
                             continue
-                        log.error(f"❌ Erro de conexão ao baixar feed '{url}': {e}")
+                        if _feed_is_unstable(url):
+                            log.warning(
+                                f"⚠️ Fonte instável — conexão falhou após "
+                                f"{FEED_FETCH_MAX_ATTEMPTS} tentativas: {url} — {e}"
+                            )
+                        else:
+                            log.error(f"❌ Erro de conexão ao baixar feed '{url}': {e}")
                         return None
                     except asyncio.TimeoutError as e:
                         if attempt < FEED_FETCH_MAX_ATTEMPTS - 1:
@@ -375,7 +427,13 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                             )
                             await asyncio.sleep(_feed_retry_sleep(attempt))
                             continue
-                        log.warning(f"⏱️ Timeout ao baixar feed '{url}': {e}")
+                        if _feed_is_unstable(url):
+                            log.warning(
+                                f"⚠️ Fonte instável — timeout após "
+                                f"{FEED_FETCH_MAX_ATTEMPTS} tentativas: {url} — {e}"
+                            )
+                        else:
+                            log.warning(f"⏱️ Timeout ao baixar feed '{url}': {e}")
                         return None
                     except Exception as e:
                         log.error(f"❌ Falha inesperada ao processar feed '{url}': {type(e).__name__}: {e}", exc_info=True)

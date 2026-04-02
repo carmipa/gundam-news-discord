@@ -179,5 +179,20 @@
     "https://x.com/JQo8kZjEX7qKkSx",
     "https://www.gundamuniverse.com/",
     "https://twitter.com/GundamOfficial"
-  ]
+  ],
+  "feed_fetch_overrides": {
+    "https://kimithebuilderblog.wordpress.com/feed/": {
+      "unstable": true,
+      "note": "WordPress; falhas intermitentes de conexão/redirecionamento no ambiente do bot — fonte viva"
+    },
+    "https://kusakusa.wordpress.com/feed": {
+      "unstable": true,
+      "note": "WordPress; instabilidade de rede — fonte viva"
+    },
+    "https://www.gunjap.net/site/?feed=rss2": {
+      "unstable": true,
+      "http_timeout_sec": 28,
+      "note": "Feed lento; timeout maior — site ativo"
+    }
+  }
 }
