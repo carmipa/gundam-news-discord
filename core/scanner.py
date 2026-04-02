@@ -23,7 +23,13 @@ import os
 import discord
 from discord.ext import tasks
 
-from settings import LOOP_MINUTES, LOOP_INTERVAL_STR, HTTP_TIMEOUT
+from settings import (
+    LOOP_MINUTES,
+    LOOP_INTERVAL_STR,
+    HTTP_TIMEOUT,
+    FEED_FETCH_MAX_ATTEMPTS,
+    FEED_FETCH_RETRY_BACKOFF_SEC,
+)
 from utils.storage import p, load_json_safe, save_json_safe
 from utils.html import clean_html
 from utils.cache import load_http_state, save_http_state, get_cache_headers, update_cache_state
@@ -278,81 +284,103 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         MAX_CONCURRENT_FEEDS = 5
         semaphore = asyncio.Semaphore(MAX_CONCURRENT_FEEDS)
 
+        def _feed_retry_sleep(attempt_index: int) -> float:
+            return min(FEED_FETCH_RETRY_BACKOFF_SEC * (2 ** attempt_index), 30.0)
+
         async def fetch_and_process_feed(session, url):
             nonlocal cache_hits, state
             
             async with semaphore:
-                try:
-                    # Validação de segurança: anti-SSRF
-                    is_valid, error_msg = validate_url(url)
-                    if not is_valid:
-                        log.warning(f"🔒 URL bloqueada por segurança: {url} - {error_msg}")
+                for attempt in range(FEED_FETCH_MAX_ATTEMPTS):
+                    try:
+                        # Validação de segurança: anti-SSRF
+                        is_valid, error_msg = validate_url(url)
+                        if not is_valid:
+                            log.warning(f"🔒 URL bloqueada por segurança: {url} - {error_msg}")
+                            return None
+
+                        if attempt == 0 and ("youtube.com" in url or "youtu.be" in url):
+                            await asyncio.sleep(2)
+
+                        request_headers = get_cache_headers(url, http_cache)
+                        if url not in state.get("dedup", {}):
+                            request_headers = {}
+
+                        async with session.get(url, headers=request_headers) as resp:
+                            status = resp.status
+                            if status == 304:
+                                cache_hits += 1
+                                log.debug(f"📦 Cache hit: {url} (304)")
+                                return None
+
+                            if status == 431:
+                                log.warning(f"⚠️ Twitter/X Error: Header value too long (431) - {url}")
+                                return None
+
+                            if status == 403:
+                                log.warning(f"🚫 Acesso Negado (403 Forbidden): A fonte '{url}' bloqueou o bot. Pode ser proteção Cloudflare/WAF.")
+                                return None
+
+                            if status == 404:
+                                log.warning(f"👻 Não Encontrado (404 Not Found): A feed '{url}' parece não existir mais.")
+                                return None
+
+                            if status == 429:
+                                log.warning(f"⏳ Rate Limit Excedido (429 Too Many Requests): Servidor da feed '{url}' pediu para aguardar.")
+                                return None
+
+                            if status >= 500:
+                                if attempt < FEED_FETCH_MAX_ATTEMPTS - 1:
+                                    log.warning(
+                                        f"⏳ Retry feed {attempt + 1}/{FEED_FETCH_MAX_ATTEMPTS} "
+                                        f"(HTTP {status}): {url}"
+                                    )
+                                    await asyncio.sleep(_feed_retry_sleep(attempt))
+                                    continue
+                                log.warning(
+                                    f"🔥 Erro de Servidor ({status}): O site '{url}' está passando por instabilidades/caiu."
+                                )
+                                return None
+
+                            if status >= 400:
+                                log.warning(f"⚠️ Erro HTTP Genérico ({status}): Falha inesperada ao acessar '{url}'.")
+                                return None
+
+                            update_cache_state(url, resp.headers, http_cache)
+                            text = await resp.text(errors="ignore")
+
+                        loop = asyncio.get_running_loop()
+                        feed = await loop.run_in_executor(None, lambda: feedparser.parse(text))
+
+                        entries = getattr(feed, "entries", []) or []
+
+                        if not entries and status == 200:
+                            log.warning(f"⚠️ Feed retornou 200 OK mas 0 entradas: {url}")
+
+                        return (url, entries)
+
+                    except aiohttp.ClientError as e:
+                        if attempt < FEED_FETCH_MAX_ATTEMPTS - 1:
+                            log.warning(
+                                f"⏳ Retry feed {attempt + 1}/{FEED_FETCH_MAX_ATTEMPTS} (conexão): {url} — {e}"
+                            )
+                            await asyncio.sleep(_feed_retry_sleep(attempt))
+                            continue
+                        log.error(f"❌ Erro de conexão ao baixar feed '{url}': {e}")
                         return None
-                    
-                    if "youtube.com" in url or "youtu.be" in url:
-                        await asyncio.sleep(2)
-                        
-                    request_headers = get_cache_headers(url, http_cache)
-                    
-                    # Se o URL não está no dedup (foi zerado ou é novo), precisamos forçar o download
-                    # para que o bot possa repopular o dedup e aplicar a lógica de Cold Start,
-                    # ignorando o cache HTTP (304) provisoriamente.
-                    if url not in state.get("dedup", {}):
-                        request_headers = {}
-
-                    
-                    async with session.get(url, headers=request_headers) as resp:
-                        if resp.status == 304:
-                            cache_hits += 1
-                            log.debug(f"📦 Cache hit: {url} (304)")
-                            return None
-                        
-                        if resp.status == 431:
-                            log.warning(f"⚠️ Twitter/X Error: Header value too long (431) - {url}")
-                            return None
-                            
-                        if resp.status == 403:
-                            log.warning(f"🚫 Acesso Negado (403 Forbidden): A fonte '{url}' bloqueou o bot. Pode ser proteção Cloudflare/WAF.")
-                            return None
-                        
-                        if resp.status == 404:
-                            log.warning(f"👻 Não Encontrado (404 Not Found): A feed '{url}' parece não existir mais.")
-                            return None
-                            
-                        if resp.status == 429:
-                            log.warning(f"⏳ Rate Limit Excedido (429 Too Many Requests): Servidor da feed '{url}' pediu para aguardar.")
-                            return None
-                            
-                        if resp.status >= 500:
-                            log.warning(f"🔥 Erro de Servidor ({resp.status}): O site '{url}' está passando por instabilidades/caiu.")
-                            return None
-
-                        if resp.status >= 400:
-                            log.warning(f"⚠️ Erro HTTP Genérico ({resp.status}): Falha inesperada ao acessar '{url}'.")
-                            return None
-
-                        update_cache_state(url, resp.headers, http_cache)
-                        text = await resp.text(errors="ignore")
-                    
-                    loop = asyncio.get_running_loop()
-                    feed = await loop.run_in_executor(None, lambda: feedparser.parse(text))
-                    
-                    entries = getattr(feed, "entries", []) or []
-                    
-                    if not entries and resp.status == 200:
-                         log.warning(f"⚠️ Feed retornou 200 OK mas 0 entradas: {url}")
-                         
-                    return (url, entries)
-                    
-                except aiohttp.ClientError as e:
-                    log.error(f"❌ Erro de conexão ao baixar feed '{url}': {e}")
-                    return None
-                except asyncio.TimeoutError as e:
-                    log.warning(f"⏱️ Timeout ao baixar feed '{url}': {e}")
-                    return None
-                except Exception as e:
-                    log.error(f"❌ Falha inesperada ao processar feed '{url}': {type(e).__name__}: {e}", exc_info=True)
-                    return None
+                    except asyncio.TimeoutError as e:
+                        if attempt < FEED_FETCH_MAX_ATTEMPTS - 1:
+                            log.warning(
+                                f"⏳ Retry feed {attempt + 1}/{FEED_FETCH_MAX_ATTEMPTS} (timeout): {url}"
+                            )
+                            await asyncio.sleep(_feed_retry_sleep(attempt))
+                            continue
+                        log.warning(f"⏱️ Timeout ao baixar feed '{url}': {e}")
+                        return None
+                    except Exception as e:
+                        log.error(f"❌ Falha inesperada ao processar feed '{url}': {type(e).__name__}: {e}", exc_info=True)
+                        return None
+                return None
 
         async with aiohttp.ClientSession(connector=connector, headers=base_headers, timeout=timeout) as session:
             tasks = [fetch_and_process_feed(session, url) for url in urls]

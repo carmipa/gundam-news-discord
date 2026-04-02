@@ -15,6 +15,9 @@ COMMAND_PREFIX=!
 LOOP_MINUTES=720
 LOG_LEVEL=INFO  # Use DEBUG para logs detalhados
 HTTP_TIMEOUT=10  # Timeout HTTP em segundos (feeds e sites oficiais)
+# Retries em feeds RSS (falhas transitórias: timeout, desconexão, HTTP 5xx)
+FEED_FETCH_MAX_ATTEMPTS=3   # padrão: 3 tentativas por URL
+FEED_FETCH_RETRY_BACKOFF_SEC=2.0  # base do backoff exponencial (s), teto 30 s
 
 # Segurança do Servidor Web (Opcional)
 WEB_AUTH_TOKEN=seu_token_secreto_aqui  # Recomendado para produção

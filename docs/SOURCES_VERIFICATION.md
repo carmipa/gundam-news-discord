@@ -7,6 +7,30 @@ Como **revisar e testar** todas as fontes em uso (RSS, YouTube, HTML Monitor).
 
 ---
 
+## 🔄 Retries no bot (varredura de feeds)
+
+Na **varredura real** (`core/scanner.py`), cada feed RSS pode ser tentado várias vezes quando a falha parece **transitória**:
+
+- **Erro de conexão** (`ClientError`, ex.: servidor desconectou).
+- **Timeout** de leitura.
+- **HTTP 5xx** (servidor instável).
+
+Entre tentativas o bot usa **backoff exponencial** (base configurável, teto 30 s). Erros **definitivos** (403, 404, 429, 4xx genérico) **não** são repetidos.
+
+Variáveis: `FEED_FETCH_MAX_ATTEMPTS`, `FEED_FETCH_RETRY_BACKOFF_SEC` — ver [CONFIGURATION.md](CONFIGURATION.md).
+
+---
+
+## 🧹 Ajustes recentes em `sources.json` (manutenção)
+
+- Removidos ou migrados feeds que só geravam ruído (404, HTML em vez de RSS, duplicados com HTML watcher): por exemplo `bandai-hobby.net/feed/`, `p-bandai.com/us/rss`, feeds `en.gundam-official` / tamashii / GCG em formato RSS problemático — substituídos por URLs de **página** no monitor HTML onde faz sentido.
+- Reddit **r/Gundam** retirado do monitor HTML (usar só `.rss`); removidos **gundam-navi-app** (serviço encerrado) e **gunplatv.com** (DNS).
+- Feed WordPress do Kimi: URL direta `kimithebuilderblog.wordpress.com/feed/`.
+
+Rodar `python tests/test_sources.py` após qualquer edição manual de fontes.
+
+---
+
 ## 📋 Como rodar a verificação
 
 Na **raiz do projeto**:

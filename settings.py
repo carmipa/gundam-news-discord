@@ -30,3 +30,14 @@ try:
     HTTP_TIMEOUT = int(os.getenv("HTTP_TIMEOUT", "10"))
 except ValueError:
     HTTP_TIMEOUT = 10
+
+# RSS: tentativas em falhas transitórias (timeout, desconexão, 502/503/504)
+try:
+    FEED_FETCH_MAX_ATTEMPTS = int(os.getenv("FEED_FETCH_MAX_ATTEMPTS", "3"))
+except ValueError:
+    FEED_FETCH_MAX_ATTEMPTS = 3
+FEED_FETCH_MAX_ATTEMPTS = max(1, min(FEED_FETCH_MAX_ATTEMPTS, 8))
+try:
+    FEED_FETCH_RETRY_BACKOFF_SEC = float(os.getenv("FEED_FETCH_RETRY_BACKOFF_SEC", "2.0"))
+except ValueError:
+    FEED_FETCH_RETRY_BACKOFF_SEC = 2.0
