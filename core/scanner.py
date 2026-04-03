@@ -400,6 +400,16 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         if extra_h:
                             request_headers = {**request_headers, **extra_h}
 
+                        # YouTube Atom (`/feeds/videos.xml`): não usar validação condicional.
+                        # Com ETag/Last-Modified o servidor pode responder 304 e o código ignora o corpo
+                        # do feed — nenhuma entrada (nem vídeos novos) é avaliada naquela varredura.
+                        if "youtube.com/feeds/videos.xml" in url.lower():
+                            request_headers = {
+                                k: v
+                                for k, v in request_headers.items()
+                                if k.lower() not in ("if-none-match", "if-modified-since")
+                            }
+
                         req_timeout = _feed_timeout_for_url(url)
                         async with session.get(
                             url, headers=request_headers, timeout=req_timeout
