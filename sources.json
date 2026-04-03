@@ -28,8 +28,8 @@
     "https://www.reddit.com/r/Gunpla/.rss",
     "https://saint-ism.com/feed",
     "https://goodguydan.blogspot.com/feeds/posts/default?alt=rss",
-    "https://kimithebuilderblog.wordpress.com/feed/",
-    "https://kusakusa.wordpress.com/feed",
+    "https://kimithebuilderblog.com/feed/",
+    "https://kusakusa.wordpress.com/feed/",
     "https://www.reddit.com/r/freedomisgunpla/.rss",
     "https://comicbook.com/rss/"
   ],
@@ -180,24 +180,44 @@
     "https://www.gundamuniverse.com/",
     "https://twitter.com/GundamOfficial"
   ],
+  "feed_url_fallbacks": {
+    "https://kimithebuilderblog.com/feed/": [
+      "https://kimithebuilderblog.wordpress.com/feed/"
+    ]
+  },
   "feed_fetch_overrides": {
+    "https://kimithebuilderblog.com/feed/": {
+      "unstable": true,
+      "http_timeout_sec": 30,
+      "first_request_delay_sec": 3.0,
+      "extra_headers": {
+        "Referer": "https://kimithebuilderblog.com/",
+        "Accept": "application/rss+xml, application/xml;q=0.9, application/atom+xml;q=0.8, text/xml;q=0.8, */*;q=0.7",
+        "Connection": "close"
+      },
+      "note": "Domínio próprio redireciona ao WordPress.com; fallback explícito se DNS/CDN falhar"
+    },
     "https://kimithebuilderblog.wordpress.com/feed/": {
       "unstable": true,
-      "first_request_delay_sec": 1.5,
+      "http_timeout_sec": 30,
+      "first_request_delay_sec": 2.0,
       "extra_headers": {
         "Referer": "https://kimithebuilderblog.wordpress.com/",
-        "Accept": "application/rss+xml, application/xml;q=0.9, application/atom+xml;q=0.8, */*;q=0.7"
+        "Accept": "application/rss+xml, application/xml;q=0.9, application/atom+xml;q=0.8, text/xml;q=0.8, */*;q=0.7",
+        "Connection": "close"
       },
-      "note": "WordPress; falhas intermitentes de conexão/redirecionamento no ambiente do bot — fonte viva"
+      "note": "Fallback direto WordPress.com (mesmo feed após 301 do domínio próprio)"
     },
-    "https://kusakusa.wordpress.com/feed": {
+    "https://kusakusa.wordpress.com/feed/": {
       "unstable": true,
-      "first_request_delay_sec": 1.5,
+      "http_timeout_sec": 30,
+      "first_request_delay_sec": 4.5,
       "extra_headers": {
         "Referer": "https://kusakusa.wordpress.com/",
-        "Accept": "application/rss+xml, application/xml;q=0.9, application/atom+xml;q=0.8, */*;q=0.7"
+        "Accept": "application/rss+xml, application/xml;q=0.9, application/atom+xml;q=0.8, text/xml;q=0.8, */*;q=0.7",
+        "Connection": "close"
       },
-      "note": "WordPress; instabilidade de rede — fonte viva"
+      "note": "WordPress; falhas intermitentes (Server disconnected)"
     },
     "https://www.gunjap.net/site/?feed=rss2": {
       "unstable": true,

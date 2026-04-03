@@ -42,6 +42,24 @@ try:
 except ValueError:
     FEED_FETCH_RETRY_BACKOFF_SEC = 2.0
 
+
+def _parse_feed_inter_retry_delays() -> list[float]:
+    """Pausas (s) entre tentativas 1→2, 2→3, … em falhas transitórias de feed. Env: FEED_FETCH_INTER_RETRY_DELAYS=2,5"""
+    raw = os.getenv("FEED_FETCH_INTER_RETRY_DELAYS", "2,5")
+    out: list[float] = []
+    for part in raw.split(","):
+        part = part.strip()
+        if not part:
+            continue
+        try:
+            out.append(float(part))
+        except ValueError:
+            continue
+    return out if out else [2.0, 5.0]
+
+
+FEED_FETCH_INTER_RETRY_DELAYS = _parse_feed_inter_retry_delays()
+
 # Teto (s) para http_timeout_sec por feed em sources.json → feed_fetch_overrides
 try:
     FEED_HTTP_TIMEOUT_MAX_SEC = int(os.getenv("FEED_HTTP_TIMEOUT_MAX_SEC", "120"))

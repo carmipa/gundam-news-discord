@@ -29,6 +29,7 @@ from settings import (
     HTTP_TIMEOUT,
     FEED_FETCH_MAX_ATTEMPTS,
     FEED_FETCH_RETRY_BACKOFF_SEC,
+    FEED_FETCH_INTER_RETRY_DELAYS,
     FEED_HTTP_TIMEOUT_MAX_SEC,
     FEED_FIRST_DELAY_MAX_SEC,
 )
@@ -122,6 +123,9 @@ _EXTRA_FEED_HEADER_KEYS = {
     "accept-encoding": "Accept-Encoding",
     "cache-control": "Cache-Control",
     "pragma": "Pragma",
+    # Alguns hosts (ex.: WordPress.com) fecham keep-alive de forma agressiva;
+    # "close" evita reuso de conexão que às vezes gera "Server disconnected".
+    "connection": "Connection",
 }
 
 
@@ -139,6 +143,8 @@ def sanitize_feed_extra_headers(raw: Any) -> Dict[str, str]:
         canon = _EXTRA_FEED_HEADER_KEYS[key]
         val = v.strip()
         if not val or len(val) > 512 or "\n" in val or "\r" in val:
+            continue
+        if canon == "Connection" and val.lower() != "close":
             continue
         out[canon] = val
     return out
@@ -164,6 +170,32 @@ def load_feed_fetch_overrides() -> Dict[str, Dict[str, Any]]:
     return out
 
 
+def load_feed_url_fallbacks() -> Dict[str, List[str]]:
+    """
+    Opcional em sources.json: feed_url_fallbacks →
+    { "https://primario/feed/": ["https://fallback/feed/", ...] }.
+    O dedup e http_cache do primário usam a URL canónica (chave); fallbacks só para GET.
+    """
+    sources_raw = load_json_safe(p("sources.json"), [])
+    if not isinstance(sources_raw, dict):
+        return {}
+    raw = sources_raw.get("feed_url_fallbacks")
+    if not isinstance(raw, dict):
+        return {}
+    out: Dict[str, List[str]] = {}
+    for k, v in raw.items():
+        if not isinstance(k, str) or not k.startswith(("http://", "https://")):
+            continue
+        if not isinstance(v, list):
+            continue
+        chain = [
+            x.strip()
+            for x in v
+            if isinstance(x, str) and x.strip().startswith(("http://", "https://"))
+        ]
+        if chain:
+            out[k.strip()] = chain
+    return out
 
 
 def sanitize_link(link: str) -> str:
@@ -282,6 +314,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
             
         urls = load_sources()
         feed_overrides = load_feed_fetch_overrides()
+        feed_fallbacks = load_feed_url_fallbacks()
 
         def _feed_timeout_for_url(url: str) -> aiohttp.ClientTimeout:
             total = float(HTTP_TIMEOUT)
@@ -355,9 +388,14 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         # SSL Configuration
         ssl_ctx = ssl.create_default_context(cafile=certifi.where())
         base_headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-            "Accept-Language": "en-US,en;q=0.9",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8"
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                "(KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36"
+            ),
+            "Accept-Language": "en-US,en;q=0.9,pt-BR;q=0.8",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/rss+xml;q=0.8,*/*;q=0.7",
+            "Cache-Control": "no-cache",
+            "Pragma": "no-cache",
         }
         timeout = aiohttp.ClientTimeout(total=HTTP_TIMEOUT)
         connector = aiohttp.TCPConnector(ssl=ssl_ctx)
@@ -370,141 +408,183 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         MAX_CONCURRENT_FEEDS = 5
         semaphore = asyncio.Semaphore(MAX_CONCURRENT_FEEDS)
 
+        max_retry_index = max(0, FEED_FETCH_MAX_ATTEMPTS - 1)
+
         def _feed_retry_sleep(attempt_index: int) -> float:
+            delays = FEED_FETCH_INTER_RETRY_DELAYS[:max_retry_index]
+            if attempt_index < len(delays):
+                return delays[attempt_index]
+            if delays:
+                return delays[-1]
             return min(FEED_FETCH_RETRY_BACKOFF_SEC * (2 ** attempt_index), 30.0)
 
-        async def fetch_and_process_feed(session, url):
+        async def fetch_and_process_feed(session, canonical_url: str):
             nonlocal cache_hits, state
-            
+
             async with semaphore:
-                for attempt in range(FEED_FETCH_MAX_ATTEMPTS):
-                    try:
-                        # Validação de segurança: anti-SSRF
-                        is_valid, error_msg = validate_url(url)
-                        if not is_valid:
-                            log.warning(f"🔒 URL bloqueada por segurança: {url} - {error_msg}")
-                            return None
+                chain = [canonical_url] + feed_fallbacks.get(canonical_url, [])
+                last_exc: BaseException | None = None
+                last_status: int | None = None
+                last_ctype: str | None = None
 
-                        if attempt == 0 and ("youtube.com" in url or "youtu.be" in url):
-                            await asyncio.sleep(2)
+                for chain_idx, fetch_url in enumerate(chain):
+                    if chain_idx > 0:
+                        log.info(f"↪️ Fallback de feed ({canonical_url}): tentando {fetch_url}")
 
-                        if attempt == 0:
-                            delay_first = _feed_first_request_delay_sec(url)
-                            if delay_first > 0:
-                                await asyncio.sleep(delay_first)
+                    for attempt in range(FEED_FETCH_MAX_ATTEMPTS):
+                        try:
+                            is_valid, error_msg = validate_url(fetch_url)
+                            if not is_valid:
+                                log.warning(f"🔒 URL bloqueada por segurança: {fetch_url} - {error_msg}")
+                                break
 
-                        request_headers = get_cache_headers(url, http_cache)
-                        if url not in state.get("dedup", {}):
-                            request_headers = {}
-                        extra_h = _feed_extra_headers(url)
-                        if extra_h:
-                            request_headers = {**request_headers, **extra_h}
+                            if attempt == 0 and ("youtube.com" in fetch_url or "youtu.be" in fetch_url):
+                                await asyncio.sleep(2)
 
-                        # YouTube Atom (`/feeds/videos.xml`): não usar validação condicional.
-                        # Com ETag/Last-Modified o servidor pode responder 304 e o código ignora o corpo
-                        # do feed — nenhuma entrada (nem vídeos novos) é avaliada naquela varredura.
-                        if "youtube.com/feeds/videos.xml" in url.lower():
-                            request_headers = {
-                                k: v
-                                for k, v in request_headers.items()
-                                if k.lower() not in ("if-none-match", "if-modified-since")
-                            }
+                            if attempt == 0:
+                                delay_first = _feed_first_request_delay_sec(fetch_url)
+                                if delay_first > 0:
+                                    await asyncio.sleep(delay_first)
 
-                        req_timeout = _feed_timeout_for_url(url)
-                        async with session.get(
-                            url, headers=request_headers, timeout=req_timeout
-                        ) as resp:
-                            status = resp.status
-                            if status == 304:
-                                cache_hits += 1
-                                log.debug(f"📦 Cache hit: {url} (304)")
-                                return None
+                            request_headers = get_cache_headers(fetch_url, http_cache)
+                            if canonical_url not in state.get("dedup", {}):
+                                request_headers = {}
+                            extra_h = _feed_extra_headers(fetch_url)
+                            if extra_h:
+                                request_headers = {**request_headers, **extra_h}
 
-                            if status == 431:
-                                log.warning(f"⚠️ Twitter/X Error: Header value too long (431) - {url}")
-                                return None
+                            if "youtube.com/feeds/videos.xml" in fetch_url.lower():
+                                request_headers = {
+                                    k: v
+                                    for k, v in request_headers.items()
+                                    if k.lower() not in ("if-none-match", "if-modified-since")
+                                }
 
-                            if status == 403:
-                                log.warning(f"🚫 Acesso Negado (403 Forbidden): A fonte '{url}' bloqueou o bot. Pode ser proteção Cloudflare/WAF.")
-                                return None
+                            req_timeout = _feed_timeout_for_url(fetch_url)
+                            async with session.get(
+                                fetch_url, headers=request_headers, timeout=req_timeout
+                            ) as resp:
+                                status = resp.status
+                                last_status = status
+                                try:
+                                    last_ctype = resp.headers.get("Content-Type", "") or None
+                                except Exception:
+                                    last_ctype = None
 
-                            if status == 404:
-                                log.warning(f"👻 Não Encontrado (404 Not Found): A feed '{url}' parece não existir mais.")
-                                return None
+                                if status == 304:
+                                    cache_hits += 1
+                                    log.debug(f"📦 Cache hit: {fetch_url} (304)")
+                                    return None
 
-                            if status == 429:
-                                log.warning(f"⏳ Rate Limit Excedido (429 Too Many Requests): Servidor da feed '{url}' pediu para aguardar.")
-                                return None
-
-                            if status >= 500:
-                                if attempt < FEED_FETCH_MAX_ATTEMPTS - 1:
+                                if status == 431:
                                     log.warning(
-                                        f"⏳ Retry feed {attempt + 1}/{FEED_FETCH_MAX_ATTEMPTS} "
-                                        f"(HTTP {status}): {url}"
+                                        f"⚠️ Twitter/X Error: Header value too long (431) - {fetch_url}"
                                     )
-                                    await asyncio.sleep(_feed_retry_sleep(attempt))
-                                    continue
-                                if _feed_is_unstable(url):
+                                    return None
+
+                                if status == 403:
                                     log.warning(
-                                        f"⚠️ Fonte instável — HTTP {status} após "
-                                        f"{FEED_FETCH_MAX_ATTEMPTS} tentativas: {url}"
+                                        f"🚫 Acesso Negado (403): '{fetch_url}'. "
+                                        f"Content-Type: {last_ctype!r}. Tentando URL alternativa se houver."
                                     )
-                                else:
+                                    break
+
+                                if status == 404:
                                     log.warning(
-                                        f"🔥 Erro de Servidor ({status}): O site '{url}' está passando por instabilidades/caiu."
+                                        f"👻 Não Encontrado (404): '{fetch_url}'. "
+                                        f"Content-Type: {last_ctype!r}"
                                     )
-                                return None
+                                    break
 
-                            if status >= 400:
-                                log.warning(f"⚠️ Erro HTTP Genérico ({status}): Falha inesperada ao acessar '{url}'.")
-                                return None
+                                if status == 429:
+                                    log.warning(
+                                        f"⏳ Rate Limit (429): '{fetch_url}'. "
+                                        f"Content-Type: {last_ctype!r}"
+                                    )
+                                    break
 
-                            update_cache_state(url, resp.headers, http_cache)
-                            text = await resp.text(errors="ignore")
+                                if status >= 500:
+                                    if attempt < FEED_FETCH_MAX_ATTEMPTS - 1:
+                                        log.warning(
+                                            f"⏳ Retry feed {attempt + 1}/{FEED_FETCH_MAX_ATTEMPTS} "
+                                            f"(HTTP {status}): {fetch_url}"
+                                        )
+                                        await asyncio.sleep(_feed_retry_sleep(attempt))
+                                        continue
+                                    log.warning(
+                                        f"🔥 HTTP {status} após {FEED_FETCH_MAX_ATTEMPTS} tentativas: {fetch_url} "
+                                        f"(Content-Type: {last_ctype!r})"
+                                    )
+                                    break
 
-                        loop = asyncio.get_running_loop()
-                        feed = await loop.run_in_executor(None, lambda: feedparser.parse(text))
+                                if status >= 400:
+                                    log.warning(
+                                        f"⚠️ Erro HTTP ({status}): '{fetch_url}'. "
+                                        f"Content-Type: {last_ctype!r}"
+                                    )
+                                    break
 
-                        entries = getattr(feed, "entries", []) or []
+                                update_cache_state(fetch_url, resp.headers, http_cache)
+                                text = await resp.text(errors="ignore")
 
-                        if not entries and status == 200:
-                            log.warning(f"⚠️ Feed retornou 200 OK mas 0 entradas: {url}")
+                            loop = asyncio.get_running_loop()
+                            feed = await loop.run_in_executor(None, lambda: feedparser.parse(text))
 
-                        return (url, entries)
+                            entries = getattr(feed, "entries", []) or []
 
-                    except aiohttp.ClientError as e:
-                        if attempt < FEED_FETCH_MAX_ATTEMPTS - 1:
-                            log.warning(
-                                f"⏳ Retry feed {attempt + 1}/{FEED_FETCH_MAX_ATTEMPTS} (conexão): {url} — {e}"
+                            if not entries and status == 200:
+                                log.warning(
+                                    f"⚠️ Feed 200 OK mas 0 entradas: {fetch_url} "
+                                    f"(Content-Type: {last_ctype!r})"
+                                )
+                                break
+
+                            return (canonical_url, entries)
+
+                        except aiohttp.ClientError as e:
+                            last_exc = e
+                            if attempt < FEED_FETCH_MAX_ATTEMPTS - 1:
+                                log.warning(
+                                    f"⏳ Retry feed {attempt + 1}/{FEED_FETCH_MAX_ATTEMPTS} (conexão): "
+                                    f"{fetch_url} — {e}"
+                                )
+                                await asyncio.sleep(_feed_retry_sleep(attempt))
+                                continue
+                            break
+
+                        except asyncio.TimeoutError as e:
+                            last_exc = e
+                            if attempt < FEED_FETCH_MAX_ATTEMPTS - 1:
+                                log.warning(
+                                    f"⏳ Retry feed {attempt + 1}/{FEED_FETCH_MAX_ATTEMPTS} (timeout): {fetch_url}"
+                                )
+                                await asyncio.sleep(_feed_retry_sleep(attempt))
+                                continue
+                            break
+
+                        except Exception as e:
+                            log.error(
+                                f"❌ Falha inesperada ao processar feed '{fetch_url}': "
+                                f"{type(e).__name__}: {e}",
+                                exc_info=True,
                             )
-                            await asyncio.sleep(_feed_retry_sleep(attempt))
-                            continue
-                        if _feed_is_unstable(url):
-                            log.warning(
-                                f"⚠️ Fonte instável — conexão falhou após "
-                                f"{FEED_FETCH_MAX_ATTEMPTS} tentativas: {url} — {e}"
-                            )
-                        else:
-                            log.error(f"❌ Erro de conexão ao baixar feed '{url}': {e}")
-                        return None
-                    except asyncio.TimeoutError as e:
-                        if attempt < FEED_FETCH_MAX_ATTEMPTS - 1:
-                            log.warning(
-                                f"⏳ Retry feed {attempt + 1}/{FEED_FETCH_MAX_ATTEMPTS} (timeout): {url}"
-                            )
-                            await asyncio.sleep(_feed_retry_sleep(attempt))
-                            continue
-                        if _feed_is_unstable(url):
-                            log.warning(
-                                f"⚠️ Fonte instável — timeout após "
-                                f"{FEED_FETCH_MAX_ATTEMPTS} tentativas: {url} — {e}"
-                            )
-                        else:
-                            log.warning(f"⏱️ Timeout ao baixar feed '{url}': {e}")
-                        return None
-                    except Exception as e:
-                        log.error(f"❌ Falha inesperada ao processar feed '{url}': {type(e).__name__}: {e}", exc_info=True)
-                        return None
+                            break
+
+                detail_parts: List[str] = []
+                if last_status is not None:
+                    detail_parts.append(f"status={last_status}")
+                if last_ctype:
+                    detail_parts.append(f"Content-Type={last_ctype!r}")
+                if last_exc is not None:
+                    detail_parts.append(f"exc={type(last_exc).__name__}: {last_exc}")
+                tail = f" ({'; '.join(detail_parts)})" if detail_parts else ""
+
+                if _feed_is_unstable(canonical_url):
+                    log.warning(
+                        f"⚠️ Fonte instável — todas as URLs falharam para {canonical_url}{tail}"
+                    )
+                else:
+                    log.error(f"❌ Falha ao baixar feed (incl. fallbacks): {canonical_url}{tail}")
                 return None
 
         async with aiohttp.ClientSession(connector=connector, headers=base_headers, timeout=timeout) as session:

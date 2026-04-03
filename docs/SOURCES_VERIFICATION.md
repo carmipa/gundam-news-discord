@@ -15,9 +15,9 @@ Na **varredura real** (`core/scanner.py`), cada feed RSS pode ser tentado vária
 - **Timeout** de leitura.
 - **HTTP 5xx** (servidor instável).
 
-Entre tentativas o bot usa **backoff exponencial** (base configurável, teto 30 s). Erros **definitivos** (403, 404, 429, 4xx genérico) **não** são repetidos.
+Entre tentativas o bot usa **`FEED_FETCH_INTER_RETRY_DELAYS`** (padrão `2,5` segundos entre 1→2 e 2→3); se a lista acabar, cai no backoff exponencial com `FEED_FETCH_RETRY_BACKOFF_SEC`. Em **403/404/429** e vários 4xx o bot **não** refaz o mesmo URL: passa para a **próxima URL** da cadeia se existir `feed_url_fallbacks`.
 
-Variáveis: `FEED_FETCH_MAX_ATTEMPTS`, `FEED_FETCH_RETRY_BACKOFF_SEC` — ver [CONFIGURATION.md](CONFIGURATION.md).
+Variáveis: `FEED_FETCH_MAX_ATTEMPTS`, `FEED_FETCH_INTER_RETRY_DELAYS`, `FEED_FETCH_RETRY_BACKOFF_SEC` — ver [CONFIGURATION.md](CONFIGURATION.md).
 
 **Fontes lentas ou instáveis:** use a chave opcional `feed_fetch_overrides` no mesmo `sources.json` (URL exata → `unstable`, `http_timeout_sec`, `note`). Ver secção “Fontes de feeds” em [CONFIGURATION.md](CONFIGURATION.md).
 
@@ -27,7 +27,7 @@ Variáveis: `FEED_FETCH_MAX_ATTEMPTS`, `FEED_FETCH_RETRY_BACKOFF_SEC` — ver [C
 
 - Removidos ou migrados feeds que só geravam ruído (404, HTML em vez de RSS, duplicados com HTML watcher): por exemplo `bandai-hobby.net/feed/`, `p-bandai.com/us/rss`, feeds `en.gundam-official` / tamashii / GCG em formato RSS problemático — substituídos por URLs de **página** no monitor HTML onde faz sentido.
 - Reddit **r/Gundam** retirado do monitor HTML (usar só `.rss`); removidos **gundam-navi-app** (serviço encerrado) e **gunplatv.com** (DNS).
-- Feed WordPress do Kimi: URL direta `kimithebuilderblog.wordpress.com/feed/`.
+- Kimi The Builder: canónico `kimithebuilderblog.com/feed/` (301 → WordPress.com); fallback explícito em `feed_url_fallbacks` para `kimithebuilderblog.wordpress.com/feed/`.
 
 Rodar `python tests/test_sources.py` após qualquer edição manual de fontes.
 

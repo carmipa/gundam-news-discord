@@ -17,7 +17,8 @@ LOG_LEVEL=INFO  # Use DEBUG para logs detalhados
 HTTP_TIMEOUT=10  # Timeout HTTP em segundos (feeds e sites oficiais)
 # Retries em feeds RSS (falhas transitórias: timeout, desconexão, HTTP 5xx)
 FEED_FETCH_MAX_ATTEMPTS=3   # padrão: 3 tentativas por URL
-FEED_FETCH_RETRY_BACKOFF_SEC=2.0  # base do backoff exponencial (s), teto 30 s
+FEED_FETCH_RETRY_BACKOFF_SEC=2.0  # reserva se FEED_FETCH_INTER_RETRY_DELAYS estiver vazio
+FEED_FETCH_INTER_RETRY_DELAYS=2,5  # pausas (s) entre tentativas 1→2, 2→3, … (CSV)
 FEED_HTTP_TIMEOUT_MAX_SEC=120  # teto (s) para timeout por feed em feed_fetch_overrides
 FEED_FIRST_DELAY_MAX_SEC=30  # teto (s) para first_request_delay_sec por feed
 
@@ -49,6 +50,11 @@ O bot aceita múltiplos formatos:
     "https://gundam-official.com/",
     "https://en.gundam-official.com/news"
   ],
+  "feed_url_fallbacks": {
+    "https://exemplo.com/feed/": [
+      "https://exemplo.wordpress.com/feed/"
+    ]
+  },
   "feed_fetch_overrides": {
     "https://exemplo.com/feed": {
       "unstable": true,
@@ -64,12 +70,14 @@ O bot aceita múltiplos formatos:
 }
 ```
 
-`feed_fetch_overrides` é **opcional**. Chaves são URLs idênticas às de `rss_feeds` / `youtube_feeds`. Campos:
+`feed_url_fallbacks` é **opcional**. Chave = URL canónica (a que está em `rss_feeds` / `youtube_feeds`); valor = lista de URLs alternativas. O **dedup** e o “cold start” usam só a URL canónica; fallbacks servem apenas se o GET na canónica falhar (403/404/429, 5xx após retries, 200 vazio, timeout, desconexão).
+
+`feed_fetch_overrides` é **opcional**. Chaves são URLs **exatas** de cada GET (canónica ou cada fallback). Campos:
 
 - **`unstable`** (bool): se após esgotar retries a falha for por conexão, timeout ou HTTP 5xx, o log usa **WARNING** “fonte instável” em vez de **ERROR** na conexão.
 - **`http_timeout_sec`** (número): timeout só para esse feed (respeita `FEED_HTTP_TIMEOUT_MAX_SEC`).
 - **`first_request_delay_sec`** (número): pausa **só na 1.ª tentativa** de cada varredura, depois do delay do YouTube (se aplicável), antes do GET (útil para WordPress/CDN; respeita `FEED_FIRST_DELAY_MAX_SEC`).
-- **`extra_headers`**: objeto com cabeçalhos **permitidos** (whitelist): `Referer`, `Origin`, `Accept`, `Accept-Language`, `Accept-Encoding`, `Cache-Control`, `Pragma`. São fundidos ao pedido (podem suavizar “Server disconnected” em alguns hosts).
+- **`extra_headers`**: objeto com cabeçalhos **permitidos** (whitelist): `Referer`, `Origin`, `Accept`, `Accept-Language`, `Accept-Encoding`, `Cache-Control`, `Pragma`, `Connection` (somente valor `close`). São fundidos ao pedido (podem suavizar “Server disconnected” em alguns hosts).
 - **`note`**: só documentação humana; o bot não lê.
 
 </details>
