@@ -316,6 +316,16 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         feed_overrides = load_feed_fetch_overrides()
         feed_fallbacks = load_feed_url_fallbacks()
 
+        # Injeta fallbacks automáticos do RSSHub para burlar bloqueios "404" do YouTube WAF
+        for u in urls:
+            if "youtube.com/feeds/videos.xml?channel_id=" in u.lower():
+                cid = u.split("channel_id=")[-1].split("&")[0]
+                rsshub_mirror = f"https://rsshub.app/youtube/channel/{cid}"
+                if u not in feed_fallbacks:
+                    feed_fallbacks[u] = []
+                if rsshub_mirror not in feed_fallbacks[u]:
+                    feed_fallbacks[u].append(rsshub_mirror)
+
         def _feed_timeout_for_url(url: str) -> aiohttp.ClientTimeout:
             total = float(HTTP_TIMEOUT)
             o = feed_overrides.get(url)
