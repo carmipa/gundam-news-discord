@@ -144,7 +144,7 @@ def get_state_stats(state: Dict[str, Any]) -> Dict[str, Any]:
     if isinstance(dedup, dict):
         stats["dedup_feeds"] = len(dedup)
         stats["dedup_total_links"] = sum(
-            len(links) if isinstance(links, list) else 0
+            len(links) if isinstance(links, (list, dict)) else 0
             for links in dedup.values()
         )
     

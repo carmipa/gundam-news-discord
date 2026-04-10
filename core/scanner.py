@@ -598,11 +598,15 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                 url, entries = result
                 
                 # Cold Start Check para este feed específico
+                # Retro-compatibilidade: converte lista antiga para dict (link -> ["LEGACY"])
+                if url in state["dedup"] and isinstance(state["dedup"][url], list):
+                    state["dedup"][url] = {l: ["LEGACY"] for l in state["dedup"][url]}
+
                 # Se a URL não estiver no dedup, é um cold start ou reset deste feed
                 is_cold_start = url not in state["dedup"]
                 if is_cold_start:
                     log.info(f"❄️ [Cold Start] Detectado para {url}. Processando todos os posts disponíveis na feed inicial (sem limite de quantidade).")
-                    state["dedup"][url] = []
+                    state["dedup"][url] = {}
                 
                 feed_posted_count = 0
                 
@@ -612,14 +616,17 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                     
                     link = sanitize_link(link)
                     
-                    # 1. Verifica no dedup específico do site (Prioridade)
-                    if link in state["dedup"][url]:
+                    # 1. Verifica no dedup geral (Se LEGACY, foi processado de forma global na versão antiga)
+                    if link in state["dedup"][url] and "LEGACY" in state["dedup"][url][link]:
                         continue
                         
                     # 2. Verifica histórico global (Legado/Fallback)
                     if link in history_set:
-                        # Adiciona ao novo dedup para consistência
-                        state["dedup"][url].append(link)
+                        # Adiciona ao novo dedup como LEGACY para acelerar próximos loops
+                        if link not in state["dedup"][url]:
+                            state["dedup"][url][link] = []
+                        if "LEGACY" not in state["dedup"][url][link]:
+                            state["dedup"][url][link].append("LEGACY")
                         continue
 
                     # Cold Start Limit Check overrules everything (Removido a pedido para liberar tudo)
@@ -642,9 +649,17 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                     summary = entry.get("summary") or entry.get("description") or ""
 
                     posted_anywhere = False
+                    if link not in state["dedup"][url]:
+                        state["dedup"][url][link] = []
 
                     # Verifica cada guild
                     for gid, gdata in config.items():
+                        gid_str = str(gid)
+                        
+                        # Verifica histórico per-guild (Anti-Flood e Evita Skips por Falha de Acesso)
+                        if gid_str in state["dedup"][url][link]:
+                            continue
+
                         if not isinstance(gdata, dict): continue
                         
                         channel_id = gdata.get("channel_id")
@@ -776,10 +791,16 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
 
                             posted_anywhere = True
                             sent_count += 1
+                            
+                            # Registra o envio com sucesso para ESSA guilda especificamente
+                            if gid_str not in state["dedup"][url][link]:
+                                state["dedup"][url][link].append(gid_str)
+                            
                             if is_cold_start:
                                 feed_posted_count += 1
-                            
-                            await asyncio.sleep(1)
+                                await asyncio.sleep(2.5)  # Atraso agressivo em cold start (Evita 429 Discord)
+                            else:
+                                await asyncio.sleep(1)
 
                         except discord.Forbidden as e:
                             log.error(f"🚫 Sem permissão para enviar mensagem no canal {channel_id} (guild {gid}): {e}")
@@ -791,10 +812,10 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                             log.exception(f"❌ Falha inesperada ao enviar no canal {channel_id} (guild {gid}): {type(e).__name__}: {e}")
 
                     if posted_anywhere:
-                        # Adiciona ao dedup específico e global
-                        state["dedup"][url].append(link)
-                        history_set.add(link)
-                        history_list.append(link)
+                        # Adiciona ao global legacy apenas para consistência, se não estiver
+                        if link not in history_set:
+                            history_set.add(link)
+                            history_list.append(link)
 
         # =========================================================
         # HTML MONITOR RUN (SITE WATCHER)
