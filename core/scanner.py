@@ -405,7 +405,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         # Evita log repetido "Canal X não encontrado" por (guild, channel) por varredura
         invalid_channels_this_scan = set()
 
-        MAX_CONCURRENT_FEEDS = 5
+        MAX_CONCURRENT_FEEDS = 1
         semaphore = asyncio.Semaphore(MAX_CONCURRENT_FEEDS)
 
         max_retry_index = max(0, FEED_FETCH_MAX_ATTEMPTS - 1)
@@ -439,7 +439,8 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                                 break
 
                             if attempt == 0 and ("youtube.com" in fetch_url or "youtu.be" in fetch_url):
-                                await asyncio.sleep(2)
+                                import random
+                                await asyncio.sleep(random.uniform(4.0, 7.0))
 
                             if attempt == 0:
                                 delay_first = _feed_first_request_delay_sec(fetch_url)
