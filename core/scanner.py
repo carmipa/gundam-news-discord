@@ -408,10 +408,17 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         
         base_headers = {
             "User-Agent": random.choice(user_agents),
-            "Accept-Language": "en-US,en;q=0.9,pt-BR;q=0.8",
+            "Accept-Language": "en-US,en;q=0.9,pt-BR;q=0.8,pt;q=0.7",
             "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,application/rss+xml;q=0.8,*/*;q=0.7",
             "Cache-Control": "no-cache",
             "Pragma": "no-cache",
+            "Sec-Ch-Ua": '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
+            "Sec-Ch-Ua-Mobile": "?0",
+            "Sec-Ch-Ua-Platform": '"Windows"',
+            "Sec-Fetch-Dest": "document",
+            "Sec-Fetch-Mode": "navigate",
+            "Sec-Fetch-Site": "cross-site",
+            "Upgrade-Insecure-Requests": "1"
         }
         timeout = aiohttp.ClientTimeout(total=HTTP_TIMEOUT)
         connector = aiohttp.TCPConnector(ssl=ssl_ctx)
@@ -701,8 +708,10 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                                     pass
                                 log.warning(
                                     f"⚠️ Canal {channel_id} não encontrado — Guild {gid}{guild_name}. "
-                                    f"Use /set_canal ou /dashboard nesse servidor para configurar um canal válido."
+                                    f"Removendo do configuration automaticamente para evitar falhas contínuas."
                                 )
+                                config[str(gid)]["channel_id"] = None
+                                save_json_safe(p("config.json"), config)
                             continue
 
                         # Envio (código de envio inalterado abaixo)

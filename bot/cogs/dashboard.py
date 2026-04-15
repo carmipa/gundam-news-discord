@@ -57,12 +57,19 @@ class DashboardCog(commands.Cog):
         view = FilterDashboard(int(guild_id))
         
         # Envia painel no canal
-        msg = await interaction.channel.send(
-            "🛰️ **MAFTY INTELLIGENCE DASHBOARD**\n"
-            "Configure os filtros de notícias abaixo:",
-            view=view
-        )
-        
+        try:
+            msg = await interaction.channel.send(
+                "🛰️ **MAFTY INTELLIGENCE DASHBOARD**\n"
+                "Configure os filtros de notícias abaixo:",
+                view=view
+            )
+        except discord.Forbidden:
+            await interaction.followup.send(
+                "❌ **Erro:** O bot não tem permissão para '**Enviar Mensagens**' neste canal.\n"
+                "Por favor, ajuste as permissões do cargo do bot para este canal.",
+                ephemeral=True
+            )
+            return
         # Confirma ao usuário
         await interaction.followup.send(
             f"✅ Dashboard criado! Canal configurado: <#{channel_id}>\nIniciando primeira varredura em segundo plano...",
