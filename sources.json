@@ -196,20 +196,686 @@
         "Connection": "close"
       }
     },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw": { "first_request_delay_sec": 3.0 },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCbJM_Y06iuUOl3hVPqYcvng": { "first_request_delay_sec": 3.0 },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCamRLcYia0SOlSsIcbbGiag": { "first_request_delay_sec": 3.0 },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCl2aT0nRejTCQO_LHZAftBw": { "first_request_delay_sec": 3.0 },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCPjmdJSt7kxP5jjkRVuI-7A": { "first_request_delay_sec": 3.0 },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCfVoNfQvw41CoanNW_5gOiw": { "first_request_delay_sec": 3.0 },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCWJ5MfdQZ6jXbF5gYuSAf5Q": { "first_request_delay_sec": 3.0 },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCS_zFUPZOlLkXLAybjYuCxQ": { "first_request_delay_sec": 3.0 },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCmDLyFjSutfb1MK7F6cMVSA": { "first_request_delay_sec": 3.0 },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCuxB1suCoCqAKiljh_0xE4A": { "first_request_delay_sec": 3.0 },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UC7wu64jFsV02bbu6UHUd7JA": { "first_request_delay_sec": 3.0 },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCWOA1ZGywLbqmigxE4Qlvuw": { "first_request_delay_sec": 3.0 },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCv2ejD5B1xOYtGB2cf80B8g": { "first_request_delay_sec": 3.0 },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCrubey1wynXddSM6xLQYLGQ": { "first_request_delay_sec": 3.0 },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCBw3rioEDVWdaCl-bxuRmeQ": { "first_request_delay_sec": 3.0 }
+    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw": {
+      "first_request_delay_sec": 3.0
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCbJM_Y06iuUOl3hVPqYcvng": {
+      "first_request_delay_sec": 3.0
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCamRLcYia0SOlSsIcbbGiag": {
+      "first_request_delay_sec": 3.0
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCl2aT0nRejTCQO_LHZAftBw": {
+      "first_request_delay_sec": 3.0
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCPjmdJSt7kxP5jjkRVuI-7A": {
+      "first_request_delay_sec": 3.0
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCfVoNfQvw41CoanNW_5gOiw": {
+      "first_request_delay_sec": 3.0
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCWJ5MfdQZ6jXbF5gYuSAf5Q": {
+      "first_request_delay_sec": 3.0
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCS_zFUPZOlLkXLAybjYuCxQ": {
+      "first_request_delay_sec": 3.0
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCmDLyFjSutfb1MK7F6cMVSA": {
+      "first_request_delay_sec": 3.0
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCuxB1suCoCqAKiljh_0xE4A": {
+      "first_request_delay_sec": 3.0
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UC7wu64jFsV02bbu6UHUd7JA": {
+      "first_request_delay_sec": 3.0
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCWOA1ZGywLbqmigxE4Qlvuw": {
+      "first_request_delay_sec": 3.0
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCv2ejD5B1xOYtGB2cf80B8g": {
+      "first_request_delay_sec": 3.0
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCrubey1wynXddSM6xLQYLGQ": {
+      "first_request_delay_sec": 3.0
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCBw3rioEDVWdaCl-bxuRmeQ": {
+      "first_request_delay_sec": 3.0
+    },
+    "https://gundam.carminati.dev.br/?url=https://nyaa.si/?page=rss&q=gundam&c=1_2&f=0": {
+      "first_request_delay_sec": 10.0,
+      "note": "Nyaa.si é ultra sensível; delay de 10s para não queimar o proxy"
+    },
+    "https://gundam.carminati.dev.br/?url=https://nyaa.si/?page=rss&q=gundam+%28movie%7Cfilm%7Cfreedom%7Chathaway%29+%28BD%7Cencode%7Craw%29&c=1_2&f=0": {
+      "first_request_delay_sec": 15.0,
+      "note": "Espaçamento maior para evitar 429 consecutivo"
+    },
+    "https://gundam.carminati.dev.br/?url=https://nyaa.si/?page=rss&q=%5BEG%5D+Gundam&c=1_2&f=0": {
+      "first_request_delay_sec": 20.0,
+      "note": "Escalonamento de tempo para fontes Nyaa"
+    },
+    "https://gundam.carminati.dev.br/?url=https://nyaa.si/?page=rss&q=%5BJudas%5D+Gundam&c=1_2&f=0": {
+      "first_request_delay_sec": 25.0,
+      "note": "Último feed do Nyaa no ciclo"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.animenewsnetwork.com/news/rss.xml?ann-edition=us": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://gundamnews.org/feed": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://gunpla101.com/feed": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gunjap.net/site/?feed=rss2": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.usagundamstore.com/blogs/usa-gundam-blog.atom": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.bandai.com/blog/rss/feed": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundamkitscollection.com/feeds/posts/default?alt=rss": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.reddit.com/r/animepiracy/search.rss?q=gundam&restrict_sr=on&sort=new": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.whats-on-netflix.com/feed/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=http://blog.esuteru.com/index.rdf": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://natalie.mu/comic/feed/news": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=http://yaraon-blog.com/feed": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://deadline.com/feed/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://variety.com/feed/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://kotaku.com/rss": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.reddit.com/r/Gundam/.rss": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://hobby.dengeki.com/feed/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.reddit.com/r/Gunpla/search.rss?q=flair%3ANews&restrict_sr=on&sort=new": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-base.net/feed": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-base.net/rss": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.reddit.com/r/Gundam/new/.rss": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.reddit.com/r/Gunpla/.rss": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://saint-ism.com/feed": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://goodguydan.blogspot.com/feeds/posts/default?alt=rss": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://kusakusa.wordpress.com/feed/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.reddit.com/r/freedomisgunpla/.rss": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://comicbook.com/rss/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://gundam-official.com/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://en.gundam-official.com/news": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-seed.net/news/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://bo2.ggame.jp/en/info/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://global.bandai-hobby.net/en-us/news/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://bandai-hobby.net/news/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-base.net/staffblog/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.bandai.com/News": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.sunrise-music.co.jp/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundamplanet.com/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundamplanet.com/blogs/news/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://bandaibrasil.com.br/collections/gundam": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundamkitscollection.com/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.vcagundam.com/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-seed.net/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://en.bandainamcoent.eu/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.sunrise-inc.co.jp/international/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://gundam-official.com/hathaway/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://gundam-official.com/hathaway/news/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundamfc.com/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://mantan-web.jp/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://eiga.com/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.bilibili.com/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://bbs.a9vg.com/forum-661-1.html": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.1999.co.jp/eng/gundam/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.sotsu.co.jp/en/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.catsuka.com/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundamworld.it/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.animeclick.it/video-intro?r=/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.bandai.com/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/hashtag/%E9%96%83%E5%85%89%E3%81%AE%E3%83%8F%E3%82%B5%E3%82%A6%E3%82%A4": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.hlj.com/search/?itemGroup=BANDAIHOBBY202506&utm_source=gundamkitscollection&utm_medium=affiliate": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-gcg.com/en/news/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://gundam-official.com/series/hathaway-i": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.bnfw.co.jp/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.sunrise-inc.co.jp/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://x.com/gundam_hathaway": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://en.gundam-official.com/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.bandainamcoent.com/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://planetagundam.com/blog": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://global.bandai-hobby.net/es/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://gget.ggame.jp/en/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://p-bandai.com/us/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://p-bandai.com/us/news": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://en.gundam-official.com/news/jy757u7j45nlih4nip2rzfxn": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://store.bandainamcoent.com/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://en.gundam.info/content/special-collaboration/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.bandainamco.co.jp/en/gundam-next-future-pavilion/index.php": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.bandainamco.co.jp/en/gundam-next-future-pavilion/withfans/index.php": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://x.com/GUNDAMPAVILION": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://global.bandai-hobby.net/es/series/gundam/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://en.gundam-official.com/series": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://gundam-uce.ggame.jp/en/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-ab.com/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=http://gundam-ab.com/news/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-zz.net/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.instagram.com/mobilesuitgundam_oficial/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://en.gundam.info/about-gundam/series-pages/buildmetaverse/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.strict-g.com/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://p-bandai.jp/global_newpc.html": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://x.com/gundam_ch": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://weibo.com/n/BandaiNamcoChina": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://en.gundam.info/about-gundam/series-pages/gquuuuuux/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam.jp/tv/index.html": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://mimorin2014.com/blog-date-202401-1.html": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://gb.ggame.jp/2024/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://toyokeizai.net/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://gundamnews.org/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://en.gundam-official.com/series/seed": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-seed.net/freedom/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://en.gundam.info/about-gundam/series-pages/seed/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.sotsu.co.jp/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-tb.net/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-the-origin.net/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.g-twilight-axis.net/top.html": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.g-tekketsu.com/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-unicorn.net/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.g-reco.net/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-bf.net/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-age.net/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam00.net/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-san.net/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://1kuji.com/products/gunpla-03": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://en.gundam-official.com/series/seed-freedom": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://tamashiiweb.com/tn_blog/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://tamashiiweb.com/tn_blog/129/?wovn=en": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://bandai.co.jp/candy/gundam/mobilityJoint/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://en.gundam-official.com/news/i/news/gunpla/01_13746": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://bandai-hobby.net/site/seed/seed-freedom/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://bo2.ggame.jp/en/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-gcg.com/en/products/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://gundamplacestore.com/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.toy-people.com/en/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://sugoi.co/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.usagundamstore.com/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://bandai-hobby.net/gunpla/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://gmpj.bn-ent.net/en": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.unicorn-gundam-statue.jp/en/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.bandainamco.co.jp/guda/goi/en/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-unicorn.net/MSV/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam0080.net/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-base.net/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam40th.net/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.g-manhole.net/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.g-reco.net/tv/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.b-ch.com/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.b-ch.com/gundam/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-bf.net/2013/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-bf.net/try/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-bf.net/hhib/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-bf.net/try_special/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-bm.net/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-bf.net/gm/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-bf.net/battlogue/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://gundam-official.com/seed/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.sunrise-world.net/feature/feature_yatate.php": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.bandaispirits.co.jp/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.bandaispirits.co.jp/hobbycenter/recycleproject.html": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.bandainamco.co.jp/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://bandaibrasil.com.br/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundam-gcg.com/en/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://global.bandai-hobby.net/en-us/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://harmonizers-jp.com/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://x.com/GundamInfoNA": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://x.com/IhiZ8mk0vZciTY9": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://JQo8kZjEX7qKkSx": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://www.gundamuniverse.com/": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    },
+    "https://gundam.carminati.dev.br/?url=https://twitter.com/GundamOfficial": {
+      "first_request_delay_sec": 3.0,
+      "note": "Delay automatizado p/ Egress Proxy ou site sensível"
+    }
   }
 }
