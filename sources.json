@@ -34,14 +34,6 @@
     "https://gundam.carminati.dev.br/?url=https://comicbook.com/rss/"
   ],
   "youtube_feeds": [
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw",
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCbJM_Y06iuUOl3hVPqYcvng",
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCamRLcYia0SOlSsIcbbGiag",
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCl2aT0nRejTCQO_LHZAftBw",
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCPjmdJSt7kxP5jjkRVuI-7A",
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCfVoNfQvw41CoanNW_5gOiw",
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCWJ5MfdQZ6jXbF5gYuSAf5Q",
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCS_zFUPZOlLkXLAybjYuCxQ",
     "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCmDLyFjSutfb1MK7F6cMVSA",
     "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCuxB1suCoCqAKiljh_0xE4A",
     "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UC7wu64jFsV02bbu6UHUd7JA",
@@ -195,38 +187,6 @@
         "Accept": "application/rss+xml, application/xml;q=0.9, application/atom+xml;q=0.8, text/xml;q=0.8, */*;q=0.7",
         "Connection": "close"
       }
-    },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCbJM_Y06iuUOl3hVPqYcvng": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCamRLcYia0SOlSsIcbbGiag": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCl2aT0nRejTCQO_LHZAftBw": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCPjmdJSt7kxP5jjkRVuI-7A": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCfVoNfQvw41CoanNW_5gOiw": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCWJ5MfdQZ6jXbF5gYuSAf5Q": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCS_zFUPZOlLkXLAybjYuCxQ": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
     },
     "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCmDLyFjSutfb1MK7F6cMVSA": {
       "first_request_delay_sec": 10.0,
@@ -892,5 +852,39 @@
       "first_request_delay_sec": 3.0,
       "note": "Delay automatizado p/ Egress Proxy ou site sensível"
     }
-  }
+  },
+  "_dead_youtube_channels_removed": [
+    {
+      "channel_id": "UCPjmdJSt7kxP5jjkRVuI-7A",
+      "reason": "404_confirmed_in_logs_2026-04-19"
+    },
+    {
+      "channel_id": "UCS_zFUPZOlLkXLAybjYuCxQ",
+      "reason": "404_confirmed_in_logs_2026-04-19"
+    },
+    {
+      "channel_id": "UCWJ5MfdQZ6jXbF5gYuSAf5Q",
+      "reason": "404_confirmed_in_logs_2026-04-19"
+    },
+    {
+      "channel_id": "UCamRLcYia0SOlSsIcbbGiag",
+      "reason": "404_confirmed_in_logs_2026-04-19"
+    },
+    {
+      "channel_id": "UCbJM_Y06iuUOl3hVPqYcvng",
+      "reason": "404_confirmed_in_logs_2026-04-19"
+    },
+    {
+      "channel_id": "UCejtUitnpnf8Be-v5NuDSLw",
+      "reason": "404_confirmed_in_logs_2026-04-19"
+    },
+    {
+      "channel_id": "UCfVoNfQvw41CoanNW_5gOiw",
+      "reason": "404_confirmed_in_logs_2026-04-19"
+    },
+    {
+      "channel_id": "UCl2aT0nRejTCQO_LHZAftBw",
+      "reason": "404_confirmed_in_logs_2026-04-19"
+    }
+  ]
 }
