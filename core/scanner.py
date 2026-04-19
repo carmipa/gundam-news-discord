@@ -198,6 +198,36 @@ def load_feed_url_fallbacks() -> Dict[str, List[str]]:
     return out
 
 
+def sanitize_feed_fallback_chain(fd: Dict[str, List[str]]) -> Dict[str, List[str]]:
+    """
+    Remove fallbacks em rsshub.app (403 frequente a partir de datacenter / Workers).
+    Para manter RSSHub manual em sources.json: ALLOW_RSSHUB_FALLBACK=1 no ambiente.
+    """
+    if os.getenv("ALLOW_RSSHUB_FALLBACK", "").strip().lower() in ("1", "true", "yes"):
+        return fd
+    removed = 0
+    out: Dict[str, List[str]] = {}
+    for key, chain in fd.items():
+        kept: List[str] = []
+        for u in chain:
+            try:
+                host = (urlparse(u).hostname or "").lower()
+            except Exception:
+                host = ""
+            if "rsshub.app" in host:
+                removed += 1
+                continue
+            kept.append(u)
+        out[key] = kept
+    if removed:
+        log.info(
+            "Ignorados %s fallback(s) para rsshub.app (403 típico). "
+            "ALLOW_RSSHUB_FALLBACK=1 reativa; rebuild necessário se o log ainda mostrar injeção RSSHub.",
+            removed,
+        )
+    return out
+
+
 def sanitize_link(link: str) -> str:
     """
     Remove parâmetros de rastreamento (utm_, etc) para evitar duplicação no histórico.
@@ -314,17 +344,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
             
         urls = load_sources()
         feed_overrides = load_feed_fetch_overrides()
-        feed_fallbacks = load_feed_url_fallbacks()
-
-        # Injeta fallbacks automáticos do RSSHub para burlar bloqueios "404" do YouTube WAF
-        for u in urls:
-            if "youtube.com/feeds/videos.xml?channel_id=" in u.lower():
-                cid = u.split("channel_id=")[-1].split("&")[0]
-                rsshub_mirror = f"https://rsshub.app/youtube/channel/{cid}"
-                if u not in feed_fallbacks:
-                    feed_fallbacks[u] = []
-                if rsshub_mirror not in feed_fallbacks[u]:
-                    feed_fallbacks[u].append(rsshub_mirror)
+        feed_fallbacks = sanitize_feed_fallback_chain(load_feed_url_fallbacks())
 
         def _feed_timeout_for_url(url: str) -> aiohttp.ClientTimeout:
             total = float(HTTP_TIMEOUT)

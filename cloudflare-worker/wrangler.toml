@@ -1,0 +1,4 @@
+# Deploy: wrangler deploy (na pasta cloudflare-worker)
+name = "gundam-rss-proxy"
+main = "worker-v4.js"
+compatibility_date = "2024-01-01"

@@ -197,65 +197,80 @@
       }
     },
     "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw": {
-      "first_request_delay_sec": 3.0
+      "first_request_delay_sec": 10.0,
+      "http_timeout_sec": 45
     },
     "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCbJM_Y06iuUOl3hVPqYcvng": {
-      "first_request_delay_sec": 3.0
+      "first_request_delay_sec": 10.0,
+      "http_timeout_sec": 45
     },
     "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCamRLcYia0SOlSsIcbbGiag": {
-      "first_request_delay_sec": 3.0
+      "first_request_delay_sec": 10.0,
+      "http_timeout_sec": 45
     },
     "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCl2aT0nRejTCQO_LHZAftBw": {
-      "first_request_delay_sec": 3.0
+      "first_request_delay_sec": 10.0,
+      "http_timeout_sec": 45
     },
     "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCPjmdJSt7kxP5jjkRVuI-7A": {
-      "first_request_delay_sec": 3.0
+      "first_request_delay_sec": 10.0,
+      "http_timeout_sec": 45
     },
     "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCfVoNfQvw41CoanNW_5gOiw": {
-      "first_request_delay_sec": 3.0
+      "first_request_delay_sec": 10.0,
+      "http_timeout_sec": 45
     },
     "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCWJ5MfdQZ6jXbF5gYuSAf5Q": {
-      "first_request_delay_sec": 3.0
+      "first_request_delay_sec": 10.0,
+      "http_timeout_sec": 45
     },
     "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCS_zFUPZOlLkXLAybjYuCxQ": {
-      "first_request_delay_sec": 3.0
+      "first_request_delay_sec": 10.0,
+      "http_timeout_sec": 45
     },
     "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCmDLyFjSutfb1MK7F6cMVSA": {
-      "first_request_delay_sec": 3.0
+      "first_request_delay_sec": 10.0,
+      "http_timeout_sec": 45
     },
     "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCuxB1suCoCqAKiljh_0xE4A": {
-      "first_request_delay_sec": 3.0
+      "first_request_delay_sec": 10.0,
+      "http_timeout_sec": 45
     },
     "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UC7wu64jFsV02bbu6UHUd7JA": {
-      "first_request_delay_sec": 3.0
+      "first_request_delay_sec": 10.0,
+      "http_timeout_sec": 45
     },
     "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCWOA1ZGywLbqmigxE4Qlvuw": {
-      "first_request_delay_sec": 3.0
+      "first_request_delay_sec": 10.0,
+      "http_timeout_sec": 45
     },
     "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCv2ejD5B1xOYtGB2cf80B8g": {
-      "first_request_delay_sec": 3.0
+      "first_request_delay_sec": 10.0,
+      "http_timeout_sec": 45
     },
     "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCrubey1wynXddSM6xLQYLGQ": {
-      "first_request_delay_sec": 3.0
+      "first_request_delay_sec": 10.0,
+      "http_timeout_sec": 45
     },
     "https://gundam.carminati.dev.br/?url=https://www.youtube.com/feeds/videos.xml?channel_id=UCBw3rioEDVWdaCl-bxuRmeQ": {
-      "first_request_delay_sec": 3.0
+      "first_request_delay_sec": 10.0,
+      "http_timeout_sec": 45
     },
     "https://gundam.carminati.dev.br/?url=https://nyaa.si/?page=rss&q=gundam&c=1_2&f=0": {
-      "first_request_delay_sec": 10.0,
-      "note": "Nyaa.si é ultra sensível; delay de 10s para não queimar o proxy"
+      "first_request_delay_sec": 15.0,
+      "note": "Nyaa: escalonamento anti-burst (Worker v4 + delay)"
     },
     "https://gundam.carminati.dev.br/?url=https://nyaa.si/?page=rss&q=gundam+%28movie%7Cfilm%7Cfreedom%7Chathaway%29+%28BD%7Cencode%7Craw%29&c=1_2&f=0": {
-      "first_request_delay_sec": 15.0,
-      "note": "Espaçamento maior para evitar 429 consecutivo"
+      "first_request_delay_sec": 30.0,
+      "note": "Nyaa: escalonamento anti-burst (Worker v4 + delay)"
     },
     "https://gundam.carminati.dev.br/?url=https://nyaa.si/?page=rss&q=%5BEG%5D+Gundam&c=1_2&f=0": {
-      "first_request_delay_sec": 20.0,
-      "note": "Escalonamento de tempo para fontes Nyaa"
+      "first_request_delay_sec": 45.0,
+      "note": "Nyaa: escalonamento anti-burst (Worker v4 + delay)"
     },
     "https://gundam.carminati.dev.br/?url=https://nyaa.si/?page=rss&q=%5BJudas%5D+Gundam&c=1_2&f=0": {
-      "first_request_delay_sec": 25.0,
-      "note": "Último feed do Nyaa no ciclo"
+      "first_request_delay_sec": 60.0,
+      "note": "Nyaa: escalonamento anti-burst (Worker v4 + delay)"
     },
     "https://gundam.carminati.dev.br/?url=https://www.animenewsnetwork.com/news/rss.xml?ann-edition=us": {
       "first_request_delay_sec": 3.0,
