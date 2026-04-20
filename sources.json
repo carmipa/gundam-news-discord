@@ -80,8 +80,7 @@
       "http_timeout_sec": 45
     },
     "https://www.animenewsnetwork.com/news/rss.xml?ann-edition=us": {
-      "first_request_delay_sec": 3.0,
-      "note": "Delay automatizado p/ Egress Proxy ou site sensÃ­vel"
+      "first_request_delay_sec": 3.0
     }
   },
   "_dead_youtube_channels_removed": [
