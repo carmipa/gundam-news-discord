@@ -9,12 +9,12 @@ TOKEN = os.getenv("DISCORD_TOKEN")
 
 # Operação (opcional via env)
 COMMAND_PREFIX = os.getenv("COMMAND_PREFIX", "!")
-# Intervalo entre varreduras: 4h por padrão (240 min). Via env: LOOP_MINUTES.
+# Intervalo entre varreduras: 12h por padrão (720 min). Via env: LOOP_MINUTES.
 # Hardening: nunca permite 0/minúsculo para evitar loop agressivo (auto-DoS).
 try:
-    LOOP_MINUTES = int(os.getenv("LOOP_MINUTES", "240"))
+    LOOP_MINUTES = int(os.getenv("LOOP_MINUTES", "720"))
 except ValueError:
-    LOOP_MINUTES = 240
+    LOOP_MINUTES = 720
 LOOP_MINUTES = max(1, min(LOOP_MINUTES, 1440))
 def format_loop_interval(minutes: int) -> str:
     """Ex.: 720 -> '12h', 30 -> '30 min'."""

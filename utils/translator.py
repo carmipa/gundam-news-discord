@@ -7,7 +7,7 @@ import asyncio
 from typing import Dict, Any, Optional
 from deep_translator import GoogleTranslator
 
-from utils.storage import p, load_json_safe
+from utils.storage import load_config_cached
 
 log = logging.getLogger("MaftyIntel")
 
@@ -36,7 +36,12 @@ class Translator:
             except Exception as e:
                 log.error(f"Erro ao carregar tradução {lang}: {e}")
 
-    def detect_lang(self, guild_id: str, guild_locale: str = None) -> str:
+    def detect_lang(
+        self,
+        guild_id: str,
+        guild_locale: str = None,
+        guild_lang_map: Optional[Dict[str, str]] = None,
+    ) -> str:
         """
         Detecta idioma do servidor.
         Prioridade: 
@@ -44,8 +49,12 @@ class Translator:
         2. Locale do servidor Discord
         3. Padrão (en_US)
         """
-        # 1. Config manual
-        config = load_json_safe(p("config.json"), {})
+        # 1. Config manual (mapa já pré-carregado no hot path, quando disponível)
+        if guild_lang_map and guild_id in guild_lang_map:
+            return guild_lang_map[guild_id]
+
+        # Fallback legacy: leitura pontual de config.json quando mapa não for informado
+        config = load_config_cached({})
         if guild_id in config and "language" in config[guild_id]:
             return config[guild_id]["language"]
         

@@ -9,7 +9,7 @@ import logging
 from core.stats import stats
 from core.scanner import load_sources
 from utils.translator import t
-from utils.storage import p, load_json_safe, save_json_safe
+from utils.storage import load_config_cached, save_config_safe
 
 log = logging.getLogger("MaftyIntel")
 
@@ -64,11 +64,11 @@ class InfoCog(commands.Cog):
         gid = str(interaction.guild_id)
         
         # Salva na config
-        cfg = load_json_safe(p("config.json"), {})
+        cfg = load_config_cached({})
         if gid not in cfg: cfg[gid] = {}
         
         cfg[gid]["language"] = idioma
-        save_json_safe(p("config.json"), cfg)
+        save_config_safe(cfg)
         
         msgs = {
             "pt_BR": "✅ Idioma alterado para **Português**.",

@@ -16,6 +16,8 @@ from utils.exceptions import InvalidCleanTypeError
 
 log = logging.getLogger("MaftyIntel")
 
+_json_cache: Dict[str, Tuple[float, int, Any]] = {}
+
 
 def p(filename: str) -> str:
     """
@@ -59,6 +61,60 @@ def load_json_safe(filepath: str, default: Any) -> Any:
     except Exception as e:
         log.error(f"Falha ao carregar '{filepath}': {type(e).__name__}: {e}. Usando padrão.", exc_info=True)
         return default
+
+
+def load_json_cached(filepath: str, default: Any) -> Any:
+    """
+    Carrega JSON com cache baseado em (mtime, size).
+    Se o arquivo não mudou desde a última leitura, retorna valor em memória.
+    """
+    try:
+        if not os.path.exists(filepath):
+            _json_cache.pop(filepath, None)
+            log.warning(f"Arquivo '{filepath}' não existe. Usando padrão.")
+            return default
+        if os.path.getsize(filepath) == 0:
+            _json_cache.pop(filepath, None)
+            log.warning(f"Arquivo '{filepath}' está vazio. Usando padrão.")
+            return default
+
+        stat = os.stat(filepath)
+        cache = _json_cache.get(filepath)
+        if cache and cache[0] == stat.st_mtime and cache[1] == stat.st_size:
+            return cache[2]
+
+        data = load_json_safe(filepath, default)
+        _json_cache[filepath] = (stat.st_mtime, stat.st_size, data)
+        return data
+    except Exception as e:
+        log.error(f"Falha no cache de '{filepath}': {type(e).__name__}: {e}. Usando leitura sem cache.")
+        return load_json_safe(filepath, default)
+
+
+def invalidate_json_cache(filepath: str) -> None:
+    """Invalida o cache em memória de um arquivo JSON."""
+    _json_cache.pop(filepath, None)
+
+
+def load_config_cached(default: Any = None) -> Any:
+    """Atalho para carregar config.json com cache."""
+    if default is None:
+        default = {}
+    return load_json_cached(p("config.json"), default)
+
+
+def save_config_safe(data: Any) -> None:
+    """Atalho para salvar config.json e invalidar/atualizar cache."""
+    cfg_path = p("config.json")
+    save_json_safe(cfg_path, data)
+    try:
+        if os.path.exists(cfg_path):
+            stat = os.stat(cfg_path)
+            _json_cache[cfg_path] = (stat.st_mtime, stat.st_size, data)
+        else:
+            invalidate_json_cache(cfg_path)
+    except Exception:
+        invalidate_json_cache(cfg_path)
 
 
 def save_json_safe(filepath: str, data: Any) -> None:

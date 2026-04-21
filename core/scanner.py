@@ -33,7 +33,7 @@ from settings import (
     FEED_HTTP_TIMEOUT_MAX_SEC,
     FEED_FIRST_DELAY_MAX_SEC,
 )
-from utils.storage import p, load_json_safe, save_json_safe
+from utils.storage import p, load_json_safe, save_json_safe, load_config_cached, save_config_safe
 from utils.html import clean_html
 from utils.cache import load_http_state, save_http_state, get_cache_headers, update_cache_state
 from utils.translator import translate_to_target, t
@@ -334,7 +334,12 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
     async with scan_lock:
         log.info(f"🔎 Iniciando varredura de inteligência... (trigger={trigger})")
 
-        config = load_json_safe(p("config.json"), {})
+        config = load_config_cached({})
+        guild_lang_map = {
+            str(gid): gdata.get("language")
+            for gid, gdata in config.items()
+            if isinstance(gdata, dict) and isinstance(gdata.get("language"), str)
+        }
         
         # Verifica se há guilds configuradas
         if not config or not any(isinstance(v, dict) and v.get("channel_id") for v in config.values()):
@@ -654,7 +659,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                 
                 feed_posted_count = 0
                 
-                for entry in entries:
+                for entry in entries[:10]:
                     link = entry.get("link") or "" 
                     if not link: continue
                     
@@ -691,6 +696,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
 
                     title = entry.get("title") or ""
                     summary = entry.get("summary") or entry.get("description") or ""
+                    translation_cache: Dict[Tuple[str, str], str] = {}
 
                     posted_anywhere = False
                     if link not in state["dedup"][url]:
@@ -731,7 +737,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                                     f"Removendo do configuration automaticamente para evitar falhas contínuas."
                                 )
                                 config[str(gid)]["channel_id"] = None
-                                save_json_safe(p("config.json"), config)
+                                save_config_safe(config)
                             continue
 
                         # Envio (código de envio inalterado abaixo)
@@ -740,13 +746,20 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         t_clean = clean_html(title).strip()
                         s_clean = clean_html(summary).strip()[:2000]
 
-                        # Tradução
-                        target_lang = "en_US"
-                        if str(gid) in config and "language" in config[str(gid)]:
-                            target_lang = config[str(gid)]["language"]
-                        
-                        t_translated = await translate_to_target(t_clean, target_lang)
-                        s_translated = await translate_to_target(s_clean, target_lang)
+                        # Tradução (idioma por guild pré-carregado + cache por item/idioma)
+                        target_lang = t.detect_lang(gid_str, guild_lang_map=guild_lang_map)
+                        title_cache_key = (target_lang, t_clean)
+                        summary_cache_key = (target_lang, s_clean)
+
+                        t_translated = translation_cache.get(title_cache_key)
+                        if t_translated is None:
+                            t_translated = await translate_to_target(t_clean, target_lang)
+                            translation_cache[title_cache_key] = t_translated
+
+                        s_translated = translation_cache.get(summary_cache_key)
+                        if s_translated is None:
+                            s_translated = await translate_to_target(s_clean, target_lang)
+                            translation_cache[summary_cache_key] = s_translated
 
                         # Detecção de Leaks/Rumores (Refined Logic via Helper)
                         prefix, embed_color = get_news_metadata(t_clean, link)

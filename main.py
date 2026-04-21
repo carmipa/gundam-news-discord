@@ -15,12 +15,11 @@ import discord
 from discord.ext import commands
 
 from settings import TOKEN, COMMAND_PREFIX, LOG_LEVEL
-from utils.storage import p, load_json_safe
+from utils.storage import p, load_json_safe, load_config_cached, save_config_safe
 from bot.views.filter_dashboard import FilterDashboard
 from core.scanner import start_scheduler, run_scan_once
 from web.server import start_web_server  # Novo web server
 from utils.git_info import get_git_changes, get_current_hash, get_commits_since
-from utils.storage import save_json_safe
 
 # Configuração de Logs
 from utils.logger import setup_logger
@@ -99,7 +98,7 @@ async def main():
         await start_web_server()
 
         # 1. Carregar Views Persistentes
-        cfg = load_json_safe(p("config.json"), {})
+        cfg = load_config_cached({})
         if isinstance(cfg, dict):
             for gid in cfg.keys():
                 try:
@@ -136,7 +135,7 @@ async def main():
                     pass
                     
             if cfg_changed:
-                save_json_safe(p("config.json"), cfg)
+                save_config_safe(cfg)
 
         # 2. Sync Comandos (Slash)
         try:

@@ -7,7 +7,7 @@ from discord import app_commands
 import logging
 
 from bot.views.filter_dashboard import FilterDashboard
-from utils.storage import p, load_json_safe, save_json_safe
+from utils.storage import load_config_cached, save_config_safe
 
 log = logging.getLogger("MaftyIntel")
 
@@ -33,7 +33,7 @@ class DashboardCog(commands.Cog):
         channel_id = interaction.channel.id
         
         # Carrega config
-        cfg = load_json_safe(p("config.json"), {})
+        cfg = load_config_cached({})
         if not isinstance(cfg, dict):
             cfg = {}
         
@@ -49,7 +49,7 @@ class DashboardCog(commands.Cog):
             cfg[guild_id]["filters"] = []
         
         # Salva
-        save_json_safe(p("config.json"), cfg)
+        save_config_safe(cfg)
         
         log.info(f"Dashboard aberto na guild {guild_id}, canal {channel_id}")
         
@@ -163,7 +163,7 @@ class DashboardCog(commands.Cog):
                     pass  # Aviso não crítico, pode ignorar
         
         # Carrega config
-        cfg = load_json_safe(p("config.json"), {})
+        cfg = load_config_cached({})
         if not isinstance(cfg, dict):
             cfg = {}
         
@@ -182,7 +182,7 @@ class DashboardCog(commands.Cog):
             cfg[guild_id]["filters"] = []
         
         # Salva
-        save_json_safe(p("config.json"), cfg)
+        save_config_safe(cfg)
         
         log.info(f"Canal configurado para guild {guild_id}: {channel_id} (anterior: {old_channel_id})")
         

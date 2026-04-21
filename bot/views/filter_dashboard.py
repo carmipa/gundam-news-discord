@@ -6,7 +6,7 @@ from typing import Dict, Any, List
 import logging
 
 from core.filters import FILTER_OPTIONS
-from utils.storage import p, load_json_safe, save_json_safe
+from utils.storage import load_config_cached, save_config_safe
 
 log = logging.getLogger("MaftyIntel")
 
@@ -24,7 +24,7 @@ class FilterDashboard(discord.ui.View):
     
     def _cfg(self) -> Dict[str, Any]:
         """Carrega config.json e garante estrutura mínima por guild."""
-        cfg = load_json_safe(p("config.json"), {})
+        cfg = load_config_cached({})
         if not isinstance(cfg, dict):
             log.error("config.json inválido. Recriando.")
             cfg = {}
@@ -37,7 +37,7 @@ class FilterDashboard(discord.ui.View):
         return cfg
     
     def _save(self, cfg: Dict[str, Any]) -> None:
-        save_json_safe(p("config.json"), cfg)
+        save_config_safe(cfg)
     
     def _filters(self) -> List[str]:
         cfg = self._cfg()
