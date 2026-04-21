@@ -40,3 +40,17 @@ services:
     labels:
       com.gundam-bot.description: "Mafty Intelligence System"
       com.gundam-bot.version: "2.1"
+
+    # Hardening de recursos (Compose local)
+    cpus: "0.80"
+    mem_limit: 512m
+    mem_reservation: 256m
+    pids_limit: 256
+
+    # Para ambientes Swarm/compatibilidade
+    deploy:
+      resources:
+        limits:
+          cpus: "0.80"
+          memory: 512M
+          pids: 256
