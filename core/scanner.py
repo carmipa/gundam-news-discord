@@ -786,7 +786,6 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                                 color=embed_color,
                                 timestamp=datetime.now()
                             )
-                            from utils.translator import t
                             author_name = t.get('embed.author', lang=target_lang)
                             # Usa avatar do bot se disponível
                             icon_url = bot.user.avatar.url if bot.user and bot.user.avatar else None
