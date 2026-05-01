@@ -7,7 +7,7 @@ import asyncio
 from typing import Dict, Any, Optional
 from deep_translator import GoogleTranslator
 
-from utils.storage import load_config_cached
+from utils.storage import p, load_json_safe, load_config_cached
 
 log = logging.getLogger("MaftyIntel")
 
@@ -106,6 +106,10 @@ class Translator:
 t = Translator()
 
 
+# Cache em memória para evitar chamadas repetidas à API de tradução
+_translation_cache: Dict[str, str] = {}
+
+
 async def translate_to_target(text: str, target_lang: str) -> str:
     """
     Traduz texto para idioma alvo usando Google Translate.
@@ -113,6 +117,11 @@ async def translate_to_target(text: str, target_lang: str) -> str:
     """
     if not text:
         return ""
+        
+    # Verifica cache
+    cache_key = f"{target_lang}:{text}"
+    if cache_key in _translation_cache:
+        return _translation_cache[cache_key]
         
     try:
         # Mapeia códigos internos (pt_BR) para códigos Google (pt)
@@ -129,6 +138,10 @@ async def translate_to_target(text: str, target_lang: str) -> str:
             None,
             lambda: GoogleTranslator(source="auto", target=target).translate(text)
         )
+        
+        if trad:
+            _translation_cache[cache_key] = trad
+            
         return trad
     except Exception as e:
         log.debug(f"Falha na tradução de texto (retornando original): {type(e).__name__}: {e}")

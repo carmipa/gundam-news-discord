@@ -117,6 +117,37 @@ Ou com Docker: **[docs/INSTALLATION.md](https://github.com/carmipa/gundam-news-d
 
 ---
 
+## 🖥️ Demonstração do Módulo CLI/CMD
+
+O **Mafty Intelligence System** inclui uma suíte de ferramentas via linha de comando para administração avançada, testes de integridade e manutenção preventiva.
+
+| Utilitário | Descrição | Comando de Execução |
+|:---:|---|---|
+| 🤖 **Bot Core** | Ponto de entrada principal do sistema | `python main.py` |
+| 🧪 **Simulator** | Simula varredura e testa filtros (Dry-run) | `python simulate_scan.py` |
+| 📂 **Source Manager** | Importação e normalização de fontes em massa | `python add_sources_script.py` |
+| 🔍 **Deep Verify** | Testes de unidade e validação de lógica | `python deep_verify.py` |
+| 📺 **YT Checker** | Validação e descoberta de IDs de canais | `python check_yt.py` |
+
+### 🛠️ Exemplos de Operação
+
+*   **Simulação de Filtros:** Execute o simulador para validar quais notícias seriam capturadas pelos critérios atuais:
+    ```powershell
+    python simulate_scan.py
+    ```
+*   **Verificação de Integridade:** Garanta que todos os módulos estão operando dentro dos parâmetros:
+    ```powershell
+    python deep_verify.py
+    ```
+*   **Gestão de Fontes:** Adicione novos canais e feeds RSS de forma automatizada:
+    ```powershell
+    python add_sources_script.py
+    ```
+
+---
+
+---
+
 ## Documentação
 
 **Índice principal (lista com links para cada arquivo):** **[docs/README.md](https://github.com/carmipa/gundam-news-discord/blob/main/docs/README.md)**
