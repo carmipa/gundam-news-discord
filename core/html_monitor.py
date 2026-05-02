@@ -77,6 +77,26 @@ async def fetch_page_hash(client: httpx.AsyncClient, url: str) -> tuple[str, str
         log.warning(f"⚠️ Erro inesperado no HTML Monitor para '{url}': {type(e).__name__}: {e}", exc_info=True)
         return url, "", ""
 
+
+def _html_monitor_urls_from_sources(sources: Dict[str, Any]) -> List[str]:
+    """Legacy official_sites_reference_(not_rss) + official_sites (lista de dicts ou strings)."""
+    out: List[str] = []
+    for block in (
+        sources.get("official_sites_reference_(not_rss)", []),
+        sources.get("official_sites", []),
+    ):
+        if not isinstance(block, list):
+            continue
+        for item in block:
+            if isinstance(item, str) and item.startswith("http"):
+                out.append(item.strip())
+            elif isinstance(item, dict) and item.get("url"):
+                u = item["url"]
+                if isinstance(u, str) and u.startswith("http"):
+                    out.append(u.strip())
+    return list(dict.fromkeys(out))
+
+
 async def check_official_sites(current_state: Dict[str, str]) -> Tuple[List[Dict[str, str]], Dict[str, str]]:
     """
     Checks official sites for changes.
@@ -86,8 +106,8 @@ async def check_official_sites(current_state: Dict[str, str]) -> Tuple[List[Dict
         (updates_list, new_state)
     """
     sources = load_json_safe(p("sources.json"), {})
-    urls = sources.get("official_sites_reference_(not_rss)", [])
-    
+    urls = _html_monitor_urls_from_sources(sources if isinstance(sources, dict) else {})
+
     if not urls:
         return [], current_state
 

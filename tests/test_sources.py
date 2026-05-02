@@ -32,6 +32,22 @@ HEADERS = {
 }
 SSL_VERIFY = certifi.where() if certifi else True
 
+
+def _urls_from_block(block, skip_disabled_trackers: bool = False):
+    """Aceita lista de strings ou dicts com 'url' (e opcional 'enabled' em trackers)."""
+    out = []
+    for item in block or []:
+        if isinstance(item, str) and item.startswith("http"):
+            out.append(item.strip())
+        elif isinstance(item, dict):
+            if skip_disabled_trackers and item.get("enabled") is False:
+                continue
+            u = item.get("url")
+            if isinstance(u, str) and u.startswith("http"):
+                out.append(u.strip())
+    return out
+
+
 async def check_rss(client, url):
     try:
         resp = await client.get(url, follow_redirects=True)
@@ -92,7 +108,7 @@ async def main():
 
             # RSS
             log("\n--- FEEDS RSS ---")
-            for url in data.get("rss_feeds", []):
+            for url in _urls_from_block(data.get("rss_feeds", [])):
                 ok, msg = await check_rss(client, url)
                 if ok:
                     stats["rss_ok"] += 1
@@ -102,7 +118,7 @@ async def main():
 
             # YouTube
             log("\n--- CANAIS YOUTUBE (RSS) ---")
-            for url in data.get("youtube_feeds", []):
+            for url in _urls_from_block(data.get("youtube_feeds", [])):
                 ok, msg = await check_rss(client, url)
                 if ok:
                     stats["yt_ok"] += 1
@@ -110,9 +126,25 @@ async def main():
                     stats["yt_fail"] += 1
                 log(f"{'✅' if ok else '❌'} {url}\n   └── {msg}")
 
+            # Trackers (Nyaa, etc.) — mesmo check que RSS
+            log("\n--- TRACKER FEEDS ---")
+            stats_tr_ok = stats_tr_fail = 0
+            for url in _urls_from_block(data.get("tracker_feeds", []), skip_disabled_trackers=True):
+                ok, msg = await check_rss(client, url)
+                if ok:
+                    stats_tr_ok += 1
+                else:
+                    stats_tr_fail += 1
+                log(f"{'✅' if ok else '❌'} {url}\n   └── {msg}")
+            log(f"(Trackers: {stats_tr_ok} OK, {stats_tr_fail} falhas)")
+
             # HTML Monitor
             log("\n--- HTML MONITOR (SITES OFICIAIS) ---")
-            for url in data.get("official_sites_reference_(not_rss)", []):
+            html_urls = []
+            html_urls.extend(_urls_from_block(data.get("official_sites_reference_(not_rss)", [])))
+            html_urls.extend(_urls_from_block(data.get("official_sites", [])))
+            html_urls = list(dict.fromkeys(html_urls))
+            for url in html_urls:
                 ok, msg = await check_html(client, url)
                 if ok:
                     stats["html_ok"] += 1
