@@ -8,7 +8,7 @@ import asyncio
 import httpx
 
 import certifi
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, Any
 from bs4 import BeautifulSoup
 
 from utils.storage import p, load_json_safe, save_json_safe

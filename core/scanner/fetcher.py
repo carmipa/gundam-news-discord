@@ -7,7 +7,7 @@ import logging
 import aiohttp
 import certifi
 import feedparser
-from typing import List, Dict, Any, Tuple, Optional
+from typing import Any, List, Dict, Tuple, Optional
 from urllib.parse import urlparse
 
 from settings import (
@@ -36,25 +36,42 @@ def _delay_before_feed_retry(attempt_index: int) -> float:
     return FEED_FETCH_RETRY_BACKOFF_SEC * (2 ** max(0, excess))
 
 
+def _urls_from_source_list(val: Any) -> List[str]:
+    """Extrai URLs de listas com strings ou dicts { url, enabled? }. Ignora enabled: false."""
+    out: List[str] = []
+    if not isinstance(val, list):
+        return out
+    for item in val:
+        if isinstance(item, str) and item.startswith("http"):
+            out.append(item.strip())
+            continue
+        if isinstance(item, dict):
+            if item.get("enabled") is False:
+                continue
+            u = item.get("url")
+            if isinstance(u, str) and u.startswith("http"):
+                out.append(u.strip())
+    return out
+
+
 def load_sources() -> List[str]:
     sources_raw = load_json_safe(p("sources.json"), {})
     urls: List[str] = []
-    
+
     if isinstance(sources_raw, dict):
-        # We look into standard feed keys (v1 and v2 structures)
-        keys_to_check = ["rss_feeds", "youtube_feeds", "reddit_feeds", "official_sites", "feeds", "sources"]
+        # Apenas chaves que são feeds syndication (RSS/Atom/YouTube XML).
+        # official_sites / html_watcher URLs NÃO entram aqui — evita fetch+parse como feed.
+        keys_to_check = [
+            "rss_feeds",
+            "youtube_feeds",
+            "reddit_feeds",
+            "tracker_feeds",
+            "feeds",
+            "sources",
+        ]
         for key in keys_to_check:
-            val = sources_raw.get(key, [])
-            if isinstance(val, list):
-                for item in val:
-                    if isinstance(item, str) and item.startswith("http"):
-                        urls.append(item.strip())
-                    elif isinstance(item, dict) and item.get("url"):
-                        url = item["url"]
-                        if isinstance(url, str) and url.startswith("http"):
-                            urls.append(url.strip())
-    
-    # Unique preserving order
+            urls.extend(_urls_from_source_list(sources_raw.get(key, [])))
+
     return list(dict.fromkeys(urls))
 
 def load_feed_fetch_overrides() -> Dict[str, Dict[str, Any]]:
