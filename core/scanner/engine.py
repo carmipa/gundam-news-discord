@@ -94,8 +94,14 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         # Notify
                         try:
                             target_lang = gdata.get("language", "en_US")
-                            embed = await create_embed(bot, entry, target_lang, config)
-                            await channel.send(embed=embed)
+                            embed = await create_embed(bot, entry, target_lang, config, session=session)
+                            
+                            # ✨ Especial handling for YouTube (show the video player)
+                            msg_content = None
+                            if any(x in link for x in ["youtube.com", "youtu.be"]):
+                                msg_content = f"🎥 **Assistir Vídeo:** {link}"
+                                
+                            await channel.send(content=msg_content, embed=embed)
                             
                             # Media handling
                             if any(d in link for d in ("youtube.com", "youtu.be", "twitch.tv")):
@@ -133,4 +139,5 @@ def start_scheduler(bot: discord.Client):
     async def _before(): await bot.wait_until_ready()
     
     intelligence_gathering.start()
-    log.info(f"Scheduler started ({LOOP_MINUTES} min).")
+    from settings import LOOP_INTERVAL_STR
+    log.info(f"🛰️ Scanner de Inteligência ativado! Ciclo de varredura: {LOOP_INTERVAL_STR}")

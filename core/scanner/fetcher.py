@@ -38,14 +38,18 @@ def load_sources() -> List[str]:
     urls: List[str] = []
     
     if isinstance(sources_raw, dict):
-        # We look into standard feed keys
-        keys_to_check = ["rss_feeds", "youtube_feeds", "feeds", "sources"]
+        # We look into standard feed keys (v1 and v2 structures)
+        keys_to_check = ["rss_feeds", "youtube_feeds", "reddit_feeds", "official_sites", "feeds", "sources"]
         for key in keys_to_check:
             val = sources_raw.get(key, [])
             if isinstance(val, list):
                 for item in val:
                     if isinstance(item, str) and item.startswith("http"):
                         urls.append(item.strip())
+                    elif isinstance(item, dict) and item.get("url"):
+                        url = item["url"]
+                        if isinstance(url, str) and url.startswith("http"):
+                            urls.append(url.strip())
     
     # Unique preserving order
     return list(dict.fromkeys(urls))

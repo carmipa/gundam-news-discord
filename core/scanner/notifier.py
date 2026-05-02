@@ -10,6 +10,8 @@ from urllib.parse import urlparse
 from utils.translator import translate_to_target, t
 from utils.html import clean_html
 
+from utils.opengraph import fetch_og_image
+
 log = logging.getLogger("MaftyScanner")
 
 def get_news_metadata(title: str) -> Tuple[str, discord.Color]:
@@ -25,8 +27,8 @@ def get_news_metadata(title: str) -> Tuple[str, discord.Color]:
     
     return ("📢 **[NEWS]**", discord.Color.from_rgb(0, 255, 127)) # SpringGreen
 
-async def create_embed(bot: discord.Client, entry: Any, target_lang: str, guild_lang_map: Dict[str, str]) -> discord.Embed:
-    """Builds the Gundam-styled embed."""
+async def create_embed(bot: discord.Client, entry: Any, target_lang: str, guild_lang_map: Dict[str, str], session: Optional[aiohttp.ClientSession] = None) -> discord.Embed:
+    """Builds the Gundam-styled embed with intelligent image fetching."""
     title = clean_html(entry.get("title", "No Title")).strip()
     summary = clean_html(entry.get("summary", "") or entry.get("description", "")).strip()[:2000]
     link = entry.get("link", "")
@@ -53,13 +55,26 @@ async def create_embed(bot: discord.Client, entry: Any, target_lang: str, guild_
     footer = t.get('embed.source', lang=target_lang, source=domain)
     embed.set_footer(text=footer)
     
-    # Thumbnail
+    # 🖼️ Image Logic
+    thumbnail_url = None
+    
+    # 1. Try RSS standard thumbnail
     if hasattr(entry, "media_thumbnail") and entry.media_thumbnail:
         try:
-            embed.set_thumbnail(url=entry.media_thumbnail[0].get("url"))
+            thumbnail_url = entry.media_thumbnail[0].get("url")
         except: pass
     elif "itunes_image" in entry:
-         embed.set_thumbnail(url=entry.itunes_image)
+         thumbnail_url = entry.itunes_image
+    
+    # 2. Smart Fallback (OpenGraph)
+    is_youtube = any(x in link for x in ["youtube.com", "youtu.be"])
+    if not thumbnail_url and session and link and not is_youtube:
+        log.debug(f"Attempting OG fetch for: {link}")
+        thumbnail_url = await fetch_og_image(link, session)
+    
+    if thumbnail_url:
+        embed.set_thumbnail(url=thumbnail_url)
         
     return embed
+
 
