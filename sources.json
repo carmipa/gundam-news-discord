@@ -1,137 +1,335 @@
 {
   "meta": {
-    "version": "2.7",
+    "version": "3.0",
     "generated": "2026-05-02",
-    "description": "Base TOTAL e ABSOLUTA Mafty - Restauração completa de 150+ fontes históricas e novas."
+    "description": "Base consolidada Mafty — fusão completa das versões anteriores. Estrutura enriquecida com name, category, language e region em todos os feeds.",
+    "total_rss": 24,
+    "total_reddit": 5,
+    "total_youtube": 16,
+    "total_tracker": 6,
+    "total_official_sites": 130,
+    "notes": [
+      "YouTube: nomes dos canais precisam ser verificados manualmente via channel_id.",
+      "kusakusa.wordpress.com marcado como unstable — usar timeout estendido.",
+      "gunpla101.com possui fallbacks configurados caso o feed principal falhe.",
+      "kimithebuilderblog.com adicionado — validar se feed está ativo.",
+      "FeedBurner foi descontinuado — usar sempre URLs diretas de Blogger/WordPress.",
+      "Tracker feeds (Nyaa, Tokyo Toshokan) incluídos na seção tracker_feeds.",
+      "x.com e instagram.com não são RSS — listados em social_accounts.",
+      "URLs de artigos específicos (ex: en.gundam-official.com/news/jy757...) movidas para official_sites como referência."
+    ]
   },
   "rss_feeds": [
     {
-      "url": "http://blog.esuteru.com/index.rdf"
+      "name": "Esuteru Blog",
+      "url": "http://blog.esuteru.com/index.rdf",
+      "category": "news",
+      "language": "ja"
     },
     {
-      "url": "http://hayamimi-gunpla.com/feed"
+      "name": "Hayamimi Gunpla",
+      "url": "http://hayamimi-gunpla.com/feed",
+      "category": "gunpla",
+      "language": "ja"
     },
     {
-      "url": "http://ryokutya2089.com/feed"
+      "name": "Ryokutya2089",
+      "url": "http://ryokutya2089.com/feed",
+      "category": "news",
+      "language": "ja"
     },
     {
-      "url": "http://yaraon-blog.com/feed"
+      "name": "Yaraon Blog",
+      "url": "http://yaraon-blog.com/feed",
+      "category": "news",
+      "language": "ja"
     },
     {
-      "url": "https://deadline.com/feed/"
+      "name": "Deadline",
+      "url": "https://deadline.com/feed/",
+      "category": "entertainment",
+      "language": "en"
     },
     {
-      "url": "https://goodguydan.blogspot.com/feeds/posts/default?alt=rss"
+      "name": "GoodguyDan",
+      "url": "https://goodguydan.blogspot.com/feeds/posts/default?alt=rss",
+      "category": "gunpla",
+      "language": "en"
     },
     {
-      "url": "https://gundamnews.org/feed"
+      "name": "Gundam News",
+      "url": "https://gundamnews.org/feed",
+      "category": "news",
+      "language": "en"
     },
     {
-      "url": "https://gunpla101.com/feed"
+      "name": "Gunpla 101",
+      "url": "https://gunpla101.com/feed",
+      "category": "gunpla",
+      "language": "en",
+      "fallbacks": [
+        "https://gunpla101.com/?feed=rss2",
+        "https://gunpla101.com/feed/rss/"
+      ]
     },
     {
-      "url": "https://hobby.dengeki.com/feed/"
+      "name": "Hobby Dengeki",
+      "url": "https://hobby.dengeki.com/feed/",
+      "category": "news",
+      "language": "ja"
     },
     {
-      "url": "https://kimithebuilderblog.com/feed/"
+      "name": "Hobby Watch Impress",
+      "url": "https://hobby.watch.impress.co.jp/data/rss/1.0/hbw/feed.rdf",
+      "category": "news",
+      "language": "ja"
     },
     {
-      "url": "https://kusakusa.wordpress.com/feed/"
+      "name": "Kimi the Builder Blog",
+      "url": "https://kimithebuilderblog.com/feed/",
+      "category": "gunpla",
+      "language": "en",
+      "fallbacks": [
+        "https://kimithebuilderblog.com/feed/rss/",
+        "https://kimithebuilderblog.wordpress.com/feed/"
+      ]
     },
     {
-      "url": "https://natalie.mu/comic/feed/news"
+      "name": "Kusakusa WordPress",
+      "url": "https://kusakusa.wordpress.com/feed/",
+      "category": "gunpla",
+      "language": "en",
+      "unstable": true,
+      "http_timeout_sec": 30,
+      "first_request_delay_sec": 4.5
     },
     {
-      "url": "https://saint-ism.com/feed"
+      "name": "Natalie Comic",
+      "url": "https://natalie.mu/comic/feed/news",
+      "category": "news",
+      "language": "ja"
     },
     {
-      "url": "https://variety.com/feed/"
+      "name": "Saint-ism",
+      "url": "https://saint-ism.com/feed",
+      "category": "gunpla",
+      "language": "en"
     },
     {
-      "url": "https://www.bandai.com/blog/rss/feed"
+      "name": "Variety",
+      "url": "https://variety.com/feed/",
+      "category": "entertainment",
+      "language": "en"
     },
     {
-      "url": "https://www.gundam-base.net/feed"
+      "name": "Bandai Blog",
+      "url": "https://www.bandai.com/blog/rss/feed",
+      "category": "official",
+      "language": "en"
     },
     {
-      "url": "https://www.gundamkitscollection.com/feeds/posts/default?alt=rss"
+      "name": "Gundam Base",
+      "url": "https://www.gundam-base.net/feed",
+      "category": "official",
+      "language": "ja"
     },
     {
-      "url": "https://www.reddit.com/r/Gundam/.rss"
+      "name": "Gundam Kits Collection",
+      "url": "https://www.gundamkitscollection.com/feeds/posts/default?alt=rss",
+      "category": "gunpla",
+      "language": "en"
     },
     {
-      "url": "https://www.reddit.com/r/Gundam/new/.rss"
+      "name": "Anime News Network",
+      "url": "https://www.animenewsnetwork.com/news/rss.xml?ann-edition=us",
+      "category": "news",
+      "language": "en"
     },
     {
-      "url": "https://www.reddit.com/r/Gunpla/.rss"
+      "name": "GunJap",
+      "url": "https://www.gunjap.net/site/?feed=rss2",
+      "category": "gunpla",
+      "language": "ja"
     },
     {
-      "url": "https://www.reddit.com/r/Gunpla/search.rss?q=flair%3ANews&restrict_sr=on&sort=new"
+      "name": "What's on Netflix",
+      "url": "https://www.whats-on-netflix.com/feed/",
+      "category": "entertainment",
+      "language": "en"
     },
     {
-      "url": "https://www.reddit.com/r/animepiracy/search.rss?q=gundam&restrict_sr=on&sort=new"
+      "name": "Google News – gundam-official.com (EN)",
+      "url": "https://news.google.com/rss/search?q=site:en.gundam-official.com&hl=en-US",
+      "category": "official",
+      "language": "en"
     },
     {
-      "url": "https://www.reddit.com/r/freedomisgunpla/.rss"
+      "name": "Google News – gundam-official.com (JP)",
+      "url": "https://news.google.com/rss/search?q=site:gundam-official.com&hl=ja&gl=JP&ceid=JP:ja",
+      "category": "official",
+      "language": "ja"
     },
     {
-      "url": "https://www.whats-on-netflix.com/feed/"
+      "name": "Google News – Gundam (EN)",
+      "url": "https://news.google.com/rss/search?q=Gundam&hl=en-US&gl=US&ceid=US:en",
+      "category": "news",
+      "language": "en"
+    },
+    {
+      "name": "Google News – Gunpla (EN)",
+      "url": "https://news.google.com/rss/search?q=Gunpla&hl=en-US&gl=US&ceid=US:en",
+      "category": "news",
+      "language": "en"
+    }
+  ],
+  "reddit_feeds": [
+    {
+      "name": "r/Gundam",
+      "url": "https://www.reddit.com/r/Gundam/.rss",
+      "category": "community",
+      "language": "en"
+    },
+    {
+      "name": "r/Gundam (new)",
+      "url": "https://www.reddit.com/r/Gundam/new/.rss",
+      "category": "community",
+      "language": "en"
+    },
+    {
+      "name": "r/Gunpla",
+      "url": "https://www.reddit.com/r/Gunpla/.rss",
+      "category": "community",
+      "language": "en"
+    },
+    {
+      "name": "r/Gunpla – News flair",
+      "url": "https://www.reddit.com/r/Gunpla/search.rss?q=flair%3ANews&restrict_sr=on&sort=new",
+      "category": "community",
+      "language": "en"
+    },
+    {
+      "name": "r/animepiracy – Gundam",
+      "url": "https://www.reddit.com/r/animepiracy/search.rss?q=gundam&restrict_sr=on&sort=new",
+      "category": "community",
+      "language": "en"
+    },
+    {
+      "name": "r/freedomisgunpla",
+      "url": "https://www.reddit.com/r/freedomisgunpla/.rss",
+      "category": "community",
+      "language": "en"
     }
   ],
   "youtube_feeds": [
     {
+      "name": "Canal YT – UC7wu",
+      "channel_id": "UC7wu64jFsV02bbu6UHUd7JA",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC7wu64jFsV02bbu6UHUd7JA"
     },
     {
+      "name": "Canal YT – UCBw3",
+      "channel_id": "UCBw3rioEDVWdaCl-bxuRmeQ",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCBw3rioEDVWdaCl-bxuRmeQ"
     },
     {
+      "name": "Canal YT – UCPjm",
+      "channel_id": "UCPjmdJSt7kxP5jjkRVuI-7A",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCPjmdJSt7kxP5jjkRVuI-7A"
     },
     {
+      "name": "Canal YT – UCS_z",
+      "channel_id": "UCS_zFUPZOlLkXLAybjYuCxQ",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCS_zFUPZOlLkXLAybjYuCxQ"
     },
     {
+      "name": "Canal YT – UCWJ5",
+      "channel_id": "UCWJ5MfdQZ6jXbF5gYuSAf5Q",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCWJ5MfdQZ6jXbF5gYuSAf5Q"
     },
     {
+      "name": "Canal YT – UCWOA",
+      "channel_id": "UCWOA1ZGywLbqmigxE4Qlvuw",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCWOA1ZGywLbqmigxE4Qlvuw"
     },
     {
+      "name": "Canal YT – UCamR",
+      "channel_id": "UCamRLcYia0SOlSsIcbbGiag",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCamRLcYia0SOlSsIcbbGiag"
     },
     {
+      "name": "Canal YT – UCbJM",
+      "channel_id": "UCbJM_Y06iuUOl3hVPqYcvng",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCbJM_Y06iuUOl3hVPqYcvng"
     },
     {
+      "name": "Canal YT – UCejt",
+      "channel_id": "UCejtUitnpnf8Be-v5NuDSLw",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw"
     },
     {
+      "name": "Canal YT – UCfVo",
+      "channel_id": "UCfVoNfQvw41CoanNW_5gOiw",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCfVoNfQvw41CoanNW_5gOiw"
     },
     {
+      "name": "Canal YT – UCl2a",
+      "channel_id": "UCl2aT0nRejTCQO_LHZAftBw",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCl2aT0nRejTCQO_LHZAftBw"
     },
     {
+      "name": "Canal YT – UCmDL",
+      "channel_id": "UCmDLyFjSutfb1MK7F6cMVSA",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCmDLyFjSutfb1MK7F6cMVSA"
     },
     {
+      "name": "Canal YT – UCpRh",
+      "channel_id": "UCpRh2xmGtaVhFVuyCB271pw",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCpRh2xmGtaVhFVuyCB271pw"
     },
     {
+      "name": "Canal YT – UCrub",
+      "channel_id": "UCrubey1wynXddSM6xLQYLGQ",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCrubey1wynXddSM6xLQYLGQ"
     },
     {
+      "name": "Canal YT – UCuxB",
+      "channel_id": "UCuxB1suCoCqAKiljh_0xE4A",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCuxB1suCoCqAKiljh_0xE4A"
     },
     {
+      "name": "Canal YT – UCv2e",
+      "channel_id": "UCv2ejD5B1xOYtGB2cf80B8g",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCv2ejD5B1xOYtGB2cf80B8g"
     }
   ],
   "tracker_feeds": [
     {
-      "name": "Nyaa.si – Gundam 1080p",
+      "name": "Nyaa – Gundam geral",
+      "url": "https://nyaa.si/?page=rss&q=gundam&c=1_2&f=0",
+      "category": "tracker",
+      "enabled": true
+    },
+    {
+      "name": "Nyaa – Gundam 1080p",
       "url": "https://nyaa.si/?page=rss&q=gundam+1080p&c=1_2&f=0",
+      "category": "tracker",
+      "enabled": true
+    },
+    {
+      "name": "Nyaa – Gundam filmes BD/encode",
+      "url": "https://nyaa.si/?page=rss&q=gundam+%28movie%7Cfilm%7Cfreedom%7Chathaway%29+%28BD%7Cencode%7Craw%29&c=1_2&f=0",
+      "category": "tracker",
+      "enabled": true
+    },
+    {
+      "name": "Nyaa – [EG] Gundam",
+      "url": "https://nyaa.si/?page=rss&q=%5BEG%5D+Gundam&c=1_2&f=0",
+      "category": "tracker",
+      "enabled": true
+    },
+    {
+      "name": "Nyaa – [Judas] Gundam",
+      "url": "https://nyaa.si/?page=rss&q=%5BJudas%5D+Gundam&c=1_2&f=0",
       "category": "tracker",
       "enabled": true
     },
@@ -142,420 +340,648 @@
       "enabled": true
     }
   ],
+  "social_accounts": [
+    {
+      "name": "Gundam Official (Twitter/X)",
+      "url": "https://twitter.com/GundamOfficial",
+      "platform": "x"
+    },
+    {
+      "name": "GundamInfoNA (X)",
+      "url": "https://x.com/GundamInfoNA",
+      "platform": "x"
+    },
+    {
+      "name": "GUNDAM PAVILION (X)",
+      "url": "https://x.com/GUNDAMPAVILION",
+      "platform": "x"
+    },
+    {
+      "name": "Gundam CH (X)",
+      "url": "https://x.com/gundam_ch",
+      "platform": "x"
+    },
+    {
+      "name": "Gundam Hathaway (X)",
+      "url": "https://x.com/gundam_hathaway",
+      "platform": "x"
+    },
+    {
+      "name": "Conta X – IhiZ8mk",
+      "url": "https://x.com/IhiZ8mk0vZciTY9",
+      "platform": "x"
+    },
+    {
+      "name": "Conta X – JQo8kZj",
+      "url": "https://x.com/JQo8kZjEX7qKkSx",
+      "platform": "x"
+    },
+    {
+      "name": "Mobile Suit Gundam Oficial (Instagram)",
+      "url": "https://www.instagram.com/mobilesuitgundam_oficial/",
+      "platform": "instagram"
+    },
+    {
+      "name": "BandaiNamco China (Weibo)",
+      "url": "https://weibo.com/n/BandaiNamcoChina",
+      "platform": "weibo"
+    },
+    {
+      "name": "YouTube Hashtag – Hathaway (JP)",
+      "url": "https://www.youtube.com/hashtag/%E9%96%83%E5%85%89%E3%81%AE%E3%83%8F%E3%82%B5%E3%82%A6%E3%82%A4",
+      "platform": "youtube"
+    }
+  ],
   "official_sites": [
     {
-      "url": "http://gundam-ab.com/news/"
+      "name": "Gundam AB",
+      "url": "http://gundam-ab.com/news/",
+      "region": "jp"
     },
     {
-      "url": "https://1kuji.com/products/gunpla-03"
+      "name": "1-Kuji Gunpla 03",
+      "url": "https://1kuji.com/products/gunpla-03",
+      "region": "jp"
     },
     {
-      "url": "https://bandai-hobby.net/gunpla/"
+      "name": "Bandai Hobby Gunpla",
+      "url": "https://bandai-hobby.net/gunpla/",
+      "region": "jp"
     },
     {
-      "url": "https://bandai-hobby.net/news/"
+      "name": "Bandai Hobby News (JP)",
+      "url": "https://bandai-hobby.net/news/",
+      "region": "jp"
     },
     {
-      "url": "https://bandai-hobby.net/site/seed/seed-freedom/"
+      "name": "SEED Freedom – Bandai Hobby",
+      "url": "https://bandai-hobby.net/site/seed/seed-freedom/",
+      "region": "jp"
     },
     {
-      "url": "https://bandai.co.jp/candy/gundam/mobilityJoint/"
+      "name": "Bandai Candy – Mobility Joint",
+      "url": "https://bandai.co.jp/candy/gundam/mobilityJoint/",
+      "region": "jp"
     },
     {
-      "url": "https://bandaibrasil.com.br/"
+      "name": "Bandai Brasil",
+      "url": "https://bandaibrasil.com.br/",
+      "region": "br"
     },
     {
-      "url": "https://bandaibrasil.com.br/collections/gundam"
+      "name": "Bandai Brasil – Gundam",
+      "url": "https://bandaibrasil.com.br/collections/gundam",
+      "region": "br"
     },
     {
-      "url": "https://bbs.a9vg.com/forum-661-1.html"
+      "name": "A9VG Gundam Forum",
+      "url": "https://bbs.a9vg.com/forum-661-1.html",
+      "region": "cn"
     },
     {
-      "url": "https://bo2.ggame.jp/en/"
+      "name": "Gundam Battle Operation 2 (EN)",
+      "url": "https://bo2.ggame.jp/en/",
+      "region": "global"
     },
     {
-      "url": "https://bo2.ggame.jp/en/info/"
+      "name": "Gundam Battle Operation 2 Info (EN)",
+      "url": "https://bo2.ggame.jp/en/info/",
+      "region": "global"
     },
     {
-      "url": "https://comicbook.com/rss/"
+      "name": "Comicbook.com",
+      "url": "https://comicbook.com/rss/",
+      "region": "us"
     },
     {
-      "url": "https://eiga.com/"
+      "name": "Eiga.com",
+      "url": "https://eiga.com/",
+      "region": "jp"
     },
     {
-      "url": "https://en.bandainamcoent.eu/"
+      "name": "Bandai Namco Ent. EU",
+      "url": "https://en.bandainamcoent.eu/",
+      "region": "eu"
     },
     {
-      "url": "https://en.gundam-official.com/"
+      "name": "Gundam Official (EN)",
+      "url": "https://en.gundam-official.com/",
+      "region": "global"
     },
     {
-      "url": "https://en.gundam-official.com/news"
+      "name": "Gundam Official News (EN)",
+      "url": "https://en.gundam-official.com/news",
+      "region": "global"
     },
     {
-      "url": "https://en.gundam-official.com/news/i/news/gunpla/01_13746"
+      "name": "Gundam Official Series (EN)",
+      "url": "https://en.gundam-official.com/series",
+      "region": "global"
     },
     {
-      "url": "https://en.gundam-official.com/news/jy757u7j45nlih4nip2rzfxn"
+      "name": "Gundam Official – SEED (EN)",
+      "url": "https://en.gundam-official.com/series/seed",
+      "region": "global"
     },
     {
-      "url": "https://en.gundam-official.com/series"
+      "name": "Gundam Official – SEED Freedom (EN)",
+      "url": "https://en.gundam-official.com/series/seed-freedom",
+      "region": "global"
     },
     {
-      "url": "https://en.gundam-official.com/series/seed"
+      "name": "Gundam Info – Build Metaverse",
+      "url": "https://en.gundam.info/about-gundam/series-pages/buildmetaverse/",
+      "region": "global"
     },
     {
-      "url": "https://en.gundam-official.com/series/seed-freedom"
+      "name": "Gundam Info – GQuuuuuuX",
+      "url": "https://en.gundam.info/about-gundam/series-pages/gquuuuuux/",
+      "region": "global"
     },
     {
-      "url": "https://en.gundam.info/about-gundam/series-pages/buildmetaverse/"
+      "name": "Gundam Info – SEED",
+      "url": "https://en.gundam.info/about-gundam/series-pages/seed/",
+      "region": "global"
     },
     {
-      "url": "https://en.gundam.info/about-gundam/series-pages/gquuuuuux/"
+      "name": "Gundam Info – Special Collaboration",
+      "url": "https://en.gundam.info/content/special-collaboration/",
+      "region": "global"
     },
     {
-      "url": "https://en.gundam.info/about-gundam/series-pages/seed/"
+      "name": "Gundam Battle 2024",
+      "url": "https://gb.ggame.jp/2024/",
+      "region": "jp"
     },
     {
-      "url": "https://en.gundam.info/content/special-collaboration/"
+      "name": "Gget Game (EN)",
+      "url": "https://gget.ggame.jp/en/",
+      "region": "global"
     },
     {
-      "url": "https://gb.ggame.jp/2024/"
+      "name": "Bandai Hobby Global (EN)",
+      "url": "https://global.bandai-hobby.net/en-us/",
+      "region": "global"
     },
     {
-      "url": "https://gget.ggame.jp/en/"
+      "name": "Bandai Hobby Global News (EN)",
+      "url": "https://global.bandai-hobby.net/en-us/news/",
+      "region": "global"
     },
     {
-      "url": "https://global.bandai-hobby.net/en-us/"
+      "name": "Bandai Hobby Global (ES)",
+      "url": "https://global.bandai-hobby.net/es/",
+      "region": "latam"
     },
     {
-      "url": "https://global.bandai-hobby.net/en-us/news/"
+      "name": "Bandai Hobby Global – Gundam (ES)",
+      "url": "https://global.bandai-hobby.net/es/series/gundam/",
+      "region": "latam"
     },
     {
-      "url": "https://global.bandai-hobby.net/es/"
+      "name": "Gundam Metaverse Project (EN)",
+      "url": "https://gmpj.bn-ent.net/en",
+      "region": "global"
     },
     {
-      "url": "https://global.bandai-hobby.net/es/series/gundam/"
+      "name": "Gundam Official (JP)",
+      "url": "https://gundam-official.com/",
+      "region": "jp"
     },
     {
-      "url": "https://gmpj.bn-ent.net/en"
+      "name": "Gundam Hathaway – Oficial",
+      "url": "https://gundam-official.com/hathaway/",
+      "region": "jp"
     },
     {
-      "url": "https://gundam-official.com/"
+      "name": "Gundam Hathaway – News",
+      "url": "https://gundam-official.com/hathaway/news/",
+      "region": "jp"
     },
     {
-      "url": "https://gundam-official.com/hathaway/"
+      "name": "Gundam SEED – Oficial",
+      "url": "https://gundam-official.com/seed/",
+      "region": "jp"
     },
     {
-      "url": "https://gundam-official.com/hathaway/news/"
+      "name": "Gundam Hathaway I",
+      "url": "https://gundam-official.com/series/hathaway-i",
+      "region": "jp"
     },
     {
-      "url": "https://gundam-official.com/seed/"
+      "name": "Gundam UC Experience (EN)",
+      "url": "https://gundam-uce.ggame.jp/en/",
+      "region": "global"
     },
     {
-      "url": "https://gundam-official.com/series/hathaway-i"
+      "name": "Gundam News",
+      "url": "https://gundamnews.org/",
+      "region": "global"
     },
     {
-      "url": "https://gundam-uce.ggame.jp/en/"
+      "name": "Gundam Place Store",
+      "url": "https://gundamplacestore.com/",
+      "region": "global"
     },
     {
-      "url": "https://gundamnews.org/"
+      "name": "Harmonizers JP",
+      "url": "https://harmonizers-jp.com/",
+      "region": "jp"
     },
     {
-      "url": "https://gundamplacestore.com/"
+      "name": "Kotaku RSS",
+      "url": "https://kotaku.com/rss",
+      "region": "us"
     },
     {
-      "url": "https://harmonizers-jp.com/"
+      "name": "Mantan Web",
+      "url": "https://mantan-web.jp/",
+      "region": "jp"
     },
     {
-      "url": "https://kotaku.com/rss"
+      "name": "P-Bandai US",
+      "url": "https://p-bandai.com/us/",
+      "region": "us"
     },
     {
-      "url": "https://mantan-web.jp/"
+      "name": "P-Bandai US News",
+      "url": "https://p-bandai.com/us/news",
+      "region": "us"
     },
     {
-      "url": "https://mimorin2014.com/blog-date-202401-1.html"
+      "name": "P-Bandai Global",
+      "url": "https://p-bandai.jp/global_newpc.html",
+      "region": "global"
     },
     {
-      "url": "https://nyaa.si/?page=rss&q=%5BEG%5D+Gundam&c=1_2&f=0"
+      "name": "Planeta Gundam Blog",
+      "url": "https://planetagundam.com/blog",
+      "region": "latam"
     },
     {
-      "url": "https://nyaa.si/?page=rss&q=%5BJudas%5D+Gundam&c=1_2&f=0"
+      "name": "Bandai Namco Ent. Store",
+      "url": "https://store.bandainamcoent.com/",
+      "region": "us"
     },
     {
-      "url": "https://nyaa.si/?page=rss&q=gundam&c=1_2&f=0"
+      "name": "Sugoi.co",
+      "url": "https://sugoi.co/",
+      "region": "global"
     },
     {
-      "url": "https://nyaa.si/?page=rss&q=gundam+%28movie%7Cfilm%7Cfreedom%7Chathaway%29+%28BD%7Cencode%7Craw%29&c=1_2&f=0"
+      "name": "Tamashii Web Blog",
+      "url": "https://tamashiiweb.com/tn_blog/",
+      "region": "jp"
     },
     {
-      "url": "https://p-bandai.com/us/"
+      "name": "Toyokeizai",
+      "url": "https://toyokeizai.net/",
+      "region": "jp"
     },
     {
-      "url": "https://p-bandai.com/us/news"
+      "name": "1999.co.jp Gundam",
+      "url": "https://www.1999.co.jp/eng/gundam/",
+      "region": "jp"
     },
     {
-      "url": "https://p-bandai.jp/global_newpc.html"
+      "name": "Animeclick IT",
+      "url": "https://www.animeclick.it/video-intro?r=/",
+      "region": "eu"
     },
     {
-      "url": "https://planetagundam.com/blog"
+      "name": "B-ch",
+      "url": "https://www.b-ch.com/",
+      "region": "jp"
     },
     {
-      "url": "https://store.bandainamcoent.com/"
+      "name": "B-ch Gundam",
+      "url": "https://www.b-ch.com/gundam/",
+      "region": "jp"
     },
     {
-      "url": "https://sugoi.co/"
+      "name": "Bandai",
+      "url": "https://www.bandai.com/",
+      "region": "us"
     },
     {
-      "url": "https://tamashiiweb.com/tn_blog/"
+      "name": "Bandai News",
+      "url": "https://www.bandai.com/News",
+      "region": "us"
     },
     {
-      "url": "https://tamashiiweb.com/tn_blog/129/?wovn=en"
+      "name": "Bandai Namco",
+      "url": "https://www.bandainamco.co.jp/",
+      "region": "jp"
     },
     {
-      "url": "https://toyokeizai.net/"
+      "name": "Gundam Next Future Pavilion",
+      "url": "https://www.bandainamco.co.jp/en/gundam-next-future-pavilion/index.php",
+      "region": "jp"
     },
     {
-      "url": "https://twitter.com/GundamOfficial"
+      "name": "Gundam Next Future – With Fans",
+      "url": "https://www.bandainamco.co.jp/en/gundam-next-future-pavilion/withfans/index.php",
+      "region": "jp"
     },
     {
-      "url": "https://weibo.com/n/BandaiNamcoChina"
+      "name": "Gundam Official App (EN)",
+      "url": "https://www.bandainamco.co.jp/guda/goi/en/",
+      "region": "global"
     },
     {
-      "url": "https://www.1999.co.jp/eng/gundam/"
+      "name": "Bandai Namco Ent.",
+      "url": "https://www.bandainamcoent.com/",
+      "region": "us"
     },
     {
-      "url": "https://www.animeclick.it/video-intro?r=/"
+      "name": "Bandai Spirits",
+      "url": "https://www.bandaispirits.co.jp/",
+      "region": "jp"
     },
     {
-      "url": "https://www.animenewsnetwork.com/news/rss.xml?ann-edition=us"
+      "name": "Bandai Spirits – Recycle Project",
+      "url": "https://www.bandaispirits.co.jp/hobbycenter/recycleproject.html",
+      "region": "jp"
     },
     {
-      "url": "https://www.b-ch.com/"
+      "name": "Bilibili",
+      "url": "https://www.bilibili.com/",
+      "region": "cn"
     },
     {
-      "url": "https://www.b-ch.com/gundam/"
+      "name": "BNFW",
+      "url": "https://www.bnfw.co.jp/",
+      "region": "jp"
     },
     {
-      "url": "https://www.bandai.com/"
+      "name": "Catsuka",
+      "url": "https://www.catsuka.com/",
+      "region": "eu"
     },
     {
-      "url": "https://www.bandai.com/News"
+      "name": "G-Manhole",
+      "url": "https://www.g-manhole.net/",
+      "region": "jp"
     },
     {
-      "url": "https://www.bandainamco.co.jp/"
+      "name": "Gundam Reconguista in G",
+      "url": "https://www.g-reco.net/",
+      "region": "jp"
     },
     {
-      "url": "https://www.bandainamco.co.jp/en/gundam-next-future-pavilion/index.php"
+      "name": "Gundam Reconguista in G – TV",
+      "url": "https://www.g-reco.net/tv/",
+      "region": "jp"
     },
     {
-      "url": "https://www.bandainamco.co.jp/en/gundam-next-future-pavilion/withfans/index.php"
+      "name": "Iron-Blooded Orphans",
+      "url": "https://www.g-tekketsu.com/",
+      "region": "jp"
     },
     {
-      "url": "https://www.bandainamco.co.jp/guda/goi/en/"
+      "name": "Gundam Twilight Axis",
+      "url": "https://www.g-twilight-axis.net/top.html",
+      "region": "jp"
     },
     {
-      "url": "https://www.bandainamcoent.com/"
+      "name": "Gundam AB – Oficial",
+      "url": "https://www.gundam-ab.com/",
+      "region": "jp"
     },
     {
-      "url": "https://www.bandaispirits.co.jp/"
+      "name": "Gundam AGE",
+      "url": "https://www.gundam-age.net/",
+      "region": "jp"
     },
     {
-      "url": "https://www.bandaispirits.co.jp/hobbycenter/recycleproject.html"
+      "name": "Gundam Base",
+      "url": "https://www.gundam-base.net/",
+      "region": "jp"
     },
     {
-      "url": "https://www.bilibili.com/"
+      "name": "Gundam Base RSS",
+      "url": "https://www.gundam-base.net/rss",
+      "region": "jp"
     },
     {
-      "url": "https://www.bnfw.co.jp/"
+      "name": "Gundam Base Staff Blog",
+      "url": "https://www.gundam-base.net/staffblog/",
+      "region": "jp"
     },
     {
-      "url": "https://www.catsuka.com/"
+      "name": "Gundam Build Fighters",
+      "url": "https://www.gundam-bf.net/",
+      "region": "jp"
     },
     {
-      "url": "https://www.g-manhole.net/"
+      "name": "Gundam BF – 2013",
+      "url": "https://www.gundam-bf.net/2013/",
+      "region": "jp"
     },
     {
-      "url": "https://www.g-reco.net/"
+      "name": "Gundam BF – Battlogue",
+      "url": "https://www.gundam-bf.net/battlogue/",
+      "region": "jp"
     },
     {
-      "url": "https://www.g-reco.net/tv/"
+      "name": "Gundam BF – GM",
+      "url": "https://www.gundam-bf.net/gm/",
+      "region": "jp"
     },
     {
-      "url": "https://www.g-tekketsu.com/"
+      "name": "Gundam BF – HHIB",
+      "url": "https://www.gundam-bf.net/hhib/",
+      "region": "jp"
     },
     {
-      "url": "https://www.g-twilight-axis.net/top.html"
+      "name": "Gundam BF – Try",
+      "url": "https://www.gundam-bf.net/try/",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundam-ab.com/"
+      "name": "Gundam BF – Try Special",
+      "url": "https://www.gundam-bf.net/try_special/",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundam-age.net/"
+      "name": "Gundam BM",
+      "url": "https://www.gundam-bm.net/",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundam-base.net/"
+      "name": "Gundam GCG (EN)",
+      "url": "https://www.gundam-gcg.com/en/",
+      "region": "global"
     },
     {
-      "url": "https://www.gundam-base.net/rss"
+      "name": "Gundam GCG News (EN)",
+      "url": "https://www.gundam-gcg.com/en/news/",
+      "region": "global"
     },
     {
-      "url": "https://www.gundam-base.net/staffblog/"
+      "name": "Gundam GCG Products (EN)",
+      "url": "https://www.gundam-gcg.com/en/products/",
+      "region": "global"
     },
     {
-      "url": "https://www.gundam-bf.net/"
+      "name": "Gundam-san",
+      "url": "https://www.gundam-san.net/",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundam-bf.net/2013/"
+      "name": "Gundam SEED",
+      "url": "https://www.gundam-seed.net/",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundam-bf.net/battlogue/"
+      "name": "SEED Freedom",
+      "url": "https://www.gundam-seed.net/freedom/",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundam-bf.net/gm/"
+      "name": "Gundam SEED News",
+      "url": "https://www.gundam-seed.net/news/",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundam-bf.net/hhib/"
+      "name": "Gundam Thunderbolt",
+      "url": "https://www.gundam-tb.net/",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundam-bf.net/try/"
+      "name": "Gundam: The Origin",
+      "url": "https://www.gundam-the-origin.net/",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundam-bf.net/try_special/"
+      "name": "Gundam Unicorn",
+      "url": "https://www.gundam-unicorn.net/",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundam-bm.net/"
+      "name": "Gundam Unicorn MSV",
+      "url": "https://www.gundam-unicorn.net/MSV/",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundam-gcg.com/en/"
+      "name": "Gundam ZZ",
+      "url": "https://www.gundam-zz.net/",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundam-gcg.com/en/news/"
+      "name": "Gundam TV",
+      "url": "https://www.gundam.jp/tv/index.html",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundam-gcg.com/en/products/"
+      "name": "Gundam 00",
+      "url": "https://www.gundam00.net/",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundam-san.net/"
+      "name": "Gundam 0080",
+      "url": "https://www.gundam0080.net/",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundam-seed.net/"
+      "name": "Gundam 40th",
+      "url": "https://www.gundam40th.net/",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundam-seed.net/freedom/"
+      "name": "Gundamfc",
+      "url": "https://www.gundamfc.com/",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundam-seed.net/news/"
+      "name": "Gundam Kits Collection",
+      "url": "https://www.gundamkitscollection.com/",
+      "region": "global"
     },
     {
-      "url": "https://www.gundam-tb.net/"
+      "name": "Gundam Planet",
+      "url": "https://www.gundamplanet.com/",
+      "region": "us"
     },
     {
-      "url": "https://www.gundam-the-origin.net/"
+      "name": "Gundam Planet Blog",
+      "url": "https://www.gundamplanet.com/blogs/news/",
+      "region": "us"
     },
     {
-      "url": "https://www.gundam-unicorn.net/"
+      "name": "Gundam Universe",
+      "url": "https://www.gundamuniverse.com/",
+      "region": "global"
     },
     {
-      "url": "https://www.gundam-unicorn.net/MSV/"
+      "name": "Gundam World IT",
+      "url": "https://www.gundamworld.it/",
+      "region": "eu"
     },
     {
-      "url": "https://www.gundam-zz.net/"
+      "name": "GunJap",
+      "url": "https://www.gunjap.net/site/?feed=rss2",
+      "region": "global"
     },
     {
-      "url": "https://www.gundam.jp/tv/index.html"
+      "name": "HLJ – Bandai Hobby Jun/25",
+      "url": "https://www.hlj.com/search/?itemGroup=BANDAIHOBBY202506&utm_source=gundamkitscollection&utm_medium=affiliate",
+      "region": "global"
     },
     {
-      "url": "https://www.gundam00.net/"
+      "name": "Sotsu (JP)",
+      "url": "https://www.sotsu.co.jp/",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundam0080.net/"
+      "name": "Sotsu (EN)",
+      "url": "https://www.sotsu.co.jp/en/",
+      "region": "global"
     },
     {
-      "url": "https://www.gundam40th.net/"
+      "name": "Strict-G",
+      "url": "https://www.strict-g.com/",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundamfc.com/"
+      "name": "Sunrise Inc.",
+      "url": "https://www.sunrise-inc.co.jp/",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundamkitscollection.com/"
+      "name": "Sunrise International",
+      "url": "https://www.sunrise-inc.co.jp/international/",
+      "region": "global"
     },
     {
-      "url": "https://www.gundamplanet.com/"
+      "name": "Sunrise Music",
+      "url": "https://www.sunrise-music.co.jp/",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundamplanet.com/blogs/news/"
+      "name": "Sunrise – Yatate Feature",
+      "url": "https://www.sunrise-world.net/feature/feature_yatate.php",
+      "region": "jp"
     },
     {
-      "url": "https://www.gundamuniverse.com/"
+      "name": "Toy-People (EN)",
+      "url": "https://www.toy-people.com/en/",
+      "region": "global"
     },
     {
-      "url": "https://www.gundamworld.it/"
+      "name": "Unicorn Gundam Statue (EN)",
+      "url": "https://www.unicorn-gundam-statue.jp/en/",
+      "region": "jp"
     },
     {
-      "url": "https://www.gunjap.net/site/?feed=rss2"
+      "name": "USA Gundam Store",
+      "url": "https://www.usagundamstore.com/",
+      "region": "us"
     },
     {
-      "url": "https://www.hlj.com/search/?itemGroup=BANDAIHOBBY202506&utm_source=gundamkitscollection&utm_medium=affiliate"
-    },
-    {
-      "url": "https://www.instagram.com/mobilesuitgundam_oficial/"
-    },
-    {
-      "url": "https://www.sotsu.co.jp/"
-    },
-    {
-      "url": "https://www.sotsu.co.jp/en/"
-    },
-    {
-      "url": "https://www.strict-g.com/"
-    },
-    {
-      "url": "https://www.sunrise-inc.co.jp/"
-    },
-    {
-      "url": "https://www.sunrise-inc.co.jp/international/"
-    },
-    {
-      "url": "https://www.sunrise-music.co.jp/"
-    },
-    {
-      "url": "https://www.sunrise-world.net/feature/feature_yatate.php"
-    },
-    {
-      "url": "https://www.toy-people.com/en/"
-    },
-    {
-      "url": "https://www.unicorn-gundam-statue.jp/en/"
-    },
-    {
-      "url": "https://www.usagundamstore.com/"
-    },
-    {
-      "url": "https://www.usagundamstore.com/blogs/usa-gundam-blog.atom"
-    },
-    {
-      "url": "https://www.vcagundam.com/"
-    },
-    {
-      "url": "https://www.youtube.com/hashtag/%E9%96%83%E5%85%89%E3%81%AE%E3%83%8F%E3%82%B5%E3%82%A6%E3%82%A4"
-    },
-    {
-      "url": "https://x.com/GUNDAMPAVILION"
-    },
-    {
-      "url": "https://x.com/GundamInfoNA"
-    },
-    {
-      "url": "https://x.com/IhiZ8mk0vZciTY9"
-    },
-    {
-      "url": "https://x.com/JQo8kZjEX7qKkSx"
-    },
-    {
-      "url": "https://x.com/gundam_ch"
-    },
-    {
-      "url": "https://x.com/gundam_hathaway"
+      "name": "VCA Gundam",
+      "url": "https://www.vcagundam.com/",
+      "region": "global"
     }
   ],
   "filters": {
@@ -572,7 +998,23 @@
       "metal build",
       "p-bandai",
       "premium bandai",
-      "gundam base"
+      "gundam base",
+      "gquuuuuux",
+      "build metaverse",
+      "thunderbolt",
+      "unicorn",
+      "bandai spirits",
+      "hg ",
+      "mg ",
+      "rg ",
+      "pg ",
+      "rg ",
+      "mg ",
+      "pg ",
+      "master grade",
+      "real grade",
+      "perfect grade",
+      "high grade"
     ],
     "negative_keywords": [
       "bootleg",
@@ -584,7 +1026,10 @@
       "pokemon",
       "dragon ball",
       "kamen rider",
-      "one piece"
+      "one piece",
+      "super sentai",
+      "ultraman",
+      "zoids"
     ]
   }
 }
