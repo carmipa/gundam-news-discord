@@ -1,5 +1,10 @@
 {
   "rss_feeds": [
+    "https://en.gundam.info/news/rss/",
+    "https://www.gundam.info/news/rss/",
+    "https://news.google.com/rss/search?q=Gundam&hl=en-US&gl=US&ceid=US:en",
+    "https://news.google.com/rss/search?q=Gunpla&hl=en-US&gl=US&ceid=US:en",
+    "https://hobby.watch.impress.co.jp/data/rss/1.0/hw/feed.rdf",
     "https://www.animenewsnetwork.com/news/rss.xml?ann-edition=us",
     "https://gundamnews.org/feed",
     "https://gunpla101.com/feed",

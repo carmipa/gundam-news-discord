@@ -23,7 +23,7 @@ from utils.storage import p, load_json_safe
 from utils.security import validate_url
 from utils.cache import get_cache_headers, update_cache_state
 
-log = logging.getLogger("CyberIntel")
+log = logging.getLogger("MaftyScanner")
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
@@ -38,7 +38,9 @@ def load_sources() -> List[str]:
     urls: List[str] = []
     
     if isinstance(sources_raw, dict):
-        for key in ("rss_feeds", "youtube_feeds", "feeds", "sources"):
+        # We look into all relevant keys including reference sites
+        keys_to_check = ["rss_feeds", "youtube_feeds", "feeds", "sources", "official_sites_reference_(not_rss)"]
+        for key in keys_to_check:
             val = sources_raw.get(key, [])
             if isinstance(val, list):
                 for item in val:

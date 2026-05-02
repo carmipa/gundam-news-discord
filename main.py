@@ -1,5 +1,5 @@
 # =========================================================
-# CyberIntel Bot - "CyberGuard" v3.0
+# Mafty Sovereign - Gundam News Bot v3.0
 # main.py (Modularized)
 # =========================================================
 """
@@ -25,7 +25,7 @@ from utils.git_info import get_git_changes, get_current_hash, get_commits_since
 from utils.logger import setup_logger
 
 # Configura o logger global com rotação de arquivos e cores no console
-log = setup_logger(name="CyberIntel", log_file="logs/bot.log", level=LOG_LEVEL)
+log = setup_logger(name="MaftySovereign", log_file="logs/bot.log", level=LOG_LEVEL)
 
 
 # =========================================================
@@ -168,10 +168,10 @@ async def main():
                 changes_block = "\n".join(f"• {c}" for c in commits)
                 if len(changes_block) > 3800:
                     changes_block = changes_block[:3797] + "..."
-                repo_url = "https://github.com/carmipa/cyberintel-discord"
+                repo_url = "https://github.com/carmipa/gundam-news-discord"
                 description = (
                     f"**Última atualização de inteligência aplicada:**\n{changes_block}\n\n"
-                    f"**Repository:** [github.com/carmipa/cyberintel-discord]({repo_url})"
+                    f"**Repository:** [github.com/carmipa/gundam-news-discord]({repo_url})"
                 )
 
                 now = datetime.now()

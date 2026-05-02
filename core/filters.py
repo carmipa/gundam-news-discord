@@ -1,5 +1,5 @@
 """
-Filters module - Cybersecurity Intelligence filtering and categorization logic.
+Filters module - Gundam & Gunpla Intelligence filtering and categorization logic.
 """
 from typing import Dict, List, Any
 import re
@@ -7,63 +7,59 @@ from utils.html import clean_html
 
 
 # =========================================================
-# CYBERSECURITY INTELLIGENCE FILTERS
+# GUNDAM & GUNPLA INTELLIGENCE FILTERS
 # =========================================================
 
 # Essential terms that define if a news item is relevant to the bot's scope
-CYBER_CORE = [
-    "cybersecurity", "infosec", "hacker", "hacking", "exploit", "vulnerability",
-    "zero-day", "0-day", "malware", "ransomware", "phishing", "data breach",
-    "data leak", "cyberattack", "cyber attack", "cve-", "critical patch",
-    "security advisory", "threat intelligence", "apt group", "cyber warfare",
-    "security researcher", "penetration testing", "pentest", "red team", "blue team",
-    "encryption", "cryptography", "social engineering", "backdoor", "trojan",
-    "botnet", "spyware", "stealer", "rootkit", "rce", "sqli", "xss", "csrf"
+GUNDAM_CORE = [
+    "gundam", "gunpla", "bandai", "sunrise", "p-bandai", "mobile suit", "mobilesuit",
+    "universal century", "hguc", "mgex", "ver.ka", "plamo", "model kit", "g-structure",
+    "witch from mercury", "iron-blooded orphans", "seed freedom", "gundam base",
+    "premium bandai", "tamashii nations", "metal build", "robot spirits"
 ]
 
-# Generic noise to ignore (to reduce false positives from general tech news)
+# Generic noise to ignore
 BLACKLIST = [
-    "gaming news", "gameplay", "trailer", "movie review", "smartphone review",
-    "giveaway", "deal of the day", "crypto price", "stock market", "celebrity"
+    "giveaway", "deal of the day", "stock market", "celebrity", "politics"
 ]
 
 # Categorization for the user dashboard
 CAT_MAP = {
-    "vulnerabilidades": [
-        "cve", "vulnerability", "exploit", "zero-day", "0-day", "rce", "sqli", "xss",
-        "bypass", "patch", "advisory", "update", "poc", "proof of concept"
+    "model_kits": [
+        "gunpla", "hg", "mg", "rg", "pg", "eg", "model kit", "plamo", "option parts",
+        "expansion set", "ver.ka", "master grade", "high grade", "real grade"
     ],
-    "malware": [
-        "ransomware", "trojan", "spyware", "botnet", "phishing", "loader", "stealer",
-        "crypter", "virus", "worm", "wiper", "malicious", "adware"
+    "anime_movies": [
+        "anime", "movie", "series", "episode", "streaming", "netflix", "crunchyroll",
+        "trailer", "teaser", "cast", "blu-ray", "dvd"
     ],
-    "vazamentos": [
-        "data breach", "leak", "dump", "credentials", "database", "exposed", 
-        "breached", "pwned", "dark web", "intel leak"
+    "games": [
+        "game", "mobile game", "gundam evolution", "gbo2", "uc engage", "breaker",
+        "platform", "update", "patch notes", "steam", "ps5", "nintendo"
     ],
-    "ameacas": [
-        "apt", "threat actor", "hacker group", "state-sponsored", "campaign",
-        "espionage", "lazarus", "lockbit", "fancy bear", "sandworm", "cl0p"
+    "eventos": [
+        "event", "exhibition", "gundam base", "statue", "yokohama", "shizuoka",
+        "convention", "tamashii features", "hobby show"
     ],
-    "pesquisa": [
-        "deep dive", "analysis", "whitepaper", "reverse engineering", "writeup",
-        "forensics", "dfir", "technical report", "security research"
+    "merchandise": [
+        "figure", "robot spirits", "metal build", "shfiguarts", "clothing",
+        "apparel", "strict-g", "lifestyle", "accessory"
     ]
 }
 
 # Source-specific strict filters (Regex)
 SPECIAL_SOURCE_RULES = {
-    "reddit.com": r"(?i)(cve|exploit|vulnerability|malware|breach|leak|hack|apt|zero-day|0-day)",
-    "wired.com": r"(?i)(security|hacker|hack|breach|cyber|vulnerability|surveillance|privacy)"
+    "reddit.com": r"(?i)(gundam|gunpla|bandai|mobile suit|hg|mg|rg|pg|ver.ka)",
+    "hobby.dengeki.com": r"(?i)(ガンダム|ガンプラ|バンダイ)"
 }
 
 FILTER_OPTIONS = {
-    "todos": ("TUDO", "🛡️"),
-    "vulnerabilidades": ("Vulnerabilidades", "🐛"),
-    "malware": ("Malware & Ransomware", "🦠"),
-    "vazamentos": ("Vazamentos & Brechas", "🔓"),
-    "ameacas": ("Atores & Ameaças", "👥"),
-    "pesquisa": ("Pesquisa & Writeups", "📝"),
+    "todos": ("TUDO", "🤖"),
+    "model_kits": ("Model Kits & Gunpla", "🛠️"),
+    "anime_movies": ("Anime & Filmes", "🎬"),
+    "games": ("Games", "🎮"),
+    "eventos": ("Eventos & Estátuas", "📍"),
+    "merchandise": ("Merch & Figuras", "🧸"),
 }
 
 # =========================================================
@@ -109,7 +105,7 @@ def match_intel(
         return False
 
     # Check for core relevance
-    if not _contains_any(content, CYBER_CORE):
+    if not _contains_any(content, GUNDAM_CORE):
         return False
 
     # Source-specific strict rules
@@ -130,3 +126,4 @@ def match_intel(
             return True
 
     return False
+

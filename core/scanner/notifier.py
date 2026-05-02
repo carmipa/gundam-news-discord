@@ -10,23 +10,23 @@ from urllib.parse import urlparse
 from utils.translator import translate_to_target, t
 from utils.html import clean_html
 
-log = logging.getLogger("CyberIntel")
+log = logging.getLogger("MaftyScanner")
 
 def get_news_metadata(title: str) -> Tuple[str, discord.Color]:
-    """Returns (prefix, color) based on cybersecurity keywords."""
-    critical_kws = ["zero-day", "0-day", "exploit", "active attack", "critical rce", "ransomware attack", "major leak"]
-    vuln_kws = ["cve-", "vulnerability", "patch", "security update", "advisory", "bug", "fix"]
+    """Returns (prefix, color) based on Gundam news priority."""
+    hot_kws = ["leak", "announcement", "new kit", "p-bandai", "exclusive", "release date", "unveiled"]
+    info_kws = ["review", "unboxing", "tutorial", "custom", "build", "restock"]
     
     t_lower = title.lower()
-    if any(k in t_lower for k in critical_kws):
-        return ("🚨 **[CRITICAL]**", discord.Color.from_rgb(255, 0, 0))
-    elif any(k in t_lower for k in vuln_kws) or "cve-" in t_lower:
-        return ("🐛 **[VULN]**", discord.Color.from_rgb(255, 165, 0))
+    if any(k in t_lower for k in hot_kws):
+        return ("🔥 **[HOT NEWS]**", discord.Color.from_rgb(255, 69, 0)) # OrangeRed
+    elif any(k in t_lower for k in info_kws):
+        return ("📘 **[INFO]**", discord.Color.from_rgb(30, 144, 255)) # DodgerBlue
     
-    return ("⚠️ **[ALERT]**", discord.Color.from_rgb(0, 255, 255))
+    return ("📢 **[NEWS]**", discord.Color.from_rgb(0, 255, 127)) # SpringGreen
 
 async def create_embed(bot: discord.Client, entry: Any, target_lang: str, guild_lang_map: Dict[str, str]) -> discord.Embed:
-    """Builds the CyberIntel styled embed."""
+    """Builds the Gundam-styled embed."""
     title = clean_html(entry.get("title", "No Title")).strip()
     summary = clean_html(entry.get("summary", "") or entry.get("description", "")).strip()[:2000]
     link = entry.get("link", "")
@@ -58,5 +58,8 @@ async def create_embed(bot: discord.Client, entry: Any, target_lang: str, guild_
         try:
             embed.set_thumbnail(url=entry.media_thumbnail[0].get("url"))
         except: pass
+    elif "itunes_image" in entry:
+         embed.set_thumbnail(url=entry.itunes_image)
         
     return embed
+

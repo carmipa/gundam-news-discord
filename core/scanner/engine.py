@@ -23,7 +23,7 @@ from .fetcher import load_sources, fetch_feed
 from .processor import load_history, save_history, sanitize_link, parse_entry_dt, is_recent
 from .notifier import create_embed
 
-log = logging.getLogger("CyberIntel")
+log = logging.getLogger("MaftyScanner")
 scan_lock = asyncio.Lock()
 
 async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
