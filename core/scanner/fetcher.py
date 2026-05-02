@@ -4,7 +4,6 @@ Fetcher module - Handles HTTP requests and RSS feed parsing with stealth techniq
 import ssl
 import asyncio
 import logging
-import random
 import aiohttp
 import certifi
 import feedparser
@@ -15,9 +14,9 @@ from settings import (
     HTTP_TIMEOUT,
     FEED_FETCH_MAX_ATTEMPTS,
     FEED_HTTP_TIMEOUT_MAX_SEC,
-    FEED_FIRST_DELAY_MAX_SEC,
     FEED_FETCH_INTER_RETRY_DELAYS,
-    FEED_FETCH_RETRY_BACKOFF_SEC
+    FEED_FETCH_RETRY_BACKOFF_SEC,
+    FEED_USER_AGENT,
 )
 from utils.storage import p, load_json_safe
 from utils.security import validate_url
@@ -25,13 +24,17 @@ from utils.cache import get_cache_headers, update_cache_state
 
 log = logging.getLogger("MaftyIntel.scanner")
 
-USER_AGENTS = [
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",
-    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16.6 Safari/605.1.15",
-    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/122.0",
-    "Mozilla/5.0 (iPhone; CPU iPhone OS 17_3 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Mobile/15E148 Safari/604.1",
-    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
-]
+# HTTP 4xx/5xx que costumam ser transitórios e merecem nova tentativa no mesmo URL
+_FEED_RETRYABLE_STATUS = frozenset({403, 429, 502, 503, 504})
+
+
+def _delay_before_feed_retry(attempt_index: int) -> float:
+    """Pausa após falha na tentativa `attempt_index` (0 = após 1ª falha), alinhada a settings."""
+    if attempt_index < len(FEED_FETCH_INTER_RETRY_DELAYS):
+        return FEED_FETCH_INTER_RETRY_DELAYS[attempt_index]
+    excess = attempt_index - len(FEED_FETCH_INTER_RETRY_DELAYS)
+    return FEED_FETCH_RETRY_BACKOFF_SEC * (2 ** max(0, excess))
+
 
 def load_sources() -> List[str]:
     sources_raw = load_json_safe(p("sources.json"), {})
@@ -61,7 +64,7 @@ def load_feed_fetch_overrides() -> Dict[str, Dict[str, Any]]:
 
 async def fetch_feed(session: aiohttp.ClientSession, canonical_url: str, http_cache: dict) -> Optional[Tuple[str, List[Any]]]:
     """
-    Fetches and parses a single feed with retries and stealth.
+    Fetches and parses a single feed with retries (delays e UA em settings).
     """
     overrides = load_feed_fetch_overrides().get(canonical_url, {})
     timeout_sec = min(float(overrides.get("http_timeout_sec", HTTP_TIMEOUT)), float(FEED_HTTP_TIMEOUT_MAX_SEC))
@@ -73,9 +76,8 @@ async def fetch_feed(session: aiohttp.ClientSession, canonical_url: str, http_ca
             is_valid, _ = validate_url(canonical_url)
             if not is_valid: return None
 
-            # Stealth Headers
             headers = {
-                "User-Agent": random.choice(USER_AGENTS),
+                "User-Agent": FEED_USER_AGENT,
                 "Accept": "application/rss+xml,application/xml,text/xml;q=0.9,*/*;q=0.8",
                 "Referer": f"{urlparse(canonical_url).scheme}://{urlparse(canonical_url).netloc}/"
             }
@@ -89,8 +91,8 @@ async def fetch_feed(session: aiohttp.ClientSession, canonical_url: str, http_ca
                 
                 if resp.status >= 400:
                     log.warning(f"HTTP {resp.status} for {canonical_url}")
-                    if resp.status in (403, 429) and attempt < FEED_FETCH_MAX_ATTEMPTS - 1:
-                        await asyncio.sleep(2 ** attempt)
+                    if resp.status in _FEED_RETRYABLE_STATUS and attempt < FEED_FETCH_MAX_ATTEMPTS - 1:
+                        await asyncio.sleep(_delay_before_feed_retry(attempt))
                         continue
                     return None
 
@@ -104,7 +106,7 @@ async def fetch_feed(session: aiohttp.ClientSession, canonical_url: str, http_ca
         except Exception as e:
             log.debug(f"Error fetching {canonical_url}: {e}")
             if attempt < FEED_FETCH_MAX_ATTEMPTS - 1:
-                await asyncio.sleep(1)
+                await asyncio.sleep(_delay_before_feed_retry(attempt))
             else:
                 log.error(f"Failed to fetch {canonical_url} after {FEED_FETCH_MAX_ATTEMPTS} attempts.")
     

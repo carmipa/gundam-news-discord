@@ -62,6 +62,12 @@ def _parse_feed_inter_retry_delays() -> list[float]:
 
 FEED_FETCH_INTER_RETRY_DELAYS = _parse_feed_inter_retry_delays()
 
+# User-Agent para pedidos RSS/Atom (identificável; evita mascarar como crawler de terceiros)
+FEED_USER_AGENT = os.getenv(
+    "FEED_USER_AGENT",
+    "MaftyIntelBot/1.0 (+https://github.com/carmipa/gundam-news-discord)",
+).strip() or "MaftyIntelBot/1.0 (+https://github.com/carmipa/gundam-news-discord)"
+
 # Teto (s) para http_timeout_sec por feed em sources.json → feed_fetch_overrides
 try:
     FEED_HTTP_TIMEOUT_MAX_SEC = int(os.getenv("FEED_HTTP_TIMEOUT_MAX_SEC", "120"))
