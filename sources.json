@@ -180,6 +180,20 @@
       "url": "https://news.google.com/rss/search?q=Gunpla&hl=en-US&gl=US&ceid=US:en",
       "category": "news",
       "language": "en"
+    },
+    {
+      "name": "ComicBook.com",
+      "url": "https://comicbook.com/rss/",
+      "category": "entertainment",
+      "language": "en",
+      "region": "us"
+    },
+    {
+      "name": "Kotaku",
+      "url": "https://kotaku.com/rss",
+      "category": "gaming",
+      "language": "en",
+      "region": "us"
     }
   ],
   "reddit_feeds": [
