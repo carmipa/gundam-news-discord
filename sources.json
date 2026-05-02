@@ -3,11 +3,11 @@
     "version": "3.0",
     "generated": "2026-05-02",
     "description": "Base consolidada Mafty — fusão completa das versões anteriores. Estrutura enriquecida com name, category, language e region em todos os feeds.",
-    "total_rss": 24,
+    "total_rss": 26,
     "total_reddit": 5,
     "total_youtube": 16,
     "total_tracker": 6,
-    "total_official_sites": 130,
+    "total_official_sites": 126,
     "notes": [
       "YouTube: nomes dos canais precisam ser verificados manualmente via channel_id.",
       "kusakusa.wordpress.com marcado como unstable — usar timeout estendido.",
@@ -463,11 +463,6 @@
       "region": "global"
     },
     {
-      "name": "Comicbook.com",
-      "url": "https://comicbook.com/rss/",
-      "region": "us"
-    },
-    {
       "name": "Eiga.com",
       "url": "https://eiga.com/",
       "region": "jp"
@@ -601,11 +596,6 @@
       "name": "Harmonizers JP",
       "url": "https://harmonizers-jp.com/",
       "region": "jp"
-    },
-    {
-      "name": "Kotaku RSS",
-      "url": "https://kotaku.com/rss",
-      "region": "us"
     },
     {
       "name": "Mantan Web",
@@ -773,11 +763,6 @@
       "region": "jp"
     },
     {
-      "name": "Gundam Base RSS",
-      "url": "https://www.gundam-base.net/rss",
-      "region": "jp"
-    },
-    {
       "name": "Gundam Base Staff Blog",
       "url": "https://www.gundam-base.net/staffblog/",
       "region": "jp"
@@ -931,11 +916,6 @@
       "name": "Gundam World IT",
       "url": "https://www.gundamworld.it/",
       "region": "eu"
-    },
-    {
-      "name": "GunJap",
-      "url": "https://www.gunjap.net/site/?feed=rss2",
-      "region": "global"
     },
     {
       "name": "HLJ – Bandai Hobby Jun/25",
