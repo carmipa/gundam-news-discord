@@ -1,170 +1,89 @@
 """
-Filters module - News filtering and categorization logic.
+Filters module - Cybersecurity Intelligence filtering and categorization logic.
 """
 from typing import Dict, List, Any
+import re
 from utils.html import clean_html
 
 
 # =========================================================
-# FILTROS / CATEGORIAS
+# CYBERSECURITY INTELLIGENCE FILTERS
 # =========================================================
 
-GUNDAM_CORE = [
-    # Termos Gerais
-    "gundam", "gunpla", "zeon", "zaku", "mobile suit", "haropla", "sdcs", 
-    "amuro ray", "char aznable", "mafty", "minovsky", "newtype", "cyber newtype",
-    
-    # Universal Century (U.C.)
-    "rx-78", "08th ms team", "0080", "war in the pocket", "0083", "stardust memory",
-    "zeta gundam", "zz gundam", "char's counterattack", "cca", "hathaway's flash", 
-    "hathaway noa", "xi gundam", "gundam penelope", "unicorn gundam", "rx-0", "gundam banshee", 
-    "gundam narrative", "gundam f91", "victory gundam", "cucuruz doan", "cucuruz doan's island",
-    "gundam thunderbolt", "requiem for vengeance", "gundam the origin", "u.c. engage", "gundam engage", "uce",
-    
-    # Alternate Universes (A.U.)
-    "g gundam", "gundam wing", "endless waltz", "gundam x", "turn a gundam",
-    "gundam seed", "seed destiny", "seed freedom", "gundam astray", "gundam stargazer", 
-    "gundam 00", "double 00", "gundam age", "g reconguista", "iron-blooded orphans", 
-    "ibo", "barbatos", "witch from mercury", "suletta", "miorine", "gundam aerial",
-    
-    # Build Series & SD
-    "build fighters", "build divers", "build metaverse", "sd gundam", "gundam breakers",
-    
-    # Japanese Terms
-    "ガンダム", "機動戦士", "ハサウェイ", "マフティー", "閃光のハサウェイ", "エンゲージ", "ガンプラ", "宇宙世紀", "nt"
+# Essential terms that define if a news item is relevant to the bot's scope
+CYBER_CORE = [
+    "cybersecurity", "infosec", "hacker", "hacking", "exploit", "vulnerability",
+    "zero-day", "0-day", "malware", "ransomware", "phishing", "data breach",
+    "data leak", "cyberattack", "cyber attack", "cve-", "critical patch",
+    "security advisory", "threat intelligence", "apt group", "cyber warfare",
+    "security researcher", "penetration testing", "pentest", "red team", "blue team",
+    "encryption", "cryptography", "social engineering", "backdoor", "trojan",
+    "botnet", "spyware", "stealer", "rootkit", "rce", "sqli", "xss", "csrf"
 ]
 
+# Generic noise to ignore (to reduce false positives from general tech news)
 BLACKLIST = [
-    "one piece", "dragon ball", "naruto", "bleach",
-    "my hero academia", "boku no hero", "hunter x hunter",
-    "pokemon", "digimon", "attack on titan",
-    "jujutsu", "demon slayer"
+    "gaming news", "gameplay", "trailer", "movie review", "smartphone review",
+    "giveaway", "deal of the day", "crypto price", "stock market", "celebrity"
 ]
 
+# Categorization for the user dashboard
 CAT_MAP = {
-    "gunpla":  ["gunpla", "model kit", "kit", "ver.ka", "p-bandai", "premium bandai", "hg ", "mg ", "rg ", "pg ", "sd ", "fm ", "re/100", "perfect grade", "real grade", "high grade", "master grade", "metal build", "robot spirits", "ガンプラ", "プラモデル", "プレバン"],
-    "filmes":  ["anime", "episode", "episódio", "episodio", "movie", "film", "pv", "trailer", "teaser", "series", "season", "seed freedom", "witch from mercury", "hathaway", "requiem for vengeance", "cucuruz doan", "話", "phase", "cm", "blu-ray", "dvd", "アニメ", "映画", "劇場版", "第", "閃光のハサウェイ", "水星の魔女", "ククルス・ドアン", "復讐のレクイエム", "予告", "特報"],
-    "games":   ["game", "steam", "ps5", "xbox", "gbo2", "battle operation", "breaker", "gundam breaker", "uc engage", "crossrays", "maxiboost", "extreme vs", "ゲーム", "バトルオペレーション", "バトオペ", "ガンダムブレイカー", "エンゲージ", "クロスレイズ", "マキシブースト", "エクバ"],
-    "musica":  ["music", "ost", "soundtrack", "album", "opening", "ending", "音楽", "サウンドトラック", "主題歌", "オープニング", "エンディング"],
-    "fashion": ["fashion", "clothing", "apparel", "t-shirt", "hoodie", "jacket", "merch", "アパレル", "Tシャツ", "パーカー", "グッズ"],
+    "vulnerabilidades": [
+        "cve", "vulnerability", "exploit", "zero-day", "0-day", "rce", "sqli", "xss",
+        "bypass", "patch", "advisory", "update", "poc", "proof of concept"
+    ],
+    "malware": [
+        "ransomware", "trojan", "spyware", "botnet", "phishing", "loader", "stealer",
+        "crypter", "virus", "worm", "wiper", "malicious", "adware"
+    ],
+    "vazamentos": [
+        "data breach", "leak", "dump", "credentials", "database", "exposed", 
+        "breached", "pwned", "dark web", "intel leak"
+    ],
+    "ameacas": [
+        "apt", "threat actor", "hacker group", "state-sponsored", "campaign",
+        "espionage", "lazarus", "lockbit", "fancy bear", "sandworm", "cl0p"
+    ],
+    "pesquisa": [
+        "deep dive", "analysis", "whitepaper", "reverse engineering", "writeup",
+        "forensics", "dfir", "technical report", "security research"
+    ]
 }
 
-# =========================================================
-# SPECIAL SOURCE RULES (Advanced Filtering)
-# =========================================================
-# Mapeia ID do canal -> Regex que DEVE dar match no título para ser aprovado.
-# Útil para canais oficiais que postam muito lixo (gameplay, trailers de outros jogos)
-# e queremos apenas conteúdo específico (ex: cutscenes de história).
-
+# Source-specific strict filters (Regex)
 SPECIAL_SOURCE_RULES = {
-    # As outras fontes gundam permanecem sem filtro estrito pois o usuário informou
-    # que já estão perfeitas. Deixamos apenas Netflix no controle rigoroso.
-    
-    # Netflix / Canais de Anime Geral -> Filtro ESTRITO
-    # Whats on Netflix RSS e Netflix Japan YouTube (UCv2ejD5B1xOYtGB2cf80B8g)
-    # Garante que pelo menos o nome EXATO de Gundam, Gunpla, séries centrais ou o termo oficial japonês esteja presente
-    "whats-on-netflix.com": r"(?i)(gundam|gunpla|requiem|hathaway|cucuruz|iron-blooded|witch from mercury|ガンダム|機動戦士)",
-    "UCv2ejD5B1xOYtGB2cf80B8g": r"(?i)(gundam|gunpla|requiem|hathaway|cucuruz|iron-blooded|witch from mercury|ガンダム|機動戦士)"
+    "reddit.com": r"(?i)(cve|exploit|vulnerability|malware|breach|leak|hack|apt|zero-day|0-day)",
+    "wired.com": r"(?i)(security|hacker|hack|breach|cyber|vulnerability|surveillance|privacy)"
 }
 
 FILTER_OPTIONS = {
-    "todos": ("TUDO", "🌟"),
-    "gunpla": ("Gunpla", "🤖"),
-    "filmes": ("Filmes", "🎬"),
-    "games": ("Games", "🎮"),
-    "musica": ("Música", "🎵"),
-    "fashion": ("Fashion", "👕"),
+    "todos": ("TUDO", "🛡️"),
+    "vulnerabilidades": ("Vulnerabilidades", "🐛"),
+    "malware": ("Malware & Ransomware", "🦠"),
+    "vazamentos": ("Vazamentos & Brechas", "🔓"),
+    "ameacas": ("Atores & Ameaças", "👥"),
+    "pesquisa": ("Pesquisa & Writeups", "📝"),
 }
-
-# =========================================================
-# FONTES GUNDAM-DEDICADAS (referência; não usado na lógica atual)
-# =========================================================
-# Regra atual: SEMPRE exige termo Gundam (GUNDAM_CORE) no título/resumo, em todas as fontes.
-# Lista abaixo mantida apenas como referência (ex.: usagundamstore, hobby.dengeki postam
-# conteúdo não-Gundam; por isso a palavra Gundam é obrigatória na matéria).
-TRUSTED_GUNDAM_SOURCE_DOMAINS = [
-    # Notícias e blogs Gundam
-    "gundamnews.org", "gunpla101.com", "gunjap.net", "usagundamstore.com",
-    "gundamkitscollection.com", "gundam-base.net", "gundamplanet.com",
-    "vcagundam.com", "gundamworld.it", "gundamhangar.com", "planetagundam.com",
-    "gundamplacestore.com", "gundam-ab.com", "strict-g.com",
-    # Oficiais e séries
-    "gundam-official.com", "gundam.info", "gundam.jp", "gundam-seed.net",
-    "gundam-tb.net", "gundam-the-origin.net", "g-tekketsu.com", "gundam-unicorn.net",
-    "g-reco.net", "gundam-bf.net", "gundam-age.net", "gundam00.net", "gundam-san.net",
-    "gundam-zz.net", "g-twilight-axis.net", "gundam-gcg.com", "gundamfc.com",
-    "gundam-next-future-pavilion", "gundam-navi", "unicorn-gundam-statue",
-    "gundam_ch", "gundam_hathaway", "gundam-uce.ggame.jp",
-    # Bandai / Hobby / Tamashii
-    "p-bandai.com", "tamashiiweb.com", "bandai-hobby.net", "bandai.com/blog",
-    "hobby.dengeki.com", "bandainamco.co.jp", "gmpj.bn-ent.net",
-    "bandai.co.jp/candy/gundam", "bandai.co.jp/candy/gunpla",
-    # Sunrise / Sotsu (estúdio e direitos Gundam)
-    "sunrise-inc.co.jp", "sunrise-music.co.jp", "sotsu.co.jp",
-    # Jogos Gundam (GBO2, etc.)
-    "bo2.ggame.jp", "gget.ggame.jp", "gb.ggame.jp",
-    # Reddit e lojas/hobby
-    "reddit.com/r/Gundam", "reddit.com/r/Gunpla",
-    "1999.co.jp/eng/gundam", "bandaibrasil.com.br/collections/gundam",
-]
-
-
-def is_trusted_gundam_source(source_url: str) -> bool:
-    """True se a URL é de fonte Gundam-dedicada. Não usado na lógica atual (sempre exigimos termo Gundam)."""
-    if not source_url:
-        return False
-    url_lower = source_url.lower()
-    return any(domain in url_lower for domain in TRUSTED_GUNDAM_SOURCE_DOMAINS)
-
 
 # =========================================================
 # HELPER FUNCTIONS
 # =========================================================
 
-import re
-
 def _contains_any(text: str, keywords: List[str]) -> bool:
     """
-    Verifica se alguma keyword está presente no texto usando Regex flexível.
-    
-    1. Se for Japonês (CJK), não usa 'word boundaries' (\\b), pois o Python 're' falha.
-    2. Se for uma palavra chave central muito importante e passível de aglutinação
-       (ex: 'gundam' em 'suitgundam', 'gunpla', 'zeon'), também removemos a borda rígida.
-    3. Para as demais, usa word boundaries (\\b) para evitar 'wing' no meio de 'drawing'.
-    Protege '00' de match em horários (12:00) usando negative lookbehind (?<!:).
-    
-    Args:
-        text: Texto a verificar (já em lowercase)
-        keywords: Lista de palavras-chave (em lowercase)
-    
-    Returns:
-        True se pelo menos uma keyword foi encontrada
+    Checks if any keyword is present in the text using flexible Regex.
     """
     if not keywords:
         return False
 
     patterns = []
-    
-    # Palavras centrais que podem ser aglutinadas facilmente pelo usuário ou fonte
-    core_agglutinable = ["gundam", "gunpla", "zaku", "zeon"]
-    
     for k in keywords:
         escaped = re.escape(k)
-        
-        # Caracteres CJK ou Japonês - Não usar \\b pois falha no Python re
-        is_cjk = re.search(r'[^\x00-\x7F]', k)
-        
-        if k in core_agglutinable:
-             patterns.append(escaped + r's?')
-        elif is_cjk:
-             patterns.append(escaped)
-        else:
-             # Lookbehind para 00 (ex: 12:00)
-             patterns.append(r'(?<!:)\b' + escaped + r's?\b')
+        patterns.append(r'\b' + escaped + r's?\b')
 
     pattern_str = r'(?:' + '|'.join(patterns) + r')'
-    
-    return bool(re.search(pattern_str, text))
+    return bool(re.search(pattern_str, text, re.IGNORECASE))
 
 
 def match_intel(
@@ -175,24 +94,7 @@ def match_intel(
     source_url: str | None = None,
 ) -> bool:
     """
-    Decide se notícia deve ir para a guild.
-
-    Lógica:
-      1. Exige filtros configurados
-      2. Corta blacklist (animes não-Gundam)
-      3. Exige sempre pelo menos um termo Gundam (GUNDAM_CORE) no título/resumo em todas as fontes
-      4. "todos" libera tudo (desde que passe 2 e 3)
-      5. Senão, precisa bater em categoria selecionada
-
-    Args:
-        guild_id: ID da guild
-        title: Título da notícia
-        summary: Resumo da notícia
-        config: Configuração carregada
-        source_url: URL do feed/fonte (opcional, reservado para uso futuro).
-
-    Returns:
-        True se notícia deve ser postada
+    Decides if the news item should be posted to the guild.
     """
     g = config.get(str(guild_id), {})
     filters = g.get("filters", [])
@@ -202,29 +104,26 @@ def match_intel(
 
     content = f"{clean_html(title)} {clean_html(summary)}".lower()
 
-    # Bloqueia blacklist (sempre)
+    # Block blacklist (always)
     if _contains_any(content, BLACKLIST):
         return False
 
-    # Exige sempre pelo menos um termo Gundam no título/resumo (todas as fontes)
-    if not _contains_any(content, GUNDAM_CORE):
+    # Check for core relevance
+    if not _contains_any(content, CYBER_CORE):
         return False
 
-    # Filtro FORTE / Específico por Fonte (SPECIAL_SOURCE_RULES)
-    # Evita que canais de conteúdo geral (como Netflix) liberem coisas aleatórias
+    # Source-specific strict rules
     if source_url:
         for src_key, strict_pattern in SPECIAL_SOURCE_RULES.items():
             if src_key in source_url:
-                # Se for fonte especial, DEVE satisfazer o regex forte
-                # Analisamos title e summary também, mas com o pattern restrito
-                if not re.search(strict_pattern, f"{title} {summary}"):
+                if not re.search(strict_pattern, content):
                     return False
 
-    # "todos" libera tudo
+    # "todos" allows everything (that passed the core check)
     if "todos" in filters:
         return True
 
-    # Verifica categorias específicas
+    # Check specific categories
     for f in filters:
         kws = CAT_MAP.get(f, [])
         if kws and _contains_any(content, kws):

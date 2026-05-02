@@ -1,148 +1,41 @@
 {
   "rss_feeds": [
-    "https://www.animenewsnetwork.com/news/rss.xml?ann-edition=us",
-    "https://gundamnews.org/feed",
-    "https://gunpla101.com/feed",
-    "https://www.gunjap.net/site/?feed=rss2",
-    "https://www.usagundamstore.com/blogs/usa-gundam-blog.atom",
-    "https://www.bandai.com/blog/rss/feed",
-    "https://www.gundamkitscollection.com/feeds/posts/default?alt=rss",
-    "https://www.reddit.com/r/animepiracy/search.rss?q=gundam&restrict_sr=on&sort=new",
-    "https://www.whats-on-netflix.com/feed/",
-    "http://blog.esuteru.com/index.rdf",
-    "https://natalie.mu/comic/feed/news",
-    "https://deadline.com/feed/",
-    "https://variety.com/feed/",
-    "https://kotaku.com/rss",
-    "https://www.reddit.com/r/Gundam/.rss",
-    "https://hobby.dengeki.com/feed/",
-    "https://www.reddit.com/r/Gunpla/search.rss?q=flair%3ANews&restrict_sr=on&sort=new",
-    "https://www.gundam-base.net/feed",
-    "https://www.gundam-base.net/rss",
-    "https://www.reddit.com/r/Gundam/new/.rss",
-    "https://www.reddit.com/r/Gunpla/.rss",
-    "https://saint-ism.com/feed",
-    "https://goodguydan.blogspot.com/feeds/posts/default?alt=rss",
-    "https://kusakusa.wordpress.com/feed/",
-    "https://www.reddit.com/r/freedomisgunpla/.rss",
-    "https://comicbook.com/rss/"
+    "https://thehackernews.com/feeds/posts/default",
+    "https://www.bleepingcomputer.com/feed/",
+    "https://threatpost.com/feed/",
+    "https://www.darkreading.com/rss.xml",
+    "https://krebsonsecurity.com/feed/",
+    "https://www.schneier.com/blog/index.rdf",
+    "https://nakedsecurity.sophos.com/feed/",
+    "https://googleprojectzero.blogspot.com/feeds/posts/default",
+    "https://unit42.paloaltonetworks.com/feed/",
+    "https://research.checkpoint.com/feed/",
+    "https://securelist.com/feed/",
+    "https://www.cisa.gov/cybersecurity-advisories/all.xml",
+    "https://vulners.com/rss.xml?query=bulletinFamily:nvd",
+    "https://www.wired.com/feed/category/security/latest/rss",
+    "https://techcrunch.com/category/security/feed/",
+    "https://www.reddit.com/r/cybersecurity/new/.rss",
+    "https://www.reddit.com/r/netsec/new/.rss"
   ],
   "youtube_feeds": [
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw",
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCmDLyFjSutfb1MK7F6cMVSA",
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCuxB1suCoCqAKiljh_0xE4A",
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UC7wu64jFsV02bbu6UHUd7JA",
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCWOA1ZGywLbqmigxE4Qlvuw",
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCv2ejD5B1xOYtGB2cf80B8g",
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCrubey1wynXddSM6xLQYLGQ",
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCBw3rioEDVWdaCl-bxuRmeQ"
+    "https://rsshub.app/youtube/channel/UC0ArL1avSVT1E97x_fUih_w",
+    "https://rsshub.app/youtube/channel/UC6biysICCQia_T9jk6D6X3Q",
+    "https://rsshub.app/youtube/channel/UC38l_v_N9SBeS76_3N78L2w",
+    "https://rsshub.app/youtube/channel/UC5_LGaQvGv7VstZzEps_m_Q",
+    "https://rsshub.app/youtube/channel/UC2NbeXAt9E6EbeP-2_8W24Q"
   ],
-  "official_sites_reference_(not_rss)": [
-    "https://mantan-web.jp/",
-    "https://eiga.com/",
-    "https://bbs.a9vg.com/forum-661-1.html",
-    "https://www.1999.co.jp/eng/gundam/",
-    "https://www.catsuka.com/",
-    "https://www.hlj.com/search/?itemGroup=BANDAIHOBBY202506&utm_source=gundamkitscollection&utm_medium=affiliate",
-    "https://www.gundam-gcg.com/en/news/",
-    "https://toyokeizai.net/",
-    "https://www.usagundamstore.com/",
-    "https://www.gundam-base.net/"
-  ],
-  "feed_url_fallbacks": {
-    "https://kusakusa.wordpress.com/feed/": [
-      "https://kusakusa.wordpress.com/feed/rss/",
-      "https://kusakusa.wordpress.com/?feed=rss2",
-      "https://kusakusa.wordpress.com/?feed=atom"
-    ],
-    "https://gunpla101.com/feed": [
-      "https://gunpla101.com/?feed=rss2",
-      "https://gunpla101.com/feed/rss/"
-    ]
-  },
+  "official_sites_reference_(not_rss)": [],
   "feed_fetch_overrides": {
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCmDLyFjSutfb1MK7F6cMVSA": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCuxB1suCoCqAKiljh_0xE4A": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UC7wu64jFsV02bbu6UHUd7JA": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCWOA1ZGywLbqmigxE4Qlvuw": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCv2ejD5B1xOYtGB2cf80B8g": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCrubey1wynXddSM6xLQYLGQ": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCBw3rioEDVWdaCl-bxuRmeQ": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://www.animenewsnetwork.com/news/rss.xml?ann-edition=us": {
+    "https://thehackernews.com/feeds/posts/default": {
       "first_request_delay_sec": 3.0
     },
-    "https://gunpla101.com/feed": {
-      "first_request_delay_sec": 5.0,
-      "http_timeout_sec": 45,
-      "extra_headers": {
-        "Referer": "https://gunpla101.com/",
-        "Accept-Language": "en-US,en;q=0.9"
-      }
+    "https://www.cisa.gov/cybersecurity-advisories/all.xml": {
+      "http_timeout_sec": 45
     },
-    "https://kusakusa.wordpress.com/feed/": {
-      "first_request_delay_sec": 8.0,
-      "http_timeout_sec": 30,
-      "unstable": true,
-      "extra_headers": {
-        "Referer": "https://kusakusa.wordpress.com/",
-        "Accept-Language": "ja-JP,ja;q=0.9,en;q=0.8",
-        "DNT": "1"
-      }
+    "https://vulners.com/rss.xml?query=bulletinFamily:nvd": {
+      "first_request_delay_sec": 2.0,
+      "http_timeout_sec": 60
     }
-  },
-  "_dead_youtube_channels_removed": [
-    {
-      "channel_id": "UCPjmdJSt7kxP5jjkRVuI-7A",
-      "reason": "404_confirmed_in_logs_2026-04-19"
-    },
-    {
-      "channel_id": "UCS_zFUPZOlLkXLAybjYuCxQ",
-      "reason": "404_confirmed_in_logs_2026-04-19"
-    },
-    {
-      "channel_id": "UCWJ5MfdQZ6jXbF5gYuSAf5Q",
-      "reason": "404_confirmed_in_logs_2026-04-19"
-    },
-    {
-      "channel_id": "UCamRLcYia0SOlSsIcbbGiag",
-      "reason": "404_confirmed_in_logs_2026-04-19"
-    },
-    {
-      "channel_id": "UCbJM_Y06iuUOl3hVPqYcvng",
-      "reason": "404_confirmed_in_logs_2026-04-19"
-    },
-    {
-      "channel_id": "UCfVoNfQvw41CoanNW_5gOiw",
-      "reason": "404_confirmed_in_logs_2026-04-19"
-    },
-    {
-      "channel_id": "UCl2aT0nRejTCQO_LHZAftBw",
-      "reason": "404_confirmed_in_logs_2026-04-19"
-    }
-  ]
+  }
 }

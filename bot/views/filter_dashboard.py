@@ -8,7 +8,7 @@ import logging
 from core.filters import FILTER_OPTIONS
 from utils.storage import load_config_cached, save_config_safe
 
-log = logging.getLogger("MaftyIntel")
+log = logging.getLogger("CyberIntel")
 
 
 class FilterDashboard(discord.ui.View):
