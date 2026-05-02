@@ -65,7 +65,7 @@
 
 ```mermaid
 flowchart LR
-  A["sources.json<br>Feeds RSS/Atom/YouTube"] --> B["Scanner<br>core/scanner.py"]
+  A["sources.json<br>Feeds RSS/Atom/YouTube"] --> B["Scanner<br>core/scanner/"]
   B --> C["Normalización<br>URL + entries"]
   B --> J["HTML Monitor<br>core/html_monitor.py"]
   C --> D["Filtros Mafty<br>core/filters.py"]

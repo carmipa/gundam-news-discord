@@ -29,7 +29,7 @@ flowchart TB
     end
 
     subgraph proc["Processamento"]
-        B["Scanner core/scanner.py"]
+        B["Scanner core/scanner/ engine fetcher processor notifier"]
         J["HTML Monitor core/html_monitor.py"]
         C["Normalizacao URL e entries"]
         D["Filtros Mafty core/filters.py"]
@@ -114,7 +114,7 @@ flowchart LR
 | Componente | Caminho | Responsabilidade |
 |------------|---------|------------------|
 | **Main** | `main.py` | Inicialização do bot, eventos, sync de comandos, carregamento de cogs. |
-| **Scanner** | `core/scanner.py` | Loop de varredura de feeds, dedup, cache HTTP, postagem no Discord. |
+| **Scanner** | `core/scanner/` | Pacote modular: `engine.py` (orquestração), `fetcher.py` (RSS/Atom/YouTube via HTTP + feedparser), `processor.py` (dedup, datas, links), `notifier.py` (embeds Discord, Open Graph opcional). **Não** usa scraping de páginas como fonte principal: a entrada é **feed syndication** (RSS/Atom) e **YouTube Data Atom**; sites sem feed continuam no **HTML Monitor** (`core/html_monitor.py`, fetch + hash). |
 | **HTML Monitor** | `core/html_monitor.py` | Monitoramento de sites oficiais (hash de conteúdo). |
 | **Filtros** | `core/filters.py` | Regras de filtragem (GUNDAM_CORE, blacklist, categorias). |
 | **Admin Cog** | `bot/cogs/admin.py` | Comandos `/forcecheck` e `/clean_state`. |
@@ -124,6 +124,14 @@ flowchart LR
 | **Storage** | `utils/storage.py` | Leitura/gravação JSON, backup, `clean_state` em memória. |
 | **Security** | `utils/security.py` | Validação de URLs (anti-SSRF), sanitização de logs. |
 | **Web** | `web/server.py` | Dashboard web (aiohttp), autenticação e rate limiting. |
+
+### Coleta de conteúdo: feeds syndication (não “scraping” de listagens)
+
+O pipeline principal **não** depende de varrer HTML de listagens de notícias como fonte de verdade:
+
+- **RSS / Atom / YouTube (Atom)**: `GET` HTTP → `feedparser` → entradas estruturadas. É o método preferido: estável, com cache condicional (ETag / `If-Modified-Since`) e menos carga que parsing genérico de página.
+- **Thumbnail / preview**: quando o feed não traz imagem, `notifier.py` pode buscar **Open Graph** (`og:image`) via `utils/opengraph.py` — isso é um fetch pontual da página do **artigo**, não um crawler de site inteiro.
+- **Sites sem RSS**: `core/html_monitor.py` faz fetch da página e compara **hash** do texto para detectar mudanças (watcher), não substitui feeds para volume de notícias.
 
 ---
 

@@ -9,7 +9,7 @@ Como **revisar e testar** todas as fontes em uso (RSS, YouTube, HTML Monitor).
 
 ## 🔄 Retries no bot (varredura de feeds)
 
-Na **varredura real** (`core/scanner.py`), cada feed RSS pode ser tentado várias vezes quando a falha parece **transitória**:
+Na **varredura real** (`core/scanner/fetcher.py` / `engine.py`), cada feed RSS pode ser tentado várias vezes quando a falha parece **transitória**:
 
 - **Erro de conexão** (`ClientError`, ex.: servidor desconectou).
 - **Timeout** de leitura.

@@ -65,7 +65,7 @@
 
 ```mermaid
 flowchart LR
-  A["sources.json<br>Feeds RSS/Atom/YouTube"] --> B["Scanner<br>core/scanner.py"]
+  A["sources.json<br>Feeds RSS/Atom/YouTube"] --> B["Scanner<br>core/scanner/"]
   B --> C["Normalization<br>URL + entries"]
   C --> D["Mafty Filters<br>core/filters.py"]
   D -->|Approved| E["Translator (Auto)<br>utils/translator.py"]
@@ -79,7 +79,7 @@ flowchart LR
 
   W["Web Dashboard<br>aiohttp (Port 8080)"] .-> H
   W .-> I
-  A["sources.json<br>Feeds RSS + HTML"] --> B["Scanner<br>core/scanner.py"]
+  A["sources.json<br>Feeds RSS + HTML"] --> B["Scanner<br>core/scanner/"]
   B --> C["Normalization<br>URL + entries"]
   B --> J["HTML Monitor<br>core/html_monitor.py"]
   C --> D["Mafty Filters<br>core/filters.py"]

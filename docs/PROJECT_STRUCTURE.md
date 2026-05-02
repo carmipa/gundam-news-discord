@@ -20,7 +20,12 @@ gundam-news-discord/
 │   ├── cogs/
 │   └── views/
 ├── core/
-│   ├── scanner.py
+│   ├── scanner/           # Pacote do scanner (substitui o monolito scanner.py)
+│   │   ├── __init__.py
+│   │   ├── engine.py      # Orquestração do ciclo de varredura
+│   │   ├── fetcher.py     # HTTP + feedparser (RSS/Atom/YouTube)
+│   │   ├── processor.py   # Dedup, datas, sanitização de links
+│   │   └── notifier.py    # Embeds Discord + OG opcional
 │   ├── filters.py
 │   ├── html_monitor.py
 │   └── stats.py

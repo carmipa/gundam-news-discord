@@ -4,6 +4,19 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 
 ---
 
+## [Unreleased]
+
+### Corrigido
+
+- **Arranque do container** — `core/scanner/notifier.py` importava `Optional` e `aiohttp.ClientSession` nas anotações sem import explícito, gerando `NameError` e restart em loop no Docker.
+
+### Documentação
+
+- **Arquitetura** — Documentação alinhada ao pacote `core/scanner/` (engine, fetcher, processor, notifier): coleta principal via **RSS/Atom/YouTube (syndication)**; HTML Monitor para sites sem feed; Open Graph apenas como enriquecimento de thumbnail.
+- **Estrutura do projeto**, **SOURCES_VERIFICATION**, READMEs EN/ES/IT/JP: referências atualizadas de `core/scanner.py` → `core/scanner/`.
+
+---
+
 ## [2.1.0] - 2026-02-13
 
 ### ✨ Adicionado
@@ -35,7 +48,7 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 
 - **Erros silenciosos corrigidos** - Todos os `except: pass` agora logam adequadamente
 - **Tratamento de exceções melhorado** - Exceções específicas com contexto detalhado
-- **Teste de SSL corrigido** - Agora verifica `core/scanner.py` ao invés de `main.py`
+- **Teste de SSL corrigido** - Agora verifica o pacote `core/scanner/` (fetcher/engine) ao invés de `main.py`
 
 ### 📝 Melhorado
 

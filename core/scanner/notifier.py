@@ -2,9 +2,10 @@
 Notifier module - Handles Discord embed construction and message dispatching.
 """
 import logging
+import aiohttp
 import discord
 from datetime import datetime
-from typing import Dict, Any, Tuple
+from typing import Any, Dict, Optional, Tuple
 from urllib.parse import urlparse
 
 from utils.translator import translate_to_target, t
