@@ -1,10 +1,10 @@
 {
   "rss_feeds": [
-    "https://en.gundam.info/news/rss/",
-    "https://www.gundam.info/news/rss/",
+    "https://news.google.com/rss/search?q=site:en.gundam.info&hl=en-US",
+    "https://news.google.com/rss/search?q=site:www.gundam.info&hl=ja&gl=JP&ceid=JP:ja",
+    "https://hobby.watch.impress.co.jp/data/rss/1.0/hbw/feed.rdf",
     "https://news.google.com/rss/search?q=Gundam&hl=en-US&gl=US&ceid=US:en",
     "https://news.google.com/rss/search?q=Gunpla&hl=en-US&gl=US&ceid=US:en",
-    "https://hobby.watch.impress.co.jp/data/rss/1.0/hw/feed.rdf",
     "https://www.animenewsnetwork.com/news/rss.xml?ann-edition=us",
     "https://gundamnews.org/feed",
     "https://gunpla101.com/feed",
@@ -43,81 +43,143 @@
     "https://www.youtube.com/feeds/videos.xml?channel_id=UCBw3rioEDVWdaCl-bxuRmeQ"
   ],
   "official_sites_reference_(not_rss)": [
+    "https://gundam-official.com/",
+    "https://en.gundam-official.com/news",
+    "https://www.gundam-seed.net/news/",
+    "https://bo2.ggame.jp/en/info/",
+    "https://global.bandai-hobby.net/en-us/news/",
+    "https://bandai-hobby.net/news/",
+    "https://www.gundam-base.net/staffblog/",
+    "https://www.bandai.com/News",
+    "https://www.sunrise-music.co.jp/",
+    "https://www.gundamplanet.com/",
+    "https://www.gundamplanet.com/blogs/news/",
+    "https://bandaibrasil.com.br/collections/gundam",
+    "https://www.gundamkitscollection.com/",
+    "https://www.vcagundam.com/",
+    "https://www.gundam-seed.net/",
+    "https://en.bandainamcoent.eu/",
+    "https://www.sunrise-inc.co.jp/international/",
+    "https://gundam-official.com/hathaway/",
+    "https://gundam-official.com/hathaway/news/",
+    "https://www.gundamfc.com/",
     "https://mantan-web.jp/",
     "https://eiga.com/",
     "https://bbs.a9vg.com/forum-661-1.html",
     "https://www.1999.co.jp/eng/gundam/",
+    "https://www.sotsu.co.jp/en/",
     "https://www.catsuka.com/",
+    "https://www.gundamworld.it/",
+    "https://www.animeclick.it/video-intro?r=/",
+    "https://www.bandai.com/",
     "https://www.hlj.com/search/?itemGroup=BANDAIHOBBY202506&utm_source=gundamkitscollection&utm_medium=affiliate",
     "https://www.gundam-gcg.com/en/news/",
+    "https://gundam-official.com/series/hathaway-i",
+    "https://www.bnfw.co.jp/",
+    "https://www.sunrise-inc.co.jp/",
+    "https://en.gundam-official.com/",
+    "https://www.bandainamcoent.com/",
+    "https://planetagundam.com/blog",
+    "https://global.bandai-hobby.net/es/",
+    "https://gget.ggame.jp/en/",
+    "https://p-bandai.com/us/",
+    "https://p-bandai.com/us/news",
+    "https://en.gundam-official.com/news/jy757u7j45nlih4nip2rzfxn",
+    "https://store.bandainamcoent.com/",
+    "https://en.gundam.info/content/special-collaboration/",
+    "https://www.bandainamco.co.jp/en/gundam-next-future-pavilion/index.php",
+    "https://www.bandainamco.co.jp/en/gundam-next-future-pavilion/withfans/index.php",
+    "https://global.bandai-hobby.net/es/series/gundam/",
+    "https://en.gundam-official.com/series",
+    "https://gundam-uce.ggame.jp/en/",
+    "https://www.gundam-ab.com/",
+    "http://gundam-ab.com/news/",
+    "https://www.gundam-zz.net/",
+    "https://en.gundam.info/about-gundam/series-pages/buildmetaverse/",
+    "https://www.strict-g.com/",
+    "https://p-bandai.jp/global_newpc.html",
+    "https://en.gundam.info/about-gundam/series-pages/gquuuuuux/",
+    "https://www.gundam.jp/tv/index.html",
+    "https://gb.ggame.jp/2024/",
     "https://toyokeizai.net/",
+    "https://gundamnews.org/",
+    "https://en.gundam-official.com/series/seed",
+    "https://www.gundam-seed.net/freedom/",
+    "https://en.gundam.info/about-gundam/series-pages/seed/",
+    "https://www.sotsu.co.jp/",
+    "https://www.gundam-tb.net/",
+    "https://www.gundam-the-origin.net/",
+    "https://www.g-twilight-axis.net/top.html",
+    "https://www.g-tekketsu.com/",
+    "https://www.gundam-unicorn.net/",
+    "https://www.g-reco.net/",
+    "https://www.gundam-bf.net/",
+    "https://www.gundam-age.net/",
+    "https://www.gundam00.net/",
+    "https://www.gundam-san.net/",
+    "https://1kuji.com/products/gunpla-03",
+    "https://en.gundam-official.com/series/seed-freedom",
+    "https://tamashiiweb.com/tn_blog/",
+    "https://tamashiiweb.com/tn_blog/129/?wovn=en",
+    "https://bandai.co.jp/candy/gundam/mobilityJoint/",
+    "https://en.gundam-official.com/news/i/news/gunpla/01_13746",
+    "https://bandai-hobby.net/site/seed/seed-freedom/",
+    "https://bo2.ggame.jp/en/",
+    "https://www.gundam-gcg.com/en/products/",
+    "https://gundamplacestore.com/",
+    "https://www.toy-people.com/en/",
+    "https://sugoi.co/",
     "https://www.usagundamstore.com/",
-    "https://www.gundam-base.net/"
+    "https://bandai-hobby.net/gunpla/",
+    "https://gmpj.bn-ent.net/en",
+    "https://www.unicorn-gundam-statue.jp/en/",
+    "https://www.bandainamco.co.jp/guda/goi/en/",
+    "https://www.gundam-unicorn.net/MSV/",
+    "https://www.gundam0080.net/",
+    "https://www.gundam-base.net/",
+    "https://www.gundam40th.net/",
+    "https://www.g-manhole.net/",
+    "https://www.g-reco.net/tv/",
+    "https://www.b-ch.com/",
+    "https://www.b-ch.com/gundam/",
+    "https://www.gundam-bf.net/2013/",
+    "https://www.gundam-bf.net/try/",
+    "https://www.gundam-bf.net/hhib/",
+    "https://www.gundam-bf.net/try_special/",
+    "https://www.gundam-bm.net/",
+    "https://www.gundam-bf.net/gm/",
+    "https://www.gundam-bf.net/battlogue/",
+    "https://gundam-official.com/seed/",
+    "https://www.sunrise-world.net/feature/feature_yatate.php",
+    "https://www.bandaispirits.co.jp/",
+    "https://www.bandaispirits.co.jp/hobbycenter/recycleproject.html",
+    "https://www.bandainamco.co.jp/",
+    "https://bandaibrasil.com.br/",
+    "https://www.gundam-gcg.com/en/",
+    "https://global.bandai-hobby.net/en-us/",
+    "https://harmonizers-jp.com/",
+    "https://www.gundamuniverse.com/"
   ],
   "feed_url_fallbacks": {
-    "https://kusakusa.wordpress.com/feed/": [
-      "https://kusakusa.wordpress.com/feed/rss/",
-      "https://kusakusa.wordpress.com/?feed=rss2",
-      "https://kusakusa.wordpress.com/?feed=atom"
-    ],
     "https://gunpla101.com/feed": [
       "https://gunpla101.com/?feed=rss2",
       "https://gunpla101.com/feed/rss/"
     ]
   },
   "feed_fetch_overrides": {
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCejtUitnpnf8Be-v5NuDSLw": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCmDLyFjSutfb1MK7F6cMVSA": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCuxB1suCoCqAKiljh_0xE4A": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UC7wu64jFsV02bbu6UHUd7JA": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCWOA1ZGywLbqmigxE4Qlvuw": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCv2ejD5B1xOYtGB2cf80B8g": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCrubey1wynXddSM6xLQYLGQ": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://www.youtube.com/feeds/videos.xml?channel_id=UCBw3rioEDVWdaCl-bxuRmeQ": {
-      "first_request_delay_sec": 10.0,
-      "http_timeout_sec": 45
-    },
-    "https://www.animenewsnetwork.com/news/rss.xml?ann-edition=us": {
-      "first_request_delay_sec": 3.0
-    },
-    "https://gunpla101.com/feed": {
-      "first_request_delay_sec": 5.0,
-      "http_timeout_sec": 45,
-      "extra_headers": {
-        "Referer": "https://gunpla101.com/",
-        "Accept-Language": "en-US,en;q=0.9"
-      }
-    },
     "https://kusakusa.wordpress.com/feed/": {
-      "first_request_delay_sec": 8.0,
-      "http_timeout_sec": 30,
       "unstable": true,
+      "http_timeout_sec": 30,
+      "first_request_delay_sec": 4.5,
       "extra_headers": {
         "Referer": "https://kusakusa.wordpress.com/",
-        "Accept-Language": "ja-JP,ja;q=0.9,en;q=0.8",
-        "DNT": "1"
+        "Accept": "application/rss+xml, application/xml;q=0.9, application/atom+xml;q=0.8, text/xml;q=0.8, */*;q=0.7",
+        "Connection": "close"
       }
+    },
+    "https://www.gunjap.net/site/?feed=rss2": {
+      "unstable": true,
+      "http_timeout_sec": 28
     }
   },
   "_dead_youtube_channels_removed": [

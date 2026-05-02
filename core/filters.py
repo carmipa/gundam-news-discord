@@ -10,12 +10,26 @@ from utils.html import clean_html
 # GUNDAM & GUNPLA INTELLIGENCE FILTERS
 # =========================================================
 
-# Essential terms that define if a news item is relevant to the bot's scope
-GUNDAM_CORE = [
-    "gundam", "gunpla", "bandai", "sunrise", "p-bandai", "mobile suit", "mobilesuit",
-    "universal century", "hguc", "mgex", "ver.ka", "plamo", "model kit", "g-structure",
-    "witch from mercury", "iron-blooded orphans", "seed freedom", "gundam base",
-    "premium bandai", "tamashii nations", "metal build", "robot spirits"
+# Terms that are DEFINITELY Gundam/Gunpla
+GUNDAM_SPECIFIC = [
+    "gundam", "gunpla", "zaku", "mobilesuit", "mobile suit", "nu gundam", "sazabi",
+    "strike freedom", "hathaway", "witch from mercury", "iron-blooded orphans",
+    "seed freedom", "hguc", "mgex", "ver.ka", "master grade", "high grade",
+    "real grade", "perfect grade", "entry grade", "sd gundam", "plamo", "g-structure",
+    "universal century", "ad stella", "cosmic era", "post disaster", "after war"
+]
+
+# Generic company terms (must be paired with GUNDAM_SPECIFIC for generic sources)
+COMPANY_TERMS = ["bandai", "sunrise", "p-bandai", "premium bandai", "tamashii nations"]
+
+# Core list for general relevance
+GUNDAM_CORE = GUNDAM_SPECIFIC + COMPANY_TERMS
+
+# Explicitly block non-Gundam franchises from the same companies
+NEGATIVE_KEYWORDS = [
+    "one piece", "one-piece", "dragoner", "apex legends", "apex", "brain powered",
+    "daitarn", "ryu knight", "witch hunter robin", "machine robo", "digimon",
+    "naruto", "dragon ball", "demon slayer", "blue lock", "sand land", "spy x family"
 ]
 
 # Generic noise to ignore
@@ -100,26 +114,34 @@ def match_intel(
 
     content = f"{clean_html(title)} {clean_html(summary)}".lower()
 
-    # Block blacklist (always)
-    if _contains_any(content, BLACKLIST):
+    # 1. Block explicit blacklist and negative keywords (One Piece, etc)
+    if _contains_any(content, BLACKLIST) or _contains_any(content, NEGATIVE_KEYWORDS):
         return False
 
-    # Check for core relevance
-    if not _contains_any(content, GUNDAM_CORE):
-        return False
+    # 2. Source-Specific Strictness
+    # For generic aggregators like Google News or generic YouTube channels, 
+    # we REQUIRE a specific Gundam term to avoid spam.
+    is_generic_source = any(s in (source_url or "") for s in ["news.google.com", "youtube.com", "bandai", "sunrise"])
+    
+    if is_generic_source:
+        if not _contains_any(content, GUNDAM_SPECIFIC):
+            return False
+    else:
+        # For specialized Gundam sites, any core term (including Bandai) is okay
+        if not _contains_any(content, GUNDAM_CORE):
+            return False
 
-    # Source-specific strict rules
+    # 3. Source-specific regex rules
     if source_url:
         for src_key, strict_pattern in SPECIAL_SOURCE_RULES.items():
             if src_key in source_url:
                 if not re.search(strict_pattern, content):
                     return False
 
-    # "todos" allows everything (that passed the core check)
+    # 4. Filter categories
     if "todos" in filters:
         return True
 
-    # Check specific categories
     for f in filters:
         kws = CAT_MAP.get(f, [])
         if kws and _contains_any(content, kws):

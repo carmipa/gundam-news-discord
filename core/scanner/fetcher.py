@@ -38,8 +38,8 @@ def load_sources() -> List[str]:
     urls: List[str] = []
     
     if isinstance(sources_raw, dict):
-        # We look into all relevant keys including reference sites
-        keys_to_check = ["rss_feeds", "youtube_feeds", "feeds", "sources", "official_sites_reference_(not_rss)"]
+        # We look into standard feed keys
+        keys_to_check = ["rss_feeds", "youtube_feeds", "feeds", "sources"]
         for key in keys_to_check:
             val = sources_raw.get(key, [])
             if isinstance(val, list):
