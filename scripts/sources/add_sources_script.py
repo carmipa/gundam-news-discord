@@ -1,12 +1,16 @@
-
 import json
 import asyncio
-import httpx
 import re
-from bs4 import BeautifulSoup
-from urllib.parse import urlparse, parse_qs
+from pathlib import Path
+from urllib.parse import urlparse
 
-SOURCES_FILE = "sources.json"
+import httpx
+from bs4 import BeautifulSoup
+
+
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+SOURCES_FILE = PROJECT_ROOT / "sources.json"
+
 NEW_URLS = [
     "https://p-bandai.com/us/",
     "https://en.gundam-official.com/news/jy757u7j45nlih4nip2rzfxn",
@@ -33,117 +37,107 @@ NEW_URLS = [
     "https://www.instagram.com/mobilesuitgundam_oficial/",
     "https://en.gundam.info/about-gundam/series-pages/buildmetaverse/",
     "https://www.strict-g.com/",
-    "https://p-bandai.jp/global_newpc.html"
+    "https://p-bandai.jp/global_newpc.html",
 ]
 
 HEADERS = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"
+    )
 }
 
-async def get_youtube_rss_url(client, url):
+
+async def get_youtube_rss_url(client: httpx.AsyncClient, url: str):
     try:
-        # Check if it's already an RSS feed or has channel_id
         parsed = urlparse(url)
         if "feeds/videos.xml" in url:
             return url
-        
-        # If it's a channel ID based URL
+
         path_parts = parsed.path.strip("/").split("/")
         if len(path_parts) > 1 and path_parts[0] == "channel":
             return f"https://www.youtube.com/feeds/videos.xml?channel_id={path_parts[1]}"
-            
-        print(f"🕵️ Fetching YouTube Channel ID for: {url}")
+
+        print(f"Buscando Channel ID para: {url}")
         resp = await client.get(url, follow_redirects=True)
         resp.raise_for_status()
-        
-        # Try to find channel_id in meta tags or canonical URL
-        soup = BeautifulSoup(resp.text, 'html.parser')
-        
-        # Meta tag search
+
+        soup = BeautifulSoup(resp.text, "html.parser")
+
         meta_id = soup.find("meta", itemprop="channelId")
         if meta_id:
             channel_id = meta_id["content"]
-            print(f"   ✅ Found Channel ID (meta): {channel_id}")
             return f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
-            
-        # Regex search in scripts (fallback)
+
         id_match = re.search(r'"channelId":"(UC[\w-]+)"', resp.text)
         if id_match:
             channel_id = id_match.group(1)
-            print(f"   ✅ Found Channel ID (regex): {channel_id}")
             return f"https://www.youtube.com/feeds/videos.xml?channel_id={channel_id}"
 
-        print(f"   ❌ Could not find Channel ID for {url}")
+        print(f"Nao foi possivel encontrar Channel ID para {url}")
         return None
     except Exception as e:
-        print(f"   ❌ Error fetching YouTube ID: {e}")
+        print(f"Erro ao buscar YouTube ID: {e}")
         return None
 
-def normalize_url(url):
-    # Remove fragments
+
+def normalize_url(url: str):
     u = urlparse(url)
     return u._replace(fragment="").geturl()
 
+
 async def main():
-    print("📂 Loading sources.json...")
+    print("Carregando sources.json...")
     try:
-        with open(SOURCES_FILE, 'r', encoding='utf-8') as f:
+        with SOURCES_FILE.open("r", encoding="utf-8") as f:
             data = json.load(f)
     except FileNotFoundError:
-        print("❌ sources.json not found!")
+        print("sources.json nao encontrado.")
         return
 
-    # Normalize existing sources for dedup
     existing_rss = set(normalize_url(u) for u in data.get("rss_feeds", []))
     existing_yt = set(normalize_url(u) for u in data.get("youtube_feeds", []))
     existing_html = set(normalize_url(u) for u in data.get("official_sites_reference_(not_rss)", []))
-    
     all_existing = existing_rss | existing_yt | existing_html
-    
     tasks = []
-    
+
     async with httpx.AsyncClient(headers=HEADERS, timeout=15.0) as client:
         for url in NEW_URLS:
             clean_url = normalize_url(url)
-            
-            # Simple dedup check
             if clean_url in all_existing:
-                print(f"⚠️ Skipping duplicate: {clean_url}")
+                print(f"Pulando duplicado: {clean_url}")
                 continue
-            
-            # Categorize
+
             domain = urlparse(clean_url).netloc.lower()
-            
             if "youtube.com" in domain or "youtu.be" in domain:
-                # Need async resolution
                 tasks.append((url, "youtube"))
-            elif clean_url.endswith(".xml") or clean_url.endswith(".rss") or clean_url.endswith(".atom") or "feed" in clean_url:
-                # Likely RSS
-                print(f"➕ Adding RSS: {clean_url}")
+            elif clean_url.endswith((".xml", ".rss", ".atom")) or "feed" in clean_url:
+                print(f"Adicionando RSS: {clean_url}")
                 data["rss_feeds"].append(clean_url)
                 all_existing.add(clean_url)
             else:
-                # Default to HTML Monitor
-                print(f"➕ Adding HTML Monitor: {clean_url}")
+                print(f"Adicionando HTML monitor: {clean_url}")
                 data.setdefault("official_sites_reference_(not_rss)", []).append(clean_url)
                 all_existing.add(clean_url)
 
-        # Process YouTube tasks
-        for url, _type in tasks:
-            if _type == "youtube":
-                rss_url = await get_youtube_rss_url(client, url)
-                if rss_url:
-                    if rss_url in existing_yt:
-                         print(f"⚠️ YouTube Feed already exists: {rss_url}")
-                    else:
-                        print(f"➕ Adding YouTube Feed: {rss_url}")
-                        data["youtube_feeds"].append(rss_url)
-                        existing_yt.add(rss_url)
+        for url, source_type in tasks:
+            if source_type != "youtube":
+                continue
+            rss_url = await get_youtube_rss_url(client, url)
+            if not rss_url:
+                continue
+            if rss_url in existing_yt:
+                print(f"YouTube feed ja existe: {rss_url}")
+                continue
+            print(f"Adicionando YouTube feed: {rss_url}")
+            data["youtube_feeds"].append(rss_url)
+            existing_yt.add(rss_url)
 
-    print("💾 Saving sources.json...")
-    with open(SOURCES_FILE, 'w', encoding='utf-8') as f:
+    print("Salvando sources.json...")
+    with SOURCES_FILE.open("w", encoding="utf-8") as f:
         json.dump(data, f, indent=2, ensure_ascii=False)
-    print("✅ Done!")
+    print("Concluido.")
+
 
 if __name__ == "__main__":
     asyncio.run(main())
