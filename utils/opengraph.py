@@ -6,7 +6,7 @@ import logging
 from bs4 import BeautifulSoup
 from typing import Optional
 
-log = logging.getLogger("MaftyScanner")
+log = logging.getLogger("MaftyIntel.scanner")
 
 async def fetch_og_image(url: str, session: aiohttp.ClientSession) -> Optional[str]:
     """

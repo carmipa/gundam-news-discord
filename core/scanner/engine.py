@@ -7,7 +7,7 @@ import time
 import aiohttp
 import ssl
 import certifi
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Dict, Any
 
 import discord
@@ -23,8 +23,17 @@ from .fetcher import load_sources, fetch_feed
 from .processor import load_history, save_history, sanitize_link, parse_entry_dt, is_recent
 from .notifier import create_embed
 
-log = logging.getLogger("MaftyScanner")
+log = logging.getLogger("MaftyIntel.scanner")
 scan_lock = asyncio.Lock()
+
+
+def _log_next_run() -> None:
+    """Próximo horário estimado após o fim de uma varredura (alinhado ao intervalo LOOP_MINUTES)."""
+    nxt = datetime.now() + timedelta(minutes=LOOP_MINUTES)
+    log.info(
+        f"⏳ Aguardando próxima varredura às {nxt:%Y-%m-%d %H:%M:%S} "
+        f"(em {LOOP_INTERVAL_STR})..."
+    )
 
 async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
     """Executes a single scanning cycle."""
@@ -126,6 +135,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         stats.last_scan_time = datetime.now()
         
         log.info(f"Scan finished. Sent: {sent_count}. Cache hits: {cache_hits}")
+        _log_next_run()
 
 def start_scheduler(bot: discord.Client):
     @tasks.loop(minutes=LOOP_MINUTES)
@@ -139,5 +149,8 @@ def start_scheduler(bot: discord.Client):
     async def _before(): await bot.wait_until_ready()
     
     intelligence_gathering.start()
-    from settings import LOOP_INTERVAL_STR
-    log.info(f"🛰️ Scanner de Inteligência ativado! Ciclo de varredura: {LOOP_INTERVAL_STR}")
+    log.info(
+        f"🛰️ Scanner de Inteligência ativado! Ciclo: {LOOP_INTERVAL_STR} "
+        f"({LOOP_MINUTES} min entre execuções do loop)."
+    )
+    _log_next_run()

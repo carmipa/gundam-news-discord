@@ -10,7 +10,7 @@ from urllib.parse import urlparse, urlunparse
 
 from utils.storage import p, load_json_safe, save_json_safe
 
-log = logging.getLogger("MaftyScanner")
+log = logging.getLogger("MaftyIntel.scanner")
 
 def load_history() -> Tuple[List[str], Set[str]]:
     h = load_json_safe(p("history.json"), [])

@@ -23,7 +23,7 @@ from utils.storage import p, load_json_safe
 from utils.security import validate_url
 from utils.cache import get_cache_headers, update_cache_state
 
-log = logging.getLogger("MaftyScanner")
+log = logging.getLogger("MaftyIntel.scanner")
 
 USER_AGENTS = [
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36",

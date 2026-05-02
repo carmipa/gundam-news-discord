@@ -13,7 +13,7 @@ from utils.html import clean_html
 
 from utils.opengraph import fetch_og_image
 
-log = logging.getLogger("MaftyScanner")
+log = logging.getLogger("MaftyIntel.scanner")
 
 def get_news_metadata(title: str) -> Tuple[str, discord.Color]:
     """Returns (prefix, color) based on Gundam news priority."""
