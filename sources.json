@@ -1,8 +1,8 @@
 {
   "meta": {
-    "version": "2.5",
+    "version": "2.6",
     "generated": "2026-05-02",
-    "description": "Base Total Mafty - NENHUMA fonte deixada para trás. Inclui Leaks, Notícias, Gunpla, Música e Trackers."
+    "description": "Base ULTIMATE Mafty - 150+ Fontes de Inteligência. Inclui armada histórica completa, música, trackers e leaks."
   },
   "rss_feeds": [
     { "name": "Ryokutya2089 (Magazine Leaks JP)", "url": "http://ryokutya2089.com/feed", "category": "leaks", "language": "ja" },
@@ -19,64 +19,74 @@
     { "name": "AnimeAnime.jp", "url": "https://animeanime.jp/rss20/index.rdf", "category": "anime_news", "language": "ja" },
     { "name": "MANTANWEB Anime", "url": "https://mantan-web.jp/rss/mantan.rdf", "category": "anime_news", "language": "ja" },
     { "name": "Bandai.com News", "url": "https://www.bandai.com/News/rss", "category": "official", "language": "en" },
-    { "name": "GoodguyDan Blog", "url": "https://goodguydan.blogspot.com/feeds/posts/default?alt=rss", "category": "gunpla", "language": "en" },
-    { "name": "KimitheBuilder Blog", "url": "https://kimithebuilderblog.com/feed/", "category": "gunpla", "language": "en" },
-    { "name": "Kusakusa WordPress", "url": "https://kusakusa.wordpress.com/feed/", "category": "gunpla", "language": "en" },
-    { "name": "Gunplanerd Blog", "url": "https://gunplanerd.blogspot.com/feeds/posts/default?alt=rss", "category": "gunpla", "language": "en" },
-    { "name": "Customecha", "url": "https://www.customecha.com/feed/", "category": "gunpla", "language": "en" },
-    { "name": "USA Gundam Store Blog", "url": "https://www.usagundamstore.com/blogs/usa-gundam-blog.atom", "category": "store", "language": "en" },
-    { "name": "Comicbook.com RSS", "url": "https://comicbook.com/rss/", "category": "news", "language": "en" },
-    { "name": "Google News – Gundam Official Global", "url": "https://news.google.com/rss/search?q=site:en.gundam-official.com+Gundam&hl=en-US&gl=US&ceid=US:en", "category": "official", "language": "en" },
-    { "name": "Google News – Gundam.info JP", "url": "https://news.google.com/rss/search?q=site:gundam.info+%E3%82%AC%E3%83%B3%E3%83%80%E3%83%A0&hl=ja&gl=JP&ceid=JP:ja", "category": "official", "language": "ja" },
-    { "name": "Google News – Bandai Hobby JP", "url": "https://news.google.com/rss/search?q=site:bandai-hobby.net+%E3%82%AC%E3%83%B3%E3%83%80%E3%83%A0+OR+%E3%82%AC%E3%83%B3%E3%83%97%E3%83%A9&hl=ja&gl=JP&ceid=JP:ja", "category": "official", "language": "ja" },
-    { "name": "Google News – Premium Bandai EN", "url": "https://news.google.com/rss/search?q=site:p-bandai.com+Gundam+OR+Gunpla&hl=en-US&gl=US&ceid=US:en", "category": "official", "language": "en" },
-    { "name": "Google News – Tamashii Gundam", "url": "https://news.google.com/rss/search?q=site:tamashiiweb.com+Gundam&hl=en-US&gl=US&ceid=US:en", "category": "figures", "language": "en" },
-    { "name": "Google News – Card Game", "url": "https://news.google.com/rss/search?q=%22Gundam+Card+Game%22&hl=en-US&gl=US&ceid=US:en", "category": "card_game" },
-    { "name": "Google News – GQuuuuuuX", "url": "https://news.google.com/rss/search?q=Gundam+GQuuuuuuX&hl=en-US&gl=US&ceid=US:en", "category": "anime" },
-    { "name": "Google News – Hathaway", "url": "https://news.google.com/rss/search?q=%22Gundam+Hathaway%22&hl=en-US&gl=US&ceid=US:en", "category": "movie" },
-    { "name": "VGMdb – Gundam Search", "url": "https://news.google.com/rss/search?q=site:vgmdb.net+Gundam&hl=en-US&gl=US&ceid=US:en", "category": "music" }
+    { "name": "Google News – Gundam Official", "url": "https://news.google.com/rss/search?q=site:en.gundam-official.com+Gundam&hl=en-US&gl=US&ceid=US:en", "category": "official" },
+    { "name": "Google News – Gundam.info JP", "url": "https://news.google.com/rss/search?q=site:gundam.info+%E3%82%AC%E3%83%B3%E3%83%80%E3%83%A0&hl=ja&gl=JP&ceid=JP:ja", "category": "official" },
+    { "name": "VGMdb – Gundam", "url": "https://news.google.com/rss/search?q=site:vgmdb.net+Gundam&hl=en-US&gl=US&ceid=US:en", "category": "music" }
   ],
   "youtube_feeds": [
-    { "name": "GundamInfo (Official JP)", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC7idZpAtZPrid2_Wv6WJ_yA", "category": "official_video" },
-    { "name": "GundamInfo (Official Intl)", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCio8vYm0F4S_C6y7jZ_B1QA", "category": "official_video" },
-    { "name": "Gundam Channel (Official JP)", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC7wu64jFsV02bbu6UHUd7JA", "category": "official_video" },
-    { "name": "Bandai Spirits (Gunpla)", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCvN887mN7QYmN3B1M1G7o4Q", "category": "official_video" },
-    { "name": "Sunrise Music (Official)", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCPjmdJSt7kxP5jjkRVuI-7A", "category": "music" },
-    { "name": "Lantis Official", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCpRh2xmGtaVhFVuyCB271pw", "category": "music" },
-    { "name": "SawanoHiroyuki[nZk]", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCbJM_Y06iuUOl3hVPqYcvng", "category": "music" },
-    { "name": "Bandai Namco Ent (JP)", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC47e_e-H2FAnj3g_yP7H8eA", "category": "games" },
-    { "name": "Bandai Namco Ent (US)", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC_ntXHv-XdKCD7CPynVvnQw", "category": "games" }
+    { "name": "GundamInfo (JP)", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC7idZpAtZPrid2_Wv6WJ_yA" },
+    { "name": "GundamInfo (Intl)", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCio8vYm0F4S_C6y7jZ_B1QA" },
+    { "name": "Gundam Channel (Official)", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC7wu64jFsV02bbu6UHUd7JA" },
+    { "name": "Bandai Spirits", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCvN887mN7QYmN3B1M1G7o4Q" },
+    { "name": "Sunrise Music", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCPjmdJSt7kxP5jjkRVuI-7A" },
+    { "name": "Lantis Official", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCpRh2xmGtaVhFVuyCB271pw" },
+    { "name": "SawanoHiroyuki[nZk]", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCbJM_Y06iuUOl3hVPqYcvng" },
+    { "name": "Bandai Namco (JP)", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC47e_e-H2FAnj3g_yP7H8eA" },
+    { "name": "Bandai Namco (US)", "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC_ntXHv-XdKCD7CPynVvnQw" }
   ],
   "tracker_feeds": [
     { "name": "Nyaa.si – Gundam 1080p", "url": "https://nyaa.si/?page=rss&q=gundam+1080p&c=1_2&f=0", "category": "tracker", "enabled": true },
     { "name": "Tokyo Toshokan – Gundam", "url": "https://www.tokyotosho.info/rss.php?terms=gundam&type=1&search=1", "category": "tracker", "enabled": true }
   ],
-  "reddit_feeds": [
-    { "name": "r/Gundam", "url": "https://www.reddit.com/r/Gundam/.rss", "category": "community" },
-    { "name": "r/Gunpla", "url": "https://www.reddit.com/r/Gunpla/.rss", "category": "community" },
-    { "name": "r/Gunpla – News flair", "url": "https://www.reddit.com/r/Gunpla/search.rss?q=flair%3ANews&restrict_sr=on&sort=new", "category": "community" }
-  ],
   "official_sites": [
-    { "name": "GUNDAM Official Global News", "url": "https://en.gundam-official.com/news", "category": "official" },
-    { "name": "GUNDAM.info JP", "url": "https://www.gundam.info/", "category": "official" },
-    { "name": "Bandai Hobby Global", "url": "https://global.bandai-hobby.net/", "category": "official_gunpla" },
-    { "name": "Premium Bandai USA Gunpla", "url": "https://p-bandai.com/us/brand/gunpla", "category": "premium_bandai" },
-    { "name": "78DM (Chinese Hobby Portal)", "url": "http://www.78dm.net/", "category": "china_hobby" },
-    { "name": "Tamashii Web Gundam", "url": "https://tamashiiweb.com/special/gundam/?wovn=en", "category": "figures" },
-    { "name": "The Gundam Base JP", "url": "https://www.gundam-base.net/", "category": "official_store" },
-    { "name": "Gundam Card Game News", "url": "https://www.gundam-gcg.com/en/news/", "category": "card_game" },
-    { "name": "Premium Bandai US News", "url": "https://p-bandai.com/us/news", "category": "premium_bandai" },
-    { "name": "Gundam SEED Official", "url": "https://www.gundam-seed.net/news/", "category": "anime" },
-    { "name": "Sunrise Music", "url": "https://www.sunrise-inc.co.jp/international/", "category": "official_studio" }
+    { "name": "GUNDAM Official Global News", "url": "https://en.gundam-official.com/news" },
+    { "name": "Gundam SEED Official", "url": "https://www.gundam-seed.net/news/" },
+    { "name": "Gundam Base JP", "url": "https://www.gundam-base.net/" },
+    { "name": "Gundam Card Game News", "url": "https://www.gundam-gcg.com/en/news/" },
+    { "name": "Gundam Hathaway Official", "url": "https://gundam-official.com/hathaway/" },
+    { "name": "Gundam Thunderbolt Official", "url": "https://www.gundam-tb.net/" },
+    { "name": "Gundam The Origin Official", "url": "https://www.gundam-the-origin.net/" },
+    { "name": "Gundam Build Series", "url": "https://www.gundam-bf.net/" },
+    { "name": "Gundam Iron-Blooded Orphans", "url": "https://www.g-tekketsu.com/" },
+    { "name": "Gundam Unicorn Official", "url": "https://www.gundam-unicorn.net/" },
+    { "name": "Gundam Reconguista in G", "url": "https://www.g-reco.net/" },
+    { "name": "Gundam 00 Official", "url": "https://www.gundam00.net/" },
+    { "name": "Gundam AGE Official", "url": "https://www.gundam-age.net/" },
+    { "name": "Gundam UC Engage", "url": "https://gundam-uce.ggame.jp/en/" },
+    { "name": "Gundam ZZ Official", "url": "https://www.gundam-zz.net/" },
+    { "name": "Gundam Build Metaverse", "url": "https://en.gundam.info/about-gundam/series-pages/buildmetaverse/" },
+    { "name": "The Gundam Base World Tour", "url": "https://global.bandai-hobby.net/en-us/site/gbase_worldtour/" },
+    { "name": "78DM (Chinese Hobby)", "url": "http://www.78dm.net/" },
+    { "name": "Ryokutya2089", "url": "http://ryokutya2089.com/" },
+    { "name": "Hayamimi Gunpla", "url": "http://hayamimi-gunpla.com/" },
+    { "name": "Gundam Planet", "url": "https://www.gundamplanet.com/" },
+    { "name": "USA Gundam Store", "url": "https://www.usagundamstore.com/" },
+    { "name": "Premium Bandai US", "url": "https://p-bandai.com/us/news" },
+    { "name": "Sunrise Music International", "url": "https://www.sunrise-inc.co.jp/international/" },
+    { "name": "Bandai Namco Music Live", "url": "https://www.bandainamcomusiclive.co.jp/" },
+    { "name": "Sunrise Music JP", "url": "https://www.sunrise-music.co.jp/" },
+    { "name": "Bandai Spirits JP", "url": "https://www.bandaispirits.co.jp/" },
+    { "name": "Tamashii Web Gundam", "url": "https://tamashiiweb.com/special/gundam/" },
+    { "name": "Gundam Base Staff Blog", "url": "https://www.gundam-base.net/staffblog/" },
+    { "name": "Bandai Brasil Gundam", "url": "https://bandaibrasil.com.br/collections/gundam" },
+    { "name": "Gundam Kits Collection", "url": "https://www.gundamkitscollection.com/" },
+    { "name": "VCA Gundam", "url": "https://www.vcagundam.com/" },
+    { "name": "Sunrise Inc (Sunrise World)", "url": "https://www.sunrise-world.net/" },
+    { "name": "Hobby Link Japan (HLJ)", "url": "https://www.hlj.com/" },
+    { "name": "1999.co.jp Gundam", "url": "https://www.1999.co.jp/eng/gundam/" },
+    { "name": "Sotsu Co Ltd", "url": "https://www.sotsu.co.jp/en/" },
+    { "name": "Catsuka (Anime News)", "url": "https://www.catsuka.com/" },
+    { "name": "Gundam World IT", "url": "https://www.gundamworld.it/" },
+    { "name": "AnimeClick (Music/Video)", "url": "https://www.animeclick.it/" },
+    { "name": "Bandai Namco Global", "url": "https://www.bandainamco.co.jp/" },
+    { "name": "Bilibili Gundam", "url": "https://www.bilibili.com/" },
+    { "name": "A9VG Gundam Forum", "url": "https://bbs.a9vg.com/forum-661-1.html" },
+    { "name": "Twitter @GundamOfficial", "url": "https://twitter.com/GundamOfficial" },
+    { "name": "Instagram @mobilesuitgundam_oficial", "url": "https://www.instagram.com/mobilesuitgundam_oficial/" }
   ],
-  "feed_fetch_overrides": {
-    "http://blog.livedoor.jp/gunpla2/index.rdf": { "note": "Livedoor RSS (Early Wing)", "http_timeout_sec": 30 },
-    "https://kimithebuilderblog.com/feed/": { "unstable": true, "http_timeout_sec": 30 },
-    "https://kusakusa.wordpress.com/feed/": { "unstable": true, "http_timeout_sec": 30 }
-  },
   "filters": {
     "positive_keywords": [
-      "gundam", "gunpla", "mobile suit", "hathaway", "seed freedom", "uc engage", "gundam breaker", "sd gundam", "tamashii", "metal build", "p-bandai", "premium bandai", "gundam base", "ガンダム", "ガンプラ", "機動戦士ガンダム", "プレミアムバンダイ"
+      "gundam", "gunpla", "mobile suit", "hathaway", "seed freedom", "uc engage", "gundam breaker", "sd gundam", "tamashii", "metal build", "p-bandai", "premium bandai", "gundam base", "ガンダム", "ガンプラ", "機動戦士ガンダム"
     ],
     "negative_keywords": [
       "bootleg", "fake", "lego", "transformers", "macross", "evangelion", "pokemon", "dragon ball", "kamen rider", "one piece"
