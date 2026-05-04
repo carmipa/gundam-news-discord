@@ -13,9 +13,9 @@ services:
     env_file:
       - .env
 
-    # Web dashboard (aiohttp) — sem isto, a porta 8080 só existe *dentro* do container
+    # Web dashboard: host:container. Se 8080 no VPS estiver ocupada, defina HOST_WEB_PORT no .env (ex.: 8081)
     ports:
-      - "8080:8080"
+      - "${HOST_WEB_PORT:-8080}:${WEB_PORT:-8080}"
 
     # Volumes para persistir dados
     volumes:
