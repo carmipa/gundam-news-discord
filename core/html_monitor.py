@@ -38,9 +38,13 @@ async def fetch_page_hash(client: httpx.AsyncClient, url: str) -> tuple[str, str
         request_url = url
         if CLOUDFLARE_PROXY_URL:
             request_url = f"{CLOUDFLARE_PROXY_URL}{url}"
-            log.debug(f"HTML Monitor: Using Cloudflare Proxy for {url}")
+            log.debug(f"🛡️ [PROXY HTML] Usando worker para contornar firewall em: {url}")
+        else:
+            log.debug(f"🌐 [HTML DIRETO] Baixando página: {url}")
 
+        log.debug(f"🚀 [HTTP GET] Requisitando {request_url}")
         resp = await client.get(request_url, follow_redirects=True)
+        log.debug(f"📥 [HTTP RESP] Status {resp.status_code} recebido de {url}")
         if resp.status_code != 200:
             if resp.status_code == 403:
                 log.warning(f"🚫 Acesso Negado HTML Monitor (403): O site '{url}' bloqueou o bot.")
@@ -70,10 +74,12 @@ async def fetch_page_hash(client: httpx.AsyncClient, url: str) -> tuple[str, str
         
         # Get text content only (ignoring HTML structure changes)
         text_content = soup.get_text(separator=' ', strip=True)
+        log.debug(f"🧹 [PARSE HTML] HTML limpo para {url}. Tamanho do texto resultante: {len(text_content)} bytes")
         
         # Hash calculation
         page_hash = hashlib.sha256(text_content.encode('utf-8')).hexdigest()
         title = soup.title.string.strip() if soup.title else "No Title"
+        log.debug(f"🔐 [HASH] Hash gerado para {url}: {page_hash[:8]}...")
         
         return url, title, page_hash
 

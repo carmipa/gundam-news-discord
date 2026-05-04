@@ -133,3 +133,23 @@ def setup_logger(name="MaftyIntel", log_file="logs/bot.log", level=logging.INFO)
     logger.addHandler(console_handler)
 
     return logger
+
+
+def wire_child_loggers_to_main(main_name: str, *child_names: str) -> None:
+    """
+    Replica handlers do logger principal (console + arquivo) para outros ramos da aplicação.
+
+    Sem isso, mensagens em MaftyIntel/MaftyWeb propagam para o root (nível WARNING por
+    defeito) e muitas linhas INFO/DEBUG não aparecem no `docker compose logs`.
+    """
+    main = logging.getLogger(main_name)
+    if not main.handlers:
+        return
+    level = main.level
+    for child_name in child_names:
+        child = logging.getLogger(child_name)
+        child.handlers.clear()
+        for h in main.handlers:
+            child.addHandler(h)
+        child.setLevel(level)
+        child.propagate = False

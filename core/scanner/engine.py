@@ -27,6 +27,7 @@ from core.filters import match_intel
 
 # Novas importacoes modularizadas
 from .fetcher import load_sources, fetch_feed
+from .logutil import scan_verbose
 from .processor import load_history, save_history, sanitize_link, parse_entry_dt, is_recent
 from .notifier import create_embed
 from core.html_monitor import check_official_sites
@@ -50,11 +51,12 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         return
 
     async with scan_lock:
-        log.info(f"Starting scan (trigger={trigger})...")
+        log.info(f"🔎 Iniciando varredura de inteligência... (trigger={trigger})")
         config = load_config_cached({})
         if not config: return
 
         sources = load_sources()
+        scan_verbose(log, f"📋 [FILA] {len(sources)} fonte(s) RSS/agregada(s) carregada(s).")
         state_file = p("state.json")
         state = load_json_safe(state_file, {})
         state.setdefault("dedup", {})
@@ -73,9 +75,18 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
             semaphore = asyncio.Semaphore(MAX_CONCURRENT_FEEDS)
             
             async def throttled_fetch(src_obj):
+                url_log = src_obj.get("url", "Desconhecida")
+                scan_verbose(
+                    log,
+                    f"⏳ [SEMAFORO] {url_log} aguardando liberação na fila "
+                    f"(máx. {MAX_CONCURRENT_FEEDS} simultâneos)...",
+                )
                 async with semaphore:
-                    # Adiciona um pequeno jitter aleatório antes de começar a busca
                     jitter = random.uniform(FEED_FETCH_JITTER_MIN, FEED_FETCH_JITTER_MAX)
+                    scan_verbose(
+                        log,
+                        f"🎲 [JITTER] Aguardando {jitter:.2f}s antes de buscar: {url_log}",
+                    )
                     await asyncio.sleep(jitter)
                     return await fetch_feed(session, src_obj, state["http_cache"])
 
@@ -90,6 +101,12 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                 if url not in state["dedup"]: state["dedup"][url] = {}
                 is_cold_start = not state["dedup"][url]
                 
+                scan_verbose(
+                    log,
+                    f"📊 [PROCESSANDO] Até 10 entradas de {len(entries)} em {url} "
+                    f"(cold start: {is_cold_start})",
+                )
+                
                 for entry in entries[:10]:
                     link = sanitize_link(entry.get("link", ""))
                     if not link or link in history_set: continue
@@ -101,6 +118,10 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                     # Filter by date
                     entry_dt = parse_entry_dt(entry)
                     if not is_cold_start and not is_recent(entry_dt):
+                        scan_verbose(
+                            log,
+                            f"⏭️ [IGNORADO] Notícia antiga ou fora da janela: {link}",
+                        )
                         continue
 
                     posted_anywhere = False
@@ -145,7 +166,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         history_list.append(link)
 
             # --- HTML MONITOR (Official Sites) ---
-            log.info("Checking official sites for changes...")
+            log.info("🔎 Verificando sites oficiais (HTML Watcher)...")
             html_updates, new_html_state = await check_official_sites(state["html_monitor"])
             state["html_monitor"] = new_html_state
             
@@ -180,7 +201,9 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         stats.news_posted += sent_count
         stats.last_scan_time = datetime.now()
         
-        log.info(f"Scan finished. Sent: {sent_count}. Cache hits: {cache_hits}")
+        log.info(
+            f"✅ Varredura concluída. (enviadas={sent_count}, cache_hits={cache_hits}, trigger={trigger})"
+        )
         _log_next_run()
 
 def start_scheduler(bot: discord.Client):

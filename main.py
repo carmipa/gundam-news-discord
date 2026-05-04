@@ -14,18 +14,43 @@ from datetime import datetime
 import discord
 from discord.ext import commands
 
-from settings import TOKEN, COMMAND_PREFIX, LOG_LEVEL
-from utils.storage import p, load_json_safe, load_config_cached, save_config_safe
+from settings import TOKEN, COMMAND_PREFIX, LOG_LEVEL, SCAN_VERBOSE
+from utils.storage import p, load_json_safe, load_config_cached, save_config_safe, save_json_safe
 from bot.views.filter_dashboard import FilterDashboard
 from core.scanner import start_scheduler, run_scan_once
 from web.server import start_web_server  # Novo web server
 from utils.git_info import get_git_changes, get_current_hash, get_commits_since
 
 # Configuração de Logs
-from utils.logger import setup_logger
+from utils.logger import setup_logger, wire_child_loggers_to_main
 
-# Configura o logger global com rotação de arquivos e cores no console
-log = setup_logger(name="MaftySovereign", log_file="logs/bot.log", level=LOG_LEVEL)
+# Configura o logger global do bot
+_level = logging.DEBUG if LOG_LEVEL == "DEBUG" else logging.INFO
+log = setup_logger(name="MaftySovereign", log_file="logs/bot.log", level=_level)
+
+# Mesmos handlers do MaftySovereign nos ramos MaftyIntel / MaftyWeb / CyberIntel
+# (senão INFO/DEBUG ficam só no root WARNING e somem do `docker compose logs`)
+wire_child_loggers_to_main(
+    "MaftySovereign",
+    "MaftyIntel",
+    "MaftyWeb",
+    "CyberIntel",
+)
+
+if SCAN_VERBOSE and LOG_LEVEL != "DEBUG":
+    log.info(
+        "📡 SCAN_VERBOSE=1 — logs detalhados da varredura (Raio-X) em INFO "
+        "(sem subir LOG_LEVEL=DEBUG)."
+    )
+
+# Silencia o barulho de bibliotecas externas
+logging.getLogger("discord").setLevel(logging.INFO)
+logging.getLogger("discord.http").setLevel(logging.WARNING)
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("aiohttp").setLevel(logging.WARNING)
+logging.getLogger("asyncio").setLevel(logging.INFO)
+logging.getLogger("websockets").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
 
 
 # =========================================================

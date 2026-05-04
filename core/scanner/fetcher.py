@@ -20,6 +20,8 @@ from utils.storage import p, load_json_safe
 from utils.security import validate_url
 from utils.cache import get_cache_headers, update_cache_state
 
+from .logutil import scan_verbose, scan_verbose_cache
+
 log = logging.getLogger("MaftyIntel.scanner")
 
 # HTTP 4xx/5xx que costumam ser transitórios e merecem nova tentativa no mesmo URL
@@ -110,7 +112,9 @@ async def fetch_feed(session: aiohttp.ClientSession, source_obj: Dict[str, Any],
     request_url = canonical_url
     if should_proxy and CLOUDFLARE_PROXY_URL:
         request_url = f"{CLOUDFLARE_PROXY_URL}{canonical_url}"
-        log.debug(f"Using Cloudflare Proxy for {canonical_url}")
+        scan_verbose(log, f"🛡️ [PROXY] Roteando via worker/Cloudflare → {canonical_url}")
+    else:
+        scan_verbose(log, f"🌐 [BUSCA DIRETA] {canonical_url}")
     
     for attempt in range(FEED_FETCH_MAX_ATTEMPTS):
         try:
@@ -129,10 +133,25 @@ async def fetch_feed(session: aiohttp.ClientSession, source_obj: Dict[str, Any],
                 "Upgrade-Insecure-Requests": "1"
             }
             
-            headers.update(get_cache_headers(canonical_url, http_cache))
+            cache_headers = get_cache_headers(canonical_url, http_cache)
+            if cache_headers:
+                scan_verbose_cache(log, canonical_url, cache_headers)
+            headers.update(cache_headers)
             
+            scan_verbose(
+                log,
+                f"🚀 [HTTP GET] tentativa {attempt + 1}/{FEED_FETCH_MAX_ATTEMPTS} → {request_url}",
+            )
             async with session.get(request_url, headers=headers, timeout=timeout) as resp:
+                scan_verbose(
+                    log,
+                    f"📥 [HTTP RESP] status {resp.status} ← {canonical_url}",
+                )
                 if resp.status == 304:
+                    scan_verbose(
+                        log,
+                        f"📦 [CACHE] 304 Not Modified (sem corpo novo): {canonical_url}",
+                    )
                     return None
                 
                 if resp.status >= 400:
@@ -142,22 +161,47 @@ async def fetch_feed(session: aiohttp.ClientSession, source_obj: Dict[str, Any],
                     retryable = resp.status in _FEED_RETRYABLE_STATUS or (is_youtube and resp.status == 404)
                     
                     if retryable and attempt < FEED_FETCH_MAX_ATTEMPTS - 1:
-                        await asyncio.sleep(_delay_before_feed_retry(attempt))
+                        delay = _delay_before_feed_retry(attempt)
+                        scan_verbose(
+                            log,
+                            f"⏳ [RETRY] aguardando {delay:.1f}s antes da próxima tentativa → {canonical_url}",
+                        )
+                        await asyncio.sleep(delay)
                         continue
+                    scan_verbose(
+                        log,
+                        f"❌ [ABORT] HTTP {resp.status} sem mais retries: {canonical_url}",
+                    )
                     return None
 
                 update_cache_state(canonical_url, resp.headers, http_cache)
+                scan_verbose(log, f"✅ [HTTP OK] corpo recebido; parse RSS/XML: {canonical_url}")
                 text = await resp.text(errors="ignore")
                 
+                scan_verbose(log, f"🧩 [PARSE] feedparser em executor → {canonical_url}")
                 loop = asyncio.get_running_loop()
                 feed = await loop.run_in_executor(None, feedparser.parse, text)
+                entries_count = len(getattr(feed, 'entries', []))
+                scan_verbose(
+                    log,
+                    f"🎯 [FEED PRONTO] {entries_count} item(ns) em {canonical_url}",
+                )
                 return canonical_url, getattr(feed, "entries", [])
 
         except Exception as e:
-            log.debug(f"Erro ao buscar {canonical_url}: {e}")
+            scan_verbose(
+                log,
+                f"⚠️ [EXCEÇÃO] {canonical_url} (tentativa {attempt + 1}): "
+                f"{type(e).__name__}: {e}",
+            )
             if attempt < FEED_FETCH_MAX_ATTEMPTS - 1:
-                await asyncio.sleep(_delay_before_feed_retry(attempt))
+                delay = _delay_before_feed_retry(attempt)
+                scan_verbose(
+                    log,
+                    f"⏳ [RETRY EXCEÇÃO] {delay:.1f}s antes da próxima → {canonical_url}",
+                )
+                await asyncio.sleep(delay)
             else:
-                log.error(f"Falha total em {canonical_url} após {FEED_FETCH_MAX_ATTEMPTS} tentativas.")
+                log.error(f"🔥 [FALHA TOTAL] Desistindo de {canonical_url} após {FEED_FETCH_MAX_ATTEMPTS} tentativas.")
     
     return None

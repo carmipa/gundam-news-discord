@@ -27,6 +27,14 @@ LOOP_INTERVAL_STR = format_loop_interval(LOOP_MINUTES)
 # Logging Level (INFO, DEBUG, WARNING, ERROR)
 LOG_LEVEL = os.getenv("LOG_LEVEL", "INFO").upper()
 
+# Logs detalhados da varredura (SEMAFORO, JITTER, PROXY, CACHE…) em INFO sem DEBUG global
+SCAN_VERBOSE = os.getenv("SCAN_VERBOSE", "").strip().lower() in (
+    "1",
+    "true",
+    "yes",
+    "on",
+)
+
 # HTTP client: timeout máximo de conexão e leitura (segundos) - evita bot "congelar" se API externa cair
 try:
     HTTP_TIMEOUT = int(os.getenv("HTTP_TIMEOUT", "10"))

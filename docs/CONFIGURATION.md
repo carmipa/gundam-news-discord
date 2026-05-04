@@ -13,7 +13,8 @@ DISCORD_TOKEN=seu_token_aqui
 # OPCIONAL
 COMMAND_PREFIX=!
 LOOP_MINUTES=720
-LOG_LEVEL=INFO  # Use DEBUG para logs detalhados
+LOG_LEVEL=INFO  # DEBUG = todo o app verboso; ou mantenha INFO e use SCAN_VERBOSE
+SCAN_VERBOSE=0   # 1 = logs da varredura (SEMAFORO, JITTER, PROXY, CACHE, FEED PRONTO) em INFO no servidor/Docker
 HTTP_TIMEOUT=10  # Timeout HTTP em segundos (feeds e sites oficiais)
 # Retries em feeds RSS (falhas transitórias: timeout, desconexão, HTTP 5xx)
 FEED_FETCH_MAX_ATTEMPTS=3   # padrão: 3 tentativas por URL
