@@ -133,7 +133,18 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         channel_id = gdata.get("channel_id")
                         if not channel_id: continue
                         
-                        if not match_intel(str(gid), entry.get("title", ""), entry.get("summary", ""), config, source_url=url):
+                        if not match_intel(
+                            str(gid),
+                            entry.get("title", ""),
+                            entry.get("summary", ""),
+                            config,
+                            source_url=url,
+                        ):
+                            scan_verbose(
+                                log,
+                                f"🚫 [FILTRO] Item não passou em match_intel (guild={gid}): "
+                                f"{(entry.get('title') or '')[:100]} | {link[:120]}",
+                            )
                             continue
 
                         channel = bot.get_channel(channel_id)

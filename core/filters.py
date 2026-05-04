@@ -25,6 +25,15 @@ COMPANY_TERMS = ["bandai", "sunrise", "p-bandai", "premium bandai", "tamashii na
 # Core list for general relevance
 GUNDAM_CORE = GUNDAM_SPECIFIC + COMPANY_TERMS
 
+# YouTube e feeds genéricos: títulos só em JP não passam em _contains_any(\b gundam \b).
+# Substring simples (sem word-boundary) para kanji/katakana.
+GUNDAM_JP_HINTS = (
+    "ガンダム",
+    "ガンプラ",
+    "機動戦士",
+    "ＧＵＮＤＡＭ",  # fullwidth latin sometimes in JP titles
+)
+
 # Explicitly block non-Gundam franchises from the same companies
 NEGATIVE_KEYWORDS = [
     "one piece", "one-piece", "dragoner", "apex legends", "apex", "brain powered",
@@ -124,7 +133,9 @@ def match_intel(
     is_generic_source = any(s in (source_url or "") for s in ["news.google.com", "youtube.com", "bandai", "sunrise"])
     
     if is_generic_source:
-        if not _contains_any(content, GUNDAM_SPECIFIC):
+        has_en = _contains_any(content, GUNDAM_SPECIFIC)
+        has_jp = any(h in content for h in GUNDAM_JP_HINTS)
+        if not has_en and not has_jp:
             return False
     else:
         # For specialized Gundam sites, any core term (including Bandai) is okay
