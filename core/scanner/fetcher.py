@@ -186,6 +186,10 @@ async def fetch_feed(session: aiohttp.ClientSession, source_obj: Dict[str, Any],
                     log,
                     f"🎯 [FEED PRONTO] {entries_count} item(ns) em {canonical_url}",
                 )
+                if is_youtube:
+                    log.info(
+                        f"🎥 [YOUTUBE FEED] {entries_count} entrada(s) no Atom — {canonical_url}"
+                    )
                 return canonical_url, getattr(feed, "entries", [])
 
         except Exception as e:

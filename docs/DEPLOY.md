@@ -144,6 +144,10 @@ docker-compose logs -f
 📡 Iniciando loop de varredura (12h)
 ```
 
+**Web dashboard (porta 8080):** o `docker-compose.yml` publica `8080:8080`. No servidor, abra `http://IP_DO_VPS:8080` (ou `http://127.0.0.1:8080` se testar no próprio host). A página é `web/templates/index.html`; a API `/api/stats` exige `Authorization: Bearer <WEB_AUTH_TOKEN>` se o token estiver definido no `.env`.
+
+**Dashboard no Discord:** não é uma “página” criada automaticamente — use o slash command **`/dashboard`** no servidor (e convide o bot com o scope **applications.commands** se o comando não aparecer).
+
 ---
 
 ## 🎮 Comandos Úteis

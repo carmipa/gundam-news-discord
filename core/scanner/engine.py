@@ -154,7 +154,14 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                             # Media handling
                             if any(d in link for d in ("youtube.com", "youtu.be", "twitch.tv")):
                                 await channel.send(link)
-                            
+
+                            if any(x in link for x in ("youtube.com", "youtu.be")):
+                                title_snip = (entry.get("title") or "")[:140]
+                                log.info(
+                                    f"🎥 [YOUTUBE POST] guild={gid} canal={channel_id} "
+                                    f"| {title_snip} | {link}"
+                                )
+
                             state["dedup"][url][link].append(str(gid))
                             posted_anywhere = True
                             sent_count += 1
