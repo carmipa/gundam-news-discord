@@ -81,3 +81,24 @@ try:
 except ValueError:
     FEED_FIRST_DELAY_MAX_SEC = 120.0
 FEED_FIRST_DELAY_MAX_SEC = max(0.0, min(FEED_FIRST_DELAY_MAX_SEC, 300.0))
+
+# Concorrência: limite de buscas simultâneas para evitar bloqueios por IP (anti-bot)
+try:
+    MAX_CONCURRENT_FEEDS = int(os.getenv("MAX_CONCURRENT_FEEDS", "3"))
+except ValueError:
+    MAX_CONCURRENT_FEEDS = 3
+MAX_CONCURRENT_FEEDS = max(1, min(MAX_CONCURRENT_FEEDS, 10))
+
+# Jitter: intervalo aleatório (s) entre o início de cada busca para evitar picos de tráfego
+try:
+    FEED_FETCH_JITTER_MIN = float(os.getenv("FEED_FETCH_JITTER_MIN", "0.5"))
+except ValueError:
+    FEED_FETCH_JITTER_MIN = 0.5
+try:
+    FEED_FETCH_JITTER_MAX = float(os.getenv("FEED_FETCH_JITTER_MAX", "2.5"))
+except ValueError:
+    FEED_FETCH_JITTER_MAX = 2.5
+
+# Proxy do Cloudflare Worker para evitar bloqueios de IP (opcional)
+# Exemplo: https://meu-worker.meu-subdominio.workers.dev/?url=
+CLOUDFLARE_PROXY_URL = os.getenv("CLOUDFLARE_PROXY_URL", "").strip()

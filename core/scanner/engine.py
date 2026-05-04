@@ -7,13 +7,20 @@ import time
 import aiohttp
 import ssl
 import certifi
+import random
 from datetime import datetime, timedelta
-from typing import Dict, Any
+from typing import Dict, Any, List, Optional, Tuple
 
 import discord
 from discord.ext import tasks
 
-from settings import LOOP_MINUTES, LOOP_INTERVAL_STR
+from settings import (
+    LOOP_MINUTES, 
+    LOOP_INTERVAL_STR, 
+    MAX_CONCURRENT_FEEDS,
+    FEED_FETCH_JITTER_MIN,
+    FEED_FETCH_JITTER_MAX
+)
 from utils.storage import p, load_json_safe, save_json_safe, load_config_cached
 from core.stats import stats
 from core.filters import match_intel
@@ -22,6 +29,7 @@ from core.filters import match_intel
 from .fetcher import load_sources, fetch_feed
 from .processor import load_history, save_history, sanitize_link, parse_entry_dt, is_recent
 from .notifier import create_embed
+from core.html_monitor import check_official_sites
 
 log = logging.getLogger("MaftyIntel.scanner")
 scan_lock = asyncio.Lock()
@@ -46,11 +54,12 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         config = load_config_cached({})
         if not config: return
 
-        urls = load_sources()
+        sources = load_sources()
         state_file = p("state.json")
         state = load_json_safe(state_file, {})
         state.setdefault("dedup", {})
         state.setdefault("http_cache", {})
+        state.setdefault("html_monitor", {})
         
         history_list, history_set = load_history()
         
@@ -61,7 +70,16 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         cache_hits = 0
         
         async with aiohttp.ClientSession(connector=connector) as session:
-            tasks_list = [fetch_feed(session, url, state["http_cache"]) for url in urls]
+            semaphore = asyncio.Semaphore(MAX_CONCURRENT_FEEDS)
+            
+            async def throttled_fetch(src_obj):
+                async with semaphore:
+                    # Adiciona um pequeno jitter aleatório antes de começar a busca
+                    jitter = random.uniform(FEED_FETCH_JITTER_MIN, FEED_FETCH_JITTER_MAX)
+                    await asyncio.sleep(jitter)
+                    return await fetch_feed(session, src_obj, state["http_cache"])
+
+            tasks_list = [throttled_fetch(src) for src in sources]
             results = await asyncio.gather(*tasks_list)
             
             for result in results:
@@ -125,6 +143,34 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                     if posted_anywhere:
                         history_set.add(link)
                         history_list.append(link)
+
+            # --- HTML MONITOR (Official Sites) ---
+            log.info("Checking official sites for changes...")
+            html_updates, new_html_state = await check_official_sites(state["html_monitor"])
+            state["html_monitor"] = new_html_state
+            
+            for update in html_updates:
+                # Trata atualizações de HTML como entradas de feed para processamento uniforme
+                # check_official_sites já retorna dicts compatíveis com create_embed
+                for gid, gdata in config.items():
+                    channel_id = gdata.get("channel_id")
+                    if not channel_id: continue
+                    
+                    # Filtra por palavras-chave (opcional, mas recomendado)
+                    if not match_intel(str(gid), update.get("title", ""), update.get("summary", ""), config):
+                        continue
+                        
+                    channel = bot.get_channel(int(channel_id))
+                    if not channel: continue
+                    
+                    try:
+                        target_lang = gdata.get("language", "en_US")
+                        # Para sites oficiais, passamos um entry fake
+                        embed = await create_embed(bot, update, target_lang, config, session=session)
+                        await channel.send(embed=embed)
+                        sent_count += 1
+                    except Exception as e:
+                        log.error(f"Error sending HTML update to guild {gid}: {e}")
 
         # Cleanup and Save
         save_history(history_list)

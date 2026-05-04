@@ -11,6 +11,7 @@ import certifi
 from typing import List, Dict, Tuple, Any
 from bs4 import BeautifulSoup
 
+from settings import CLOUDFLARE_PROXY_URL, MAX_CONCURRENT_FEEDS
 from utils.storage import p, load_json_safe, save_json_safe
 from utils.security import validate_url
 
@@ -33,7 +34,13 @@ async def fetch_page_hash(client: httpx.AsyncClient, url: str) -> tuple[str, str
             log.warning(f"🔒 URL bloqueada por segurança no HTML Monitor: {url} - {error_msg}")
             return url, "", ""
         
-        resp = await client.get(url, follow_redirects=True)
+        # URL final para a requisição (pode ser via proxy)
+        request_url = url
+        if CLOUDFLARE_PROXY_URL:
+            request_url = f"{CLOUDFLARE_PROXY_URL}{url}"
+            log.debug(f"HTML Monitor: Using Cloudflare Proxy for {url}")
+
+        resp = await client.get(request_url, follow_redirects=True)
         if resp.status_code != 200:
             if resp.status_code == 403:
                 log.warning(f"🚫 Acesso Negado HTML Monitor (403): O site '{url}' bloqueou o bot.")
@@ -99,7 +106,7 @@ def _html_monitor_urls_from_sources(sources: Dict[str, Any]) -> List[str]:
 
 async def check_official_sites(current_state: Dict[str, str]) -> Tuple[List[Dict[str, str]], Dict[str, str]]:
     """
-    Checks official sites for changes.
+    Checks official sites for changes with concurrency limiting.
     Args:
         current_state: Dict {url: last_hash}
     Returns:
@@ -111,35 +118,34 @@ async def check_official_sites(current_state: Dict[str, str]) -> Tuple[List[Dict
     if not urls:
         return [], current_state
 
-    # Headers (Masquerading as modern web browser instead of GoogleBot to avoid WAF IP validation drops)
+    # Headers: imitando navegador moderno
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9,pt-BR;q=0.8,pt;q=0.7",
-        "Sec-Ch-Ua": '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
-        "Sec-Ch-Ua-Mobile": "?0",
-        "Sec-Ch-Ua-Platform": '"Windows"',
         "Sec-Fetch-Dest": "document",
         "Sec-Fetch-Mode": "navigate",
         "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
         "Upgrade-Insecure-Requests": "1"
     }
     
     updates = []
     new_state = current_state.copy()
     
-    # HTTPX Client with http2 support and large limits explicitly handled by default config usually
-    # but we can verify later if needed. HTTPX handles large headers much better than aiohttp default.
+    semaphore = asyncio.Semaphore(MAX_CONCURRENT_FEEDS)
+
     async with httpx.AsyncClient(headers=headers, timeout=30.0, verify=certifi.where()) as client:
-        tasks = [fetch_page_hash(client, url) for url in urls]
-        # Asyncio gather works same way
+        async def throttled_fetch(url):
+            async with semaphore:
+                # O monitor de HTML já é lento por natureza, o semáforo aqui é crucial
+                return await fetch_page_hash(client, url)
+
+        tasks = [throttled_fetch(url) for url in urls]
         results = await asyncio.gather(*tasks)
         
         for url, title, page_hash in results:
             if not page_hash:
                 continue
-
                 
             last_hash = current_state.get(url)
             
