@@ -107,6 +107,21 @@ try:
 except ValueError:
     FEED_FETCH_JITTER_MAX = 2.5
 
+# Número máximo de entradas processadas por feed em cada varredura.
+# YouTube costuma expor 15 entradas no Atom; manter 15 reduz perda de vídeos.
+try:
+    MAX_ENTRIES_PER_FEED = int(os.getenv("MAX_ENTRIES_PER_FEED", "10"))
+except ValueError:
+    MAX_ENTRIES_PER_FEED = 10
+MAX_ENTRIES_PER_FEED = max(1, min(MAX_ENTRIES_PER_FEED, 50))
+
+try:
+    MAX_YOUTUBE_ENTRIES_PER_FEED = int(os.getenv("MAX_YOUTUBE_ENTRIES_PER_FEED", "15"))
+except ValueError:
+    MAX_YOUTUBE_ENTRIES_PER_FEED = 0
+# 0 = sem limite (processa todas as entradas retornadas pelo feed naquele ciclo).
+MAX_YOUTUBE_ENTRIES_PER_FEED = max(0, min(MAX_YOUTUBE_ENTRIES_PER_FEED, 200))
+
 # Proxy do Cloudflare Worker para evitar bloqueios de IP (opcional)
 # Exemplo: https://meu-worker.meu-subdominio.workers.dev/?url=
 CLOUDFLARE_PROXY_URL = os.getenv("CLOUDFLARE_PROXY_URL", "").strip()

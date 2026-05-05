@@ -19,7 +19,9 @@ from settings import (
     LOOP_INTERVAL_STR, 
     MAX_CONCURRENT_FEEDS,
     FEED_FETCH_JITTER_MIN,
-    FEED_FETCH_JITTER_MAX
+    FEED_FETCH_JITTER_MAX,
+    MAX_ENTRIES_PER_FEED,
+    MAX_YOUTUBE_ENTRIES_PER_FEED,
 )
 from utils.storage import p, load_json_safe, save_json_safe, load_config_cached
 from core.stats import stats
@@ -101,13 +103,22 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                 if url not in state["dedup"]: state["dedup"][url] = {}
                 is_cold_start = not state["dedup"][url]
                 
+                is_youtube_feed = ("youtube.com" in url or "youtu.be" in url)
+                max_items = (
+                    MAX_YOUTUBE_ENTRIES_PER_FEED
+                    if is_youtube_feed
+                    else MAX_ENTRIES_PER_FEED
+                )
+                if is_youtube_feed and max_items <= 0:
+                    max_items = len(entries)
+
+                limit_label = "sem limite" if (is_youtube_feed and MAX_YOUTUBE_ENTRIES_PER_FEED <= 0) else str(max_items)
                 scan_verbose(
                     log,
-                    f"📊 [PROCESSANDO] Até 10 entradas de {len(entries)} em {url} "
+                    f"📊 [PROCESSANDO] Até {limit_label} entradas de {len(entries)} em {url} "
                     f"(cold start: {is_cold_start})",
                 )
-                
-                for entry in entries[:10]:
+                for entry in entries[:max_items]:
                     link = sanitize_link(entry.get("link", ""))
                     if not link or link in history_set: continue
                     

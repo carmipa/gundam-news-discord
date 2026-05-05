@@ -16,7 +16,8 @@ GUNDAM_SPECIFIC = [
     "strike freedom", "hathaway", "witch from mercury", "iron-blooded orphans",
     "seed freedom", "hguc", "mgex", "ver.ka", "master grade", "high grade",
     "real grade", "perfect grade", "entry grade", "sd gundam", "plamo", "g-structure",
-    "universal century", "ad stella", "cosmic era", "post disaster", "after war"
+    "universal century", "ad stella", "cosmic era", "post disaster", "after war",
+    "機動戦士ガンダム", "ガンダムseed", "水星の魔女", "閃光のハサウェイ", "逆襲のシャア"
 ]
 
 # Generic company terms (must be paired with GUNDAM_SPECIFIC for generic sources)
@@ -31,6 +32,9 @@ GUNDAM_JP_HINTS = (
     "ガンダム",
     "ガンプラ",
     "機動戦士",
+    "閃光のハサウェイ",
+    "水星の魔女",
+    "逆襲のシャア",
     "ＧＵＮＤＡＭ",  # fullwidth latin sometimes in JP titles
 )
 
@@ -54,7 +58,7 @@ CAT_MAP = {
     ],
     "anime_movies": [
         "anime", "movie", "series", "episode", "streaming", "netflix", "crunchyroll",
-        "trailer", "teaser", "cast", "blu-ray", "dvd"
+        "trailer", "teaser", "cast", "blu-ray", "dvd", "music", "song", "ost", "soundtrack"
     ],
     "games": [
         "game", "mobile game", "gundam evolution", "gbo2", "uc engage", "breaker",

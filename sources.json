@@ -314,6 +314,11 @@
       "name": "Canal YT – UCv2e",
       "channel_id": "UCv2ejD5B1xOYtGB2cf80B8g",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCv2ejD5B1xOYtGB2cf80B8g"
+    },
+    {
+      "name": "Canal YT – GUNDAGUY / MSG Universe",
+      "channel_id": "UCMZOTXTiN9rakGRLbXuL6aA",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCMZOTXTiN9rakGRLbXuL6aA"
     }
   ],
   "tracker_feeds": [
@@ -476,6 +481,41 @@
       "name": "Gundam Official (EN)",
       "url": "https://en.gundam-official.com/",
       "region": "global"
+    },
+    {
+      "name": "Gundam Official (KR)",
+      "url": "https://kr.gundam-official.com/",
+      "region": "kr"
+    },
+    {
+      "name": "Gundam Official (TW)",
+      "url": "https://tw.gundam-official.com/",
+      "region": "tw"
+    },
+    {
+      "name": "Gundam Official (HK)",
+      "url": "https://hk.gundam-official.com/",
+      "region": "hk"
+    },
+    {
+      "name": "Gundam Official (TH)",
+      "url": "https://th.gundam-official.com/",
+      "region": "th"
+    },
+    {
+      "name": "Gundam Official (FR)",
+      "url": "https://fr.gundam-official.com/",
+      "region": "fr"
+    },
+    {
+      "name": "Gundam Official (IT)",
+      "url": "https://it.gundam-official.com/",
+      "region": "it"
+    },
+    {
+      "name": "Gundam Official (ES)",
+      "url": "https://es.gundam-official.com/",
+      "region": "es"
     },
     {
       "name": "Gundam Official News (EN)",
