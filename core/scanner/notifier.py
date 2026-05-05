@@ -6,7 +6,7 @@ import aiohttp
 import discord
 from datetime import datetime
 from typing import Any, Dict, Optional, Tuple
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 
 from utils.translator import translate_to_target, t
 from utils.html import clean_html
@@ -14,6 +14,40 @@ from utils.html import clean_html
 from utils.opengraph import fetch_og_image
 
 log = logging.getLogger("MaftyIntel.scanner")
+
+
+def _extract_youtube_video_id(link: str) -> Optional[str]:
+    """Extracts YouTube video_id from watch/short/youtu.be URLs."""
+    if not link:
+        return None
+    try:
+        parsed = urlparse(link)
+        host = parsed.netloc.lower()
+        path = (parsed.path or "").strip("/")
+
+        if "youtu.be" in host and path:
+            return path.split("/")[0]
+
+        if "youtube.com" in host:
+            if path == "watch":
+                q = parse_qs(parsed.query or "")
+                video_id = (q.get("v") or [None])[0]
+                return video_id
+            if path.startswith("shorts/"):
+                return path.split("/", 1)[1].split("/")[0]
+            if path.startswith("embed/"):
+                return path.split("/", 1)[1].split("/")[0]
+    except Exception:
+        return None
+    return None
+
+
+def _youtube_thumbnail_url(link: str) -> Optional[str]:
+    """Builds a stable YouTube thumbnail URL without page scraping."""
+    video_id = _extract_youtube_video_id(link)
+    if not video_id:
+        return None
+    return f"https://i.ytimg.com/vi/{video_id}/hqdefault.jpg"
 
 def get_news_metadata(title: str) -> Tuple[str, discord.Color]:
     """Returns (prefix, color) based on Gundam news priority."""
@@ -67,14 +101,22 @@ async def create_embed(bot: discord.Client, entry: Any, target_lang: str, guild_
     elif "itunes_image" in entry:
          thumbnail_url = entry.itunes_image
     
-    # 2. Smart Fallback (OpenGraph)
+    # 2. Fallback específico para YouTube (sem scraping de HTML)
     is_youtube = any(x in link for x in ["youtube.com", "youtu.be"])
+    if not thumbnail_url and is_youtube:
+        thumbnail_url = _youtube_thumbnail_url(link)
+
+    # 3. Smart Fallback (OpenGraph)
     if not thumbnail_url and session and link and not is_youtube:
         log.debug(f"Attempting OG fetch for: {link}")
         thumbnail_url = await fetch_og_image(link, session)
     
     if thumbnail_url:
-        embed.set_thumbnail(url=thumbnail_url)
+        # Em vídeo, imagem maior melhora leitura no Discord.
+        if is_youtube:
+            embed.set_image(url=thumbnail_url)
+        else:
+            embed.set_thumbnail(url=thumbnail_url)
         
     return embed
 

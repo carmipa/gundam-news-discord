@@ -125,7 +125,9 @@ def match_intel(
     if not isinstance(filters, list) or not filters:
         return False
 
-    content = f"{clean_html(title)} {clean_html(summary)}".lower()
+    clean_title = clean_html(title).lower()
+    clean_summary = clean_html(summary).lower()
+    content = f"{clean_title} {clean_summary}"
 
     # 1. Block explicit blacklist and negative keywords (One Piece, etc)
     if _contains_any(content, BLACKLIST) or _contains_any(content, NEGATIVE_KEYWORDS):
@@ -137,10 +139,18 @@ def match_intel(
     is_generic_source = any(s in (source_url or "") for s in ["news.google.com", "youtube.com", "bandai", "sunrise"])
     
     if is_generic_source:
-        has_en = _contains_any(content, GUNDAM_SPECIFIC)
-        has_jp = any(h in content for h in GUNDAM_JP_HINTS)
-        if not has_en and not has_jp:
-            return False
+        # Em fontes genéricas (especialmente YouTube), descrição pode citar Gundam
+        # sem que o vídeo/notícia seja de fato sobre Gundam.
+        if "youtube.com" in (source_url or "") or "youtu.be" in (source_url or ""):
+            has_en_title = _contains_any(clean_title, GUNDAM_SPECIFIC)
+            has_jp_title = any(h in clean_title for h in GUNDAM_JP_HINTS)
+            if not has_en_title and not has_jp_title:
+                return False
+        else:
+            has_en = _contains_any(content, GUNDAM_SPECIFIC)
+            has_jp = any(h in content for h in GUNDAM_JP_HINTS)
+            if not has_en and not has_jp:
+                return False
     else:
         # For specialized Gundam sites, any core term (including Bandai) is okay
         if not _contains_any(content, GUNDAM_CORE):
