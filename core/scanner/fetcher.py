@@ -28,7 +28,7 @@ log = logging.getLogger("MaftyIntel.scanner")
 _FEED_RETRYABLE_STATUS = frozenset({403, 429, 502, 503, 504})
 
 # Domínios que costumam precisar de proxy/evasão agressiva
-_PROXY_CANDIDATE_DOMAINS = ["youtube.com", "youtu.be", "nyaa.si", "tokyotosho.info", "reddit.com", "reddit.com"]
+_PROXY_CANDIDATE_DOMAINS = ["youtube.com", "youtu.be", "nyaa.si", "tokyotosho.info", "reddit.com"]
 
 
 def _delay_before_feed_retry(attempt_index: int) -> float:

@@ -158,24 +158,17 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                             )
                             continue
 
-                        channel = bot.get_channel(channel_id)
+                        channel = bot.get_channel(int(channel_id))
                         if not channel: continue
 
                         # Notify
                         try:
                             target_lang = gdata.get("language", "en_US")
                             embed = await create_embed(bot, entry, target_lang, config, session=session)
-                            
-                            # ✨ Especial handling for YouTube (show the video player)
-                            msg_content = None
-                            if any(x in link for x in ["youtube.com", "youtu.be"]):
-                                msg_content = f"🎥 **Assistir Vídeo:** {link}"
-                                
+
+                            is_video = any(x in link for x in ["youtube.com", "youtu.be", "twitch.tv"])
+                            msg_content = link if is_video else None
                             await channel.send(content=msg_content, embed=embed)
-                            
-                            # Media handling
-                            if any(d in link for d in ("youtube.com", "youtu.be", "twitch.tv")):
-                                await channel.send(link)
 
                             if any(x in link for x in ("youtube.com", "youtu.be")):
                                 title_snip = (entry.get("title") or "")[:140]

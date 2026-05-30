@@ -23,10 +23,22 @@ WEB_PORT = int(os.getenv("WEB_PORT", "8080"))
 
 routes = web.RouteTableDef()
 
-# Rate limiting simples (por IP)
-_rate_limit_store = {}
-RATE_LIMIT_WINDOW = 60  # segundos
-RATE_LIMIT_MAX_REQUESTS = 30  # máximo de requisições por janela
+_rate_limit_store: dict = {}
+RATE_LIMIT_WINDOW = 60
+RATE_LIMIT_MAX_REQUESTS = 30
+_RATE_LIMIT_LAST_GC = 0.0
+_RATE_LIMIT_GC_INTERVAL = 300
+
+
+def _gc_rate_limit_store(current_time: float) -> None:
+    global _RATE_LIMIT_LAST_GC
+    if current_time - _RATE_LIMIT_LAST_GC < _RATE_LIMIT_GC_INTERVAL:
+        return
+    _RATE_LIMIT_LAST_GC = current_time
+    stale = [ip for ip, ts_list in _rate_limit_store.items()
+             if not any(current_time - ts < RATE_LIMIT_WINDOW for ts in ts_list)]
+    for ip in stale:
+        del _rate_limit_store[ip]
 
 
 def rate_limit_middleware(handler):
@@ -35,8 +47,9 @@ def rate_limit_middleware(handler):
     async def wrapper(request):
         client_ip = request.remote
         current_time = datetime.now().timestamp()
-        
-        # Limpa entradas antigas
+
+        _gc_rate_limit_store(current_time)
+
         if client_ip in _rate_limit_store:
             _rate_limit_store[client_ip] = [
                 ts for ts in _rate_limit_store[client_ip]
@@ -44,18 +57,15 @@ def rate_limit_middleware(handler):
             ]
         else:
             _rate_limit_store[client_ip] = []
-        
-        # Verifica limite
+
         if len(_rate_limit_store[client_ip]) >= RATE_LIMIT_MAX_REQUESTS:
             log.warning(f"⚠️ Rate limit excedido para IP: {client_ip}")
             return web.json_response(
                 {"error": "Rate limit exceeded. Please try again later."},
                 status=429
             )
-        
-        # Adiciona timestamp atual
+
         _rate_limit_store[client_ip].append(current_time)
-        
         return await handler(request)
     return wrapper
 

@@ -1,9 +1,9 @@
 """
 Translator utilities - Localization and Google Translate wrapper.
 """
-import json
 import logging
 import asyncio
+from collections import OrderedDict
 from typing import Dict, Any, Optional
 from deep_translator import GoogleTranslator
 
@@ -106,8 +106,8 @@ class Translator:
 t = Translator()
 
 
-# Cache em memória para evitar chamadas repetidas à API de tradução
-_translation_cache: Dict[str, str] = {}
+_TRANSLATION_CACHE_MAX = 2000
+_translation_cache: OrderedDict[str, str] = OrderedDict()
 
 
 async def translate_to_target(text: str, target_lang: str) -> str:
@@ -141,7 +141,9 @@ async def translate_to_target(text: str, target_lang: str) -> str:
         
         if trad:
             _translation_cache[cache_key] = trad
-            
+            if len(_translation_cache) > _TRANSLATION_CACHE_MAX:
+                _translation_cache.popitem(last=False)
+
         return trad
     except Exception as e:
         log.debug(f"Falha na tradução de texto (retornando original): {type(e).__name__}: {e}")
