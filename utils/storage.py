@@ -9,7 +9,6 @@ import os
 import json
 import logging
 import shutil
-import tempfile
 from datetime import datetime
 from typing import Any, Dict, Tuple, Optional
 
@@ -119,13 +118,10 @@ def save_config_safe(data: Any) -> None:
 
 
 def save_json_safe(filepath: str, data: Any) -> None:
-    """Salva JSON com escrita atômica (temp + rename); em erro, loga e segue."""
+    """Salva JSON com indentação; em erro, loga e segue."""
     try:
-        dir_path = os.path.dirname(os.path.abspath(filepath)) or "."
-        with tempfile.NamedTemporaryFile("w", dir=dir_path, delete=False, encoding="utf-8", suffix=".tmp") as f:
+        with open(filepath, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2, ensure_ascii=False)
-            tmp_path = f.name
-        os.replace(tmp_path, filepath)
     except PermissionError as e:
         log.error(f"Sem permissão para escrever '{filepath}': {e}")
     except OSError as e:
