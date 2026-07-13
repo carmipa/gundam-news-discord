@@ -9,6 +9,7 @@ from typing import List, Set, Tuple, Dict, Any, Optional
 from urllib.parse import urlparse, urlunparse
 
 from utils.storage import p, load_json_safe, save_json_safe
+from settings import HISTORY_LIMIT
 
 log = logging.getLogger("MaftyIntel.scanner")
 
@@ -18,8 +19,40 @@ def load_history() -> Tuple[List[str], Set[str]]:
     h = [x for x in h if isinstance(x, str)]
     return h, set(h)
 
-def save_history(history_list: List[str], limit: int = 2000) -> None:
+def save_history(history_list: List[str], limit: int = HISTORY_LIMIT) -> None:
     save_json_safe(p("history.json"), history_list[-limit:])
+
+
+def prune_dedup(dedup: Dict[str, Any], keep_links: Set[str]) -> Tuple[int, int]:
+    """
+    Auto-poda do dedup do state.json para não crescer indefinidamente.
+
+    Mantém apenas os links ainda presentes em `keep_links` (a janela dos últimos
+    HISTORY_LIMIT links enviados, definida pelo history). Assim o dedup acompanha
+    o teto do history.json: links de fato postados continuam protegidos contra
+    repostagem, enquanto o lixo (links vistos mas filtrados, que nunca entram no
+    history) é descartado. Feeds que ficarem sem links são removidos.
+
+    Modifica `dedup` in-place e retorna (total_antes, total_depois).
+    """
+    if not isinstance(dedup, dict):
+        return 0, 0
+
+    before = sum(len(v) for v in dedup.values() if isinstance(v, dict))
+
+    for url in list(dedup.keys()):
+        links = dedup.get(url)
+        if not isinstance(links, dict):
+            del dedup[url]
+            continue
+        for link in list(links.keys()):
+            if link not in keep_links:
+                del links[link]
+        if not links:
+            del dedup[url]
+
+    after = sum(len(v) for v in dedup.values() if isinstance(v, dict))
+    return before, after
 
 def sanitize_link(link: str) -> str:
     """Removes tracking params while keeping essential ones."""

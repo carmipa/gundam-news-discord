@@ -22,6 +22,7 @@ from settings import (
     FEED_FETCH_JITTER_MAX,
     MAX_ENTRIES_PER_FEED,
     MAX_YOUTUBE_ENTRIES_PER_FEED,
+    HISTORY_LIMIT,
 )
 from utils.storage import p, load_json_safe, save_json_safe, load_config_cached
 from core.stats import stats
@@ -30,8 +31,9 @@ from core.filters import match_intel
 # Novas importacoes modularizadas
 from .fetcher import load_sources, fetch_feed
 from .logutil import scan_verbose
-from .processor import load_history, save_history, sanitize_link, parse_entry_dt, is_recent
-from .notifier import create_embed
+from .processor import load_history, save_history, prune_dedup, sanitize_link, parse_entry_dt, is_recent
+from .notifier import create_embed, resolve_thumbnail
+from utils.translator import save_translation_cache
 from core.html_monitor import check_official_sites
 
 log = logging.getLogger("MaftyIntel.scanner")
@@ -71,8 +73,9 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         connector = aiohttp.TCPConnector(ssl=ssl_ctx)
         
         sent_count = 0
-        cache_hits = 0
-        
+        cache_hits_start = stats.cache_hits_total
+        feeds_failed_start = stats.feeds_failed
+
         async with aiohttp.ClientSession(connector=connector) as session:
             semaphore = asyncio.Semaphore(MAX_CONCURRENT_FEEDS)
             
@@ -93,9 +96,13 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                     return await fetch_feed(session, src_obj, state["http_cache"])
 
             tasks_list = [throttled_fetch(src) for src in sources]
-            results = await asyncio.gather(*tasks_list)
-            
+            results = await asyncio.gather(*tasks_list, return_exceptions=True)
+
             for result in results:
+                # return_exceptions=True: uma falha isolada num feed não derruba a varredura inteira
+                if isinstance(result, Exception):
+                    log.error(f"Falha não tratada ao buscar feed: {type(result).__name__}: {result}")
+                    continue
                 if not result: continue
                 url, entries = result
                 
@@ -138,12 +145,18 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                     posted_anywhere = False
                     if link not in state["dedup"][url]: state["dedup"][url][link] = []
 
+                    # Resolve a imagem 1x por notícia e reaproveita o embed por idioma
+                    # entre servidores — evita fetch OpenGraph e tradução duplicados.
+                    thumb = None
+                    thumb_done = False
+                    embeds_by_lang: Dict[str, Any] = {}
+
                     for gid, gdata in config.items():
                         if gid in state["dedup"][url][link]: continue
-                        
+
                         channel_id = gdata.get("channel_id")
                         if not channel_id: continue
-                        
+
                         if not match_intel(
                             str(gid),
                             entry.get("title", ""),
@@ -164,7 +177,14 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         # Notify
                         try:
                             target_lang = gdata.get("language", "en_US")
-                            embed = await create_embed(bot, entry, target_lang, config, session=session)
+                            if target_lang not in embeds_by_lang:
+                                if not thumb_done:
+                                    thumb = await resolve_thumbnail(entry, session)
+                                    thumb_done = True
+                                embeds_by_lang[target_lang] = await create_embed(
+                                    bot, entry, target_lang, config, session=session, thumbnail_url=thumb
+                                )
+                            embed = embeds_by_lang[target_lang]
 
                             is_video = any(x in link for x in ["youtube.com", "youtu.be", "twitch.tv"])
                             msg_content = link if is_video else None
@@ -195,36 +215,53 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
             for update in html_updates:
                 # Trata atualizações de HTML como entradas de feed para processamento uniforme
                 # check_official_sites já retorna dicts compatíveis com create_embed
+                html_embeds_by_lang: Dict[str, Any] = {}
                 for gid, gdata in config.items():
                     channel_id = gdata.get("channel_id")
                     if not channel_id: continue
-                    
+
                     # Filtra por palavras-chave (opcional, mas recomendado)
                     if not match_intel(str(gid), update.get("title", ""), update.get("summary", ""), config):
                         continue
-                        
+
                     channel = bot.get_channel(int(channel_id))
                     if not channel: continue
-                    
+
                     try:
                         target_lang = gdata.get("language", "en_US")
-                        # Para sites oficiais, passamos um entry fake
-                        embed = await create_embed(bot, update, target_lang, config, session=session)
+                        # Para sites oficiais, passamos um entry fake; embed reaproveitado por idioma
+                        if target_lang not in html_embeds_by_lang:
+                            html_embeds_by_lang[target_lang] = await create_embed(bot, update, target_lang, config, session=session)
+                        embed = html_embeds_by_lang[target_lang]
                         await channel.send(embed=embed)
                         sent_count += 1
                     except Exception as e:
                         log.error(f"Error sending HTML update to guild {gid}: {e}")
 
         # Cleanup and Save
+        # Corta o history aos últimos HISTORY_LIMIT e alinha o dedup à mesma janela,
+        # para o state.json não crescer indefinidamente (auto-poda a cada varredura).
         save_history(history_list)
+        keep_links = set(history_list[-HISTORY_LIMIT:])
+        dedup_before, dedup_after = prune_dedup(state["dedup"], keep_links)
+        if dedup_before != dedup_after:
+            log.info(
+                f"🧹 [AUTO-PODA] dedup do state.json: {dedup_before} → {dedup_after} links "
+                f"(teto {HISTORY_LIMIT})."
+            )
         save_json_safe(state_file, state)
-        
+        # Persiste o cache de tradução (evita rajada de scraping no Google após restart)
+        save_translation_cache()
+
         stats.scans_completed += 1
         stats.news_posted += sent_count
         stats.last_scan_time = datetime.now()
-        
+
+        cache_hits = stats.cache_hits_total - cache_hits_start
+        feeds_failed = stats.feeds_failed - feeds_failed_start
         log.info(
-            f"✅ Varredura concluída. (enviadas={sent_count}, cache_hits={cache_hits}, trigger={trigger})"
+            f"✅ Varredura concluída. (enviadas={sent_count}, cache_hits={cache_hits}, "
+            f"feeds_falhos={feeds_failed}, trigger={trigger})"
         )
         _log_next_run()
 

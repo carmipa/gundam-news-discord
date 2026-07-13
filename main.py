@@ -115,6 +115,14 @@ async def main():
 
     @bot.event
     async def on_ready():
+        # on_ready dispara também em reconexões. A inicialização (web server, views,
+        # sync de comandos, scheduler, anúncio de versão) deve ocorrer UMA vez por
+        # processo — senão o web server tenta reabrir a porta, os comandos são
+        # re-sincronizados (rate limit) e o anúncio é reenviado a cada reconexão.
+        if getattr(bot, "_startup_done", False):
+            log.info("🔄 on_ready (reconexão) — inicialização já concluída, pulando.")
+            return
+
         log.info(f"✅ Bot conectado como: {bot.user} (ID: {bot.user.id})")
         log.info(f"📊 Servidores conectados: {len(bot.guilds)}")
 
@@ -244,6 +252,9 @@ async def main():
 
         except Exception as e:
             log.exception(f"❌ Falha ao processar anúncio de versão: {type(e).__name__}: {e}")
+
+        # Marca a inicialização como concluída (não repetir em reconexões).
+        bot._startup_done = True
 
     # =========================================================
     # CARREGAR COGS

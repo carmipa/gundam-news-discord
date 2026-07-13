@@ -152,8 +152,13 @@ def match_intel(
             if not has_en and not has_jp:
                 return False
     else:
-        # For specialized Gundam sites, any core term (including Bandai) is okay
-        if not _contains_any(content, GUNDAM_CORE):
+        # For specialized Gundam sites, any core term (including Bandai) is okay.
+        # Muitos feeds especializados são só em japonês (Esuteru, Hayamimi, Ryokutya,
+        # Hobby Dengeki, Gundam Base JP, Tamashii...): também aceitamos os hints em kana/kanji,
+        # senão itens só-em-japonês seriam silenciosamente descartados.
+        has_en = _contains_any(content, GUNDAM_CORE)
+        has_jp = any(h in content for h in GUNDAM_JP_HINTS)
+        if not has_en and not has_jp:
             return False
 
     # 3. Source-specific regex rules

@@ -62,13 +62,17 @@ def test_sources_urls_are_valid():
     with open("sources.json", "r", encoding="utf-8") as f:
         data = json.load(f)
     
-    all_urls = []
+    all_items = []
     for key in data:
         if isinstance(data[key], list):
-            all_urls.extend(data[key])
-    
-    for url in all_urls:
-        assert url.startswith(("http://", "https://")), f"URL inválida: {url}"
+            all_items.extend(data[key])
+
+    for item in all_items:
+        # Entradas podem ser strings (legado) ou dicts {"name","url",...} (formato atual)
+        url = item.get("url") if isinstance(item, dict) else item
+        if not isinstance(url, str):
+            continue
+        assert url.startswith(("http://", "https://")), f"URL inválida: {item}"
 
 
 def test_readme_exists():

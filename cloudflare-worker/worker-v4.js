@@ -8,7 +8,18 @@
  * (substring), e opcionalmente decodeURIComponent uma vez se o cliente encodou o destino.
  */
 export default {
-  async fetch(request) {
+  async fetch(request, env) {
+    // Proteção anti open-proxy: se PROXY_SECRET estiver definido no Worker,
+    // exige o header X-Proxy-Secret igual. Sem isso, qualquer um poderia usar
+    // este Worker como proxy aberto.
+    const secret = env && env.PROXY_SECRET;
+    if (secret) {
+      const provided = request.headers.get("X-Proxy-Secret");
+      if (provided !== secret) {
+        return new Response("Forbidden", { status: 403 });
+      }
+    }
+
     const reqUrl = request.url;
     const qAt = reqUrl.indexOf("?");
     if (qAt === -1) {
@@ -35,6 +46,8 @@ export default {
 
     const outHeaders = new Headers(request.headers);
     outHeaders.delete("Host");
+    // Não repassa o segredo do proxy para o site de destino.
+    outHeaders.delete("X-Proxy-Secret");
 
     return fetch(target, {
       method: request.method,

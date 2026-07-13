@@ -9,12 +9,13 @@ def get_git_changes():
     Returns a string formatted as 'hash - message', or a fallback message on failure.
     """
     try:
-        # Puxa o Ãºltimo comentÃ¡rio de commit e o hash curto
-        cmd = "git log -1 --pretty=format:'%h - %s'"
-        # stderr=subprocess.DEVNULL hides git errors if .git is missing
-        output = subprocess.check_output(cmd, shell=True, stderr=subprocess.DEVNULL).decode('utf-8').strip()
-        # Remove as aspas simples extras que o format pode trazer dependendo do shell
-        return output.replace("'", "")
+        # shell=False (lista de args): sem interpretação por shell, sem aspas extras.
+        # stderr=DEVNULL esconde erros do git se .git faltar.
+        output = subprocess.check_output(
+            ["git", "log", "-1", "--pretty=format:%h - %s"],
+            stderr=subprocess.DEVNULL, text=True, encoding="utf-8", errors="replace"
+        ).strip()
+        return output
     except Exception as e:
         log.debug(f"Git info fetch failed: {e}")
         return "Maintenance Update (No Git Info)"
@@ -24,8 +25,10 @@ def get_current_hash():
     Returns just the short hash for comparison state.
     """
     try:
-        cmd = "git log -1 --pretty=format:'%h'"
-        return subprocess.check_output(cmd, shell=True, stderr=subprocess.DEVNULL).decode('utf-8').strip().replace("'", "")
+        return subprocess.check_output(
+            ["git", "log", "-1", "--pretty=format:%h"],
+            stderr=subprocess.DEVNULL, text=True, encoding="utf-8", errors="replace"
+        ).strip()
     except Exception as e:
         log.debug(f"Falha ao obter hash do Git: {e}")
         return None

@@ -61,14 +61,13 @@ def test_requirements_has_dependencies():
 
 
 def test_main_has_ssl_fix():
-    """Verifica que main.py usa certifi para SSL."""
-    # Verifica se certifi é usado no scanner.py (onde SSL é configurado)
-    with open("core/scanner.py", "r", encoding="utf-8") as f:
+    """Verifica que o scanner usa certifi para SSL (config de SSL vive no engine modular)."""
+    with open("core/scanner/engine.py", "r", encoding="utf-8") as f:
         scanner_content = f.read()
-    
+
     # Deve usar certifi
-    assert "certifi" in scanner_content, "core/scanner.py deve importar certifi para SSL seguro"
-    
+    assert "certifi" in scanner_content, "core/scanner/engine.py deve importar certifi para SSL seguro"
+
     # NÃO deve ter CERT_NONE (inseguro)
-    assert "CERT_NONE" not in scanner_content, "core/scanner.py não deve usar CERT_NONE (inseguro)"
+    assert "CERT_NONE" not in scanner_content, "core/scanner/engine.py não deve usar CERT_NONE (inseguro)"
 

@@ -122,6 +122,20 @@ except ValueError:
 # 0 = sem limite (processa todas as entradas retornadas pelo feed naquele ciclo).
 MAX_YOUTUBE_ENTRIES_PER_FEED = max(0, min(MAX_YOUTUBE_ENTRIES_PER_FEED, 200))
 
+# Teto de links no history.json E no dedup do state.json (auto-poda a cada varredura).
+# O dedup é alinhado à janela dos últimos HISTORY_LIMIT links enviados, impedindo que
+# state.json cresça indefinidamente. Env: HISTORY_LIMIT.
+try:
+    HISTORY_LIMIT = int(os.getenv("HISTORY_LIMIT", "2000"))
+except ValueError:
+    HISTORY_LIMIT = 2000
+HISTORY_LIMIT = max(100, min(HISTORY_LIMIT, 100000))
+
 # Proxy do Cloudflare Worker para evitar bloqueios de IP (opcional)
 # Exemplo: https://meu-worker.meu-subdominio.workers.dev/?url=
 CLOUDFLARE_PROXY_URL = os.getenv("CLOUDFLARE_PROXY_URL", "").strip()
+
+# Segredo compartilhado com o Worker (opcional). Se definido aqui E no Worker
+# (env PROXY_SECRET), o bot envia o header X-Proxy-Secret e o Worker recusa quem
+# não o apresentar — evita que o proxy seja usado por terceiros (open proxy).
+CLOUDFLARE_PROXY_SECRET = os.getenv("CLOUDFLARE_PROXY_SECRET", "").strip()

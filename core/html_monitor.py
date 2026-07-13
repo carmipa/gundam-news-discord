@@ -11,7 +11,7 @@ import certifi
 from typing import List, Dict, Tuple, Any
 from bs4 import BeautifulSoup
 
-from settings import CLOUDFLARE_PROXY_URL, MAX_CONCURRENT_FEEDS
+from settings import CLOUDFLARE_PROXY_URL, CLOUDFLARE_PROXY_SECRET, MAX_CONCURRENT_FEEDS
 from utils.storage import p, load_json_safe, save_json_safe
 from utils.security import validate_url
 
@@ -78,7 +78,10 @@ async def fetch_page_hash(client: httpx.AsyncClient, url: str) -> tuple[str, str
         
         # Hash calculation
         page_hash = hashlib.sha256(text_content.encode('utf-8')).hexdigest()
-        title = soup.title.string.strip() if soup.title else "No Title"
+        # get_text() é robusto a <title> vazio/aninhado (soup.title.string pode ser None)
+        title = soup.title.get_text(strip=True) if soup.title else "No Title"
+        if not title:
+            title = "No Title"
         log.debug(f"🔐 [HASH] Hash gerado para {url}: {page_hash[:8]}...")
         
         return url, title, page_hash
@@ -134,7 +137,11 @@ async def check_official_sites(current_state: Dict[str, str]) -> Tuple[List[Dict
         "Sec-Fetch-Site": "none",
         "Upgrade-Insecure-Requests": "1"
     }
-    
+    # O monitor roteia via proxy quando CLOUDFLARE_PROXY_URL está definido; envia o
+    # segredo compartilhado (se houver) para o Worker não recusar a requisição.
+    if CLOUDFLARE_PROXY_URL and CLOUDFLARE_PROXY_SECRET:
+        headers["X-Proxy-Secret"] = CLOUDFLARE_PROXY_SECRET
+
     updates = []
     new_state = current_state.copy()
     
@@ -147,9 +154,14 @@ async def check_official_sites(current_state: Dict[str, str]) -> Tuple[List[Dict
                 return await fetch_page_hash(client, url)
 
         tasks = [throttled_fetch(url) for url in urls]
-        results = await asyncio.gather(*tasks)
-        
-        for url, title, page_hash in results:
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        for result in results:
+            # return_exceptions=True: uma falha isolada não derruba o monitor inteiro
+            if isinstance(result, Exception):
+                log.warning(f"⚠️ Falha não tratada no HTML Monitor: {type(result).__name__}: {result}")
+                continue
+            url, title, page_hash = result
             if not page_hash:
                 continue
                 

@@ -52,6 +52,7 @@ state/*.json
 # Cache do bot (dedup/etag/translation)
 state.json
 history.json
+translation_cache.json
 
 # Backups automáticos
 backups/

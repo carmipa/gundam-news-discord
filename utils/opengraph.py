@@ -6,6 +6,8 @@ import logging
 from bs4 import BeautifulSoup
 from typing import Optional
 
+from utils.security import validate_url
+
 log = logging.getLogger("MaftyIntel.scanner")
 
 async def fetch_og_image(url: str, session: aiohttp.ClientSession) -> Optional[str]:
@@ -14,7 +16,13 @@ async def fetch_og_image(url: str, session: aiohttp.ClientSession) -> Optional[s
     """
     if not url or not url.startswith("http"):
         return None
-        
+
+    # Anti-SSRF: só segue links http(s) para hosts públicos (o link vem de feeds externos)
+    is_valid, error_msg = validate_url(url)
+    if not is_valid:
+        log.debug(f"OG fetch bloqueado por segurança para {url}: {error_msg}")
+        return None
+
     try:
         # Simulate a social media crawler to trigger SSR for OG tags
         headers = {

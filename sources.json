@@ -1,14 +1,15 @@
 {
   "meta": {
-    "version": "3.0",
-    "generated": "2026-05-02",
+    "version": "3.1",
+    "generated": "2026-07-12",
     "description": "Base consolidada Mafty — fusão completa das versões anteriores. Estrutura enriquecida com name, category, language e region em todos os feeds.",
-    "total_rss": 26,
-    "total_reddit": 5,
-    "total_youtube": 16,
+    "total_rss": 30,
+    "total_reddit": 8,
+    "total_youtube": 21,
     "total_tracker": 6,
-    "total_official_sites": 126,
+    "total_official_sites": 122,
     "notes": [
+      "2026-07-12: +RSS Zeonic-Republic, Mobile Suit Breakdown, Schizophonic9; +Reddit r/GBO2, r/AdvancedGunpla; +YouTube Mecha Gaikotsu, ZakuAurelius, Kakarot197, Studio G; +official Dalong.net.",
       "YouTube: nomes dos canais precisam ser verificados manualmente via channel_id.",
       "kusakusa.wordpress.com marcado como unstable — usar timeout estendido.",
       "gunpla101.com possui fallbacks configurados caso o feed principal falhe.",
@@ -194,6 +195,24 @@
       "category": "gaming",
       "language": "en",
       "region": "us"
+    },
+    {
+      "name": "Zeonic-Republic",
+      "url": "http://www.zeonic-republic.net/?feed=rss2",
+      "category": "news",
+      "language": "en"
+    },
+    {
+      "name": "Mobile Suit Breakdown",
+      "url": "https://gundampodcast.com/feed/podcast",
+      "category": "community",
+      "language": "en"
+    },
+    {
+      "name": "Schizophonic9",
+      "url": "http://schizophonic9.com/index.rdf",
+      "category": "gunpla",
+      "language": "ja"
     }
   ],
   "reddit_feeds": [
@@ -230,6 +249,18 @@
     {
       "name": "r/freedomisgunpla",
       "url": "https://www.reddit.com/r/freedomisgunpla/.rss",
+      "category": "community",
+      "language": "en"
+    },
+    {
+      "name": "r/GBO2",
+      "url": "https://www.reddit.com/r/GBO2/.rss",
+      "category": "community",
+      "language": "en"
+    },
+    {
+      "name": "r/AdvancedGunpla",
+      "url": "https://www.reddit.com/r/AdvancedGunpla/.rss",
       "category": "community",
       "language": "en"
     }
@@ -319,6 +350,26 @@
       "name": "Canal YT – GUNDAGUY / MSG Universe",
       "channel_id": "UCMZOTXTiN9rakGRLbXuL6aA",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCMZOTXTiN9rakGRLbXuL6aA"
+    },
+    {
+      "name": "Mecha Gaikotsu",
+      "channel_id": "UCowMgqWFV83mFHLKo32_O4w",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCowMgqWFV83mFHLKo32_O4w"
+    },
+    {
+      "name": "ZakuAurelius",
+      "channel_id": "UCAgGBehH9xUCSuGvbatgVzg",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCAgGBehH9xUCSuGvbatgVzg"
+    },
+    {
+      "name": "Kakarot197",
+      "channel_id": "UCkZSITj2mlYvFbursVms1pg",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCkZSITj2mlYvFbursVms1pg"
+    },
+    {
+      "name": "Studio G",
+      "channel_id": "UCmTirt4GHaPXVBDOYfW3nDg",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCmTirt4GHaPXVBDOYfW3nDg"
     }
   ],
   "tracker_feeds": [
@@ -1016,6 +1067,11 @@
       "name": "VCA Gundam",
       "url": "https://www.vcagundam.com/",
       "region": "global"
+    },
+    {
+      "name": "Dalong.net",
+      "url": "http://www.dalong.net/",
+      "region": "kr"
     }
   ],
   "filters": {

@@ -203,10 +203,13 @@ def get_state_stats(state: Dict[str, Any]) -> Dict[str, Any]:
     if isinstance(http_cache, dict):
         stats["http_cache_urls"] = len(http_cache)
     
-    # Estatísticas de html_hashes
-    html_hashes = state.get("html_hashes", {})
-    if isinstance(html_hashes, dict):
-        stats["html_hashes_sites"] = len(html_hashes)
+    # Estatísticas do monitor de sites HTML.
+    # O engine grava em "html_monitor"; "html_hashes" é a chave legada. Contamos a real.
+    html_data = state.get("html_monitor")
+    if not isinstance(html_data, dict) or not html_data:
+        html_data = state.get("html_hashes", {})
+    if isinstance(html_data, dict):
+        stats["html_hashes_sites"] = len(html_data)
     
     # Última limpeza
     last_cleanup = state.get("last_cleanup", 0)
@@ -245,13 +248,16 @@ def clean_state(state: Dict[str, Any], clean_type: str) -> Tuple[Dict[str, Any],
         log.info("🧹 Limpeza: http_cache removido")
     
     elif clean_type == "html_hashes":
+        # Limpa a chave real (html_monitor) e a legada (html_hashes) por segurança.
+        new_state["html_monitor"] = {}
         new_state["html_hashes"] = {}
-        log.info("🧹 Limpeza: html_hashes removido")
-    
+        log.info("🧹 Limpeza: html_monitor/html_hashes removido")
+
     elif clean_type == "tudo":
         # Limpa tudo exceto last_cleanup e last_announced_hash
         new_state["dedup"] = {}
         new_state["http_cache"] = {}
+        new_state["html_monitor"] = {}
         new_state["html_hashes"] = {}
         save_json_safe(p("history.json"), [])
         # Mantém last_cleanup e last_announced_hash
