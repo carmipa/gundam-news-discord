@@ -207,7 +207,7 @@ Executa limpeza após criar backup.
 |------|-------------|---------|-------------|
 | 🧹 **dedup** | Histórico de links enviados | ⚠️ Bot repostará notícias recentes | Histórico corrompido |
 | 🌐 **http_cache** | Cache HTTP (ETags, Last-Modified) | ℹ️ Mais requisições HTTP | Feeds não atualizam |
-| 🔍 **html_hashes** | Hashes de monitoramento HTML | ⚠️ Sites detectados como "mudados" | Monitor HTML não funciona |
+| 🔍 **html_hashes** | Hashes de monitoramento HTML + cooldown de aviso por site | ⚠️ Sites re-inicializados; a mudança seguinte gera aviso | Monitor HTML não funciona |
 | ⚠️ **tudo** | Limpa tudo (exceto metadados) | 🚨 Todos os efeitos acima | Apenas em emergências |
 
 **Proteções:**

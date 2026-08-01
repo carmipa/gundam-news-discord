@@ -184,6 +184,7 @@ def get_state_stats(state: Dict[str, Any]) -> Dict[str, Any]:
         "dedup_total_links": 0,
         "http_cache_urls": 0,
         "html_hashes_sites": 0,
+        "html_cooldown_sites": 0,
         "last_cleanup": None,
         "last_announced_hash": state.get("last_announced_hash"),
         "file_size_kb": 0
@@ -210,7 +211,13 @@ def get_state_stats(state: Dict[str, Any]) -> Dict[str, Any]:
         html_data = state.get("html_hashes", {})
     if isinstance(html_data, dict):
         stats["html_hashes_sites"] = len(html_data)
-    
+
+    # Cooldown de aviso por site (html_monitor_posted): entra nas estatísticas
+    # para o preview do /clean_state não esconder estado que a limpeza vai apagar.
+    html_cooldown = state.get("html_monitor_posted", {})
+    if isinstance(html_cooldown, dict):
+        stats["html_cooldown_sites"] = len(html_cooldown)
+
     # Última limpeza
     last_cleanup = state.get("last_cleanup", 0)
     if last_cleanup:
@@ -249,9 +256,13 @@ def clean_state(state: Dict[str, Any], clean_type: str) -> Tuple[Dict[str, Any],
     
     elif clean_type == "html_hashes":
         # Limpa a chave real (html_monitor) e a legada (html_hashes) por segurança.
+        # html_monitor_posted (cooldown de aviso por site) TEM de ir junto: sem os
+        # hashes, o próximo ciclo re-inicializa cada site e a deteção seguinte é
+        # legítima — mas um cooldown sobrevivente suprimiria esse aviso por 24h.
         new_state["html_monitor"] = {}
         new_state["html_hashes"] = {}
-        log.info("🧹 Limpeza: html_monitor/html_hashes removido")
+        new_state["html_monitor_posted"] = {}
+        log.info("🧹 Limpeza: html_monitor/html_hashes/cooldown removido")
 
     elif clean_type == "tudo":
         # Limpa tudo exceto last_cleanup e last_announced_hash
@@ -259,6 +270,7 @@ def clean_state(state: Dict[str, Any], clean_type: str) -> Tuple[Dict[str, Any],
         new_state["http_cache"] = {}
         new_state["html_monitor"] = {}
         new_state["html_hashes"] = {}
+        new_state["html_monitor_posted"] = {}
         save_json_safe(p("history.json"), [])
         # Mantém last_cleanup e last_announced_hash
         log.info("🧹 Limpeza: tudo removido (exceto metadados), incluindo history.json")

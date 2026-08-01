@@ -261,10 +261,12 @@ class AdminCog(commands.Cog):
                 f"Backup: {os.path.basename(backup_path)} | "
                 f"Before: dedup={stats_before['dedup_total_links']} links, "
                 f"http_cache={stats_before['http_cache_urls']} URLs, "
-                f"html_hashes={stats_before['html_hashes_sites']} sites | "
+                f"html_hashes={stats_before['html_hashes_sites']} sites, "
+                f"cooldown={stats_before['html_cooldown_sites']} sites | "
                 f"After: dedup={stats_after['dedup_total_links']} links, "
                 f"http_cache={stats_after['http_cache_urls']} URLs, "
-                f"html_hashes={stats_after['html_hashes_sites']} sites"
+                f"html_hashes={stats_after['html_hashes_sites']} sites, "
+                f"cooldown={stats_after['html_cooldown_sites']} sites"
             )
             
             # Mensagem de sucesso

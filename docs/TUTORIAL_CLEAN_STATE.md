@@ -106,8 +106,13 @@ sequenceDiagram
 |-----------------|------|--------------|---------|
 | `dedup` | 🧹 Dedup | Histórico de links enviados (por feed) | ⚠️ Bot pode **repostar** notícias já enviadas |
 | `http_cache` | 🌐 HTTP Cache | ETags e Last-Modified por URL | ℹ️ Mais requisições HTTP; **sem** repostagem |
-| `html_hashes` | 🔍 HTML Hashes | Hashes dos sites do HTML Watcher | ⚠️ Sites serão detectados como “mudados” de novo |
-| `tudo` | ⚠️ TUDO | Dedup + HTTP Cache + HTML Hashes | 🚨 Efeitos dos três; use só em emergências |
+| `html_hashes` | 🔍 HTML Hashes | Hashes dos sites do HTML Watcher **e o cooldown de aviso por site** | ⚠️ Sites serão re-inicializados; a mudança seguinte gera aviso |
+| `tudo` | ⚠️ TUDO | Dedup + HTTP Cache + HTML Hashes + cooldown + `history.json` | 🚨 Efeitos dos três; use só em emergências |
+
+> O cooldown (`html_monitor_posted`, ver `HTML_MONITOR_COOLDOWN_HOURS`) é limpo
+> **junto** com os hashes, e não sozinho. Tem de ser assim: sem os hashes cada site
+> é re-inicializado e a deteção seguinte é legítima — um cooldown sobrevivente
+> silenciaria justamente esse aviso durante 24h.
 
 ---
 
