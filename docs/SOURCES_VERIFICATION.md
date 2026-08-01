@@ -15,19 +15,62 @@ Na **varredura real** (`core/scanner/fetcher.py` / `engine.py`), cada feed RSS p
 - **Timeout** de leitura.
 - **HTTP 5xx** (servidor instável).
 
-Entre tentativas o bot usa **`FEED_FETCH_INTER_RETRY_DELAYS`** (padrão `2,5` segundos entre 1→2 e 2→3); se a lista acabar, cai no backoff exponencial com `FEED_FETCH_RETRY_BACKOFF_SEC`. Em **403/404/429** e vários 4xx o bot **não** refaz o mesmo URL: passa para a **próxima URL** da cadeia se existir `feed_url_fallbacks`.
+Entre tentativas o bot usa **`FEED_FETCH_INTER_RETRY_DELAYS`** (padrão `2,5` segundos entre 1→2 e 2→3); se a lista acabar, cai no backoff exponencial com `FEED_FETCH_RETRY_BACKOFF_SEC`. Em **429**, o valor pedido pelo servidor (`Retry-After` ou `x-ratelimit-reset`) tem prioridade sobre o backoff configurado. Esgotadas as tentativas, o bot passa para a **próxima URL** da cadeia se a fonte declarar `fallbacks`.
 
 Variáveis: `FEED_FETCH_MAX_ATTEMPTS`, `FEED_FETCH_INTER_RETRY_DELAYS`, `FEED_FETCH_RETRY_BACKOFF_SEC` — ver [CONFIGURATION.md](CONFIGURATION.md).
 
-**Fontes lentas ou instáveis:** use a chave opcional `feed_fetch_overrides` no mesmo `sources.json` (URL exata → `unstable`, `http_timeout_sec`, `note`). Ver secção “Fontes de feeds” em [CONFIGURATION.md](CONFIGURATION.md).
+**Fontes lentas, instáveis ou exigentes:** as opções vivem **dentro do objeto da fonte** em `sources.json` (`http_timeout_sec`, `first_request_delay_sec`, `user_agent`, `fallbacks`, `enabled`). Os antigos blocos de topo `feed_fetch_overrides` e `feed_url_fallbacks` já **não são lidos**. Ver secção “Fontes de feeds” em [CONFIGURATION.md](CONFIGURATION.md).
+
+### Throttle por host
+
+Alguns hosts dão orçamento de pedidos por IP, não por sessão. O fetcher serializa
+os pedidos a esses hosts e espaça-os (`REDDIT_MIN_INTERVAL_SEC`), porque o semáforo
+global (`MAX_CONCURRENT_FEEDS`) sozinho deixa-os sair quase em paralelo.
 
 ---
 
-## 🧹 Ajustes recentes em `sources.json` (manutenção)
+## 🩺 Como decidir se uma fonte morreu
 
-- Removidos ou migrados feeds que só geravam ruído (404, HTML em vez de RSS, duplicados com HTML watcher): por exemplo `bandai-hobby.net/feed/`, `p-bandai.com/us/rss`, feeds `en.gundam-official` / tamashii / GCG em formato RSS problemático — substituídos por URLs de **página** no monitor HTML onde faz sentido.
+**Reproduza a falha fora do servidor antes de desativar.** Este é o passo que
+separa fonte de facto morta de bloqueio do IP do VPS — sem ele, desativa-se uma
+fonte saudável e o problema real fica escondido.
+
+```bash
+# do seu PC, com UA de navegador
+curl -sSL -o /dev/null -w '%{http_code} %{content_type}\n' -A "Mozilla/5.0 (...) Chrome/124" "<URL>"
+# e depois a partir do servidor, para comparar
+ssh vps 'curl -sSL -o /dev/null -w "%{http_code}\n" "<URL>"'
+```
+
+| Resultado | Leitura |
+|-----------|---------|
+| Falha em ambos | Fonte morta. Desative com `enabled: false` + `disabled_reason` |
+| OK fora, falha no VPS | Bloqueio de IP. Não desative — trate com throttle, UA ou proxy |
+| 405/403 só com UA de navegador | Regra de WAF invertida. Resolva com `user_agent` |
+| NXDOMAIN | Domínio extinto. Confirme com um resolver público (`nslookup dominio 8.8.8.8`) |
+
+---
+
+## 🧹 Ajustes em `sources.json` (manutenção)
+
+### 2026-08-01 — auditoria de fontes mortas
+
+Todas as falhas abaixo foram reproduzidas **fora** do VPS antes de agir.
+
+| Fonte | Diagnóstico | Ação |
+|-------|-------------|------|
+| `gundamnews.org` (feed e site) | `TLSV1_ALERT_INTERNAL_ERROR` em TLS 1.2 e 1.3, apex e www, em schannel e OpenSSL | `enabled: false`. Reativar quando o handshake voltar |
+| `natalie.mu/comic/feed/news` | 405 só com UA de navegador; 200 com UA de biblioteca HTTP | Mantida, com `user_agent` |
+| `gundampodcast.com/feed/podcast` | 404; o site é uma vitrine Squarespace sem RSS | Trocado por `pinecast.com/feed/gundam-podcast` |
+| `schizophonic9.com/index.rdf` | 404; o blog migrou de domínio | Trocado por `schizophonic9-2.com/?xml` (FC2) + fallback |
+| `kimithebuilderblog.com/feed/` | 301 → `/404.html` | WordPress.com passou a canónico |
+| `unicorn-gundam-statue.jp` | NXDOMAIN (confirmado via 8.8.8.8); a estátua encerra exibição em ago/2026 | `enabled: false` |
+| Reddit (8 feeds) | 429 por orçamento de IP, não bloqueio | Throttle por host + retentativa guiada pelo servidor |
+
+### Anteriores
+
+- Removidos ou migrados feeds que só geravam ruído (404, HTML em vez de RSS, duplicados com HTML watcher): `bandai-hobby.net/feed/`, `p-bandai.com/us/rss`, feeds `en.gundam-official` / tamashii / GCG em formato RSS problemático — substituídos por URLs de **página** no monitor HTML onde faz sentido.
 - Reddit **r/Gundam** retirado do monitor HTML (usar só `.rss`); removidos **gundam-navi-app** (serviço encerrado) e **gunplatv.com** (DNS).
-- Kimi The Builder: canónico `kimithebuilderblog.com/feed/` (301 → WordPress.com); fallback explícito em `feed_url_fallbacks` para `kimithebuilderblog.wordpress.com/feed/`.
 
 Rodar `python tests/test_sources.py` após qualquer edição manual de fontes.
 

@@ -1,6 +1,6 @@
 
 import pytest
-from core.filters import _contains_any, match_intel, is_trusted_gundam_source
+from core.filters import _contains_any, match_intel
 
 def test_contains_any_basic_match():
     """Test verification of basic keyword matches."""
@@ -77,11 +77,11 @@ def test_match_intel_accepts_source_url_optional():
     assert match_intel("123", "Gunpla news", "Summary", config) is True
     assert match_intel("123", "Gunpla news", "Summary", config, source_url="https://gundamnews.org/feed") is True
 
-
-def test_is_trusted_gundam_source():
-    """is_trusted_gundam_source identifica domínios Gundam (não usado na lógica atual)."""
-    assert is_trusted_gundam_source("https://gundamnews.org/feed") is True
-    assert is_trusted_gundam_source("https://www.gundam-base.net/") is True
-    assert is_trusted_gundam_source("https://www.crunchyroll.com/news/rss") is False
-    assert is_trusted_gundam_source("") is False
+# Removido em 2026-08-01: test_is_trusted_gundam_source importava
+# core.filters.is_trusted_gundam_source, que nunca existiu no módulo. O import no
+# topo do ficheiro falhava e derrubava a COLETA dos 8 testes válidos acima — o
+# ficheiro inteiro estava morto. A própria docstring do teste dizia "não usado na
+# lógica atual": era a especificação de um helper que não chegou a ser escrito.
+# Se vier a ser necessário, implementar em core/filters.py primeiro e só então
+# reintroduzir o teste.
 

@@ -25,6 +25,10 @@ services:
       - ./state.json:/app/state.json
       - ./sources.json:/app/sources.json
 
+      # Cache de tradução: sem este volume o arquivo morre a cada `up --build`
+      # e a varredura seguinte re-scrapa o Google em rajada (risco de bloqueio).
+      - ./translation_cache.json:/app/translation_cache.json
+
       # Logs persistentes (opcional)
       - ./logs:/app/logs
 

@@ -5,7 +5,7 @@ import discord
 from typing import Dict, Any, List
 import logging
 
-from core.filters import FILTER_OPTIONS
+from core.filters import FILTER_OPTIONS, normalize_filters
 from utils.storage import load_config_cached, save_config_safe
 
 log = logging.getLogger("CyberIntel")
@@ -40,8 +40,10 @@ class FilterDashboard(discord.ui.View):
         save_config_safe(cfg)
     
     def _filters(self) -> List[str]:
+        # Normaliza nomes legados ("gunpla" -> "model_kits") para o painel refletir
+        # o estado real; o config.json migra sozinho no próximo save.
         cfg = self._cfg()
-        return list(cfg[self.guild_id].get("filters", []))
+        return normalize_filters(cfg[self.guild_id].get("filters", []))
     
     def _set_filters(self, new_filters: List[str]) -> None:
         cfg = self._cfg()

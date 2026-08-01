@@ -1,15 +1,32 @@
+"""
+Runner manual: mostra como um item real do YouTube é classificado por filtro.
 
-import json
-from core.filters import match_intel
+Uso: `python tests/test_user_news.py`
 
-def test_item(filters, title, summary, source_url):
+A função de verificação chama-se `check_item`, NÃO `test_item`: com o nome antigo
+o pytest coletava-a como teste e tentava injetar `filters`, `title`, `summary` e
+`source_url` como fixtures, que não existem — resultado, um ERROR fixo na suíte.
+O corpo do script também corria durante o import, por não ter guarda `__main__`.
+"""
+import os
+import sys
+
+# Executado diretamente, sys.path[0] é tests/ e não a raiz — sem isto o import
+# de core.filters falha (o pytest não precisa, resolve pela rootdir).
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from core.filters import match_intel  # noqa: E402
+
+
+def check_item(filters, title, summary, source_url):
     config = {"123": {"filters": filters}}
     result = match_intel("123", title, summary, config, source_url)
     print(f"Filters {filters} -> Result: {result}")
     return result
 
-title = "[ヘッドホン推奨]『機動戦士ガンダム 閃光のハサウェイ キルケーの魔女』戦場体感PV"
-summary = """ガンダムシリーズ最新作『機動戦士ガンダム 閃光のハサウェイ キルケーの魔女』大ヒット公開中！
+
+TITLE = "[ヘッドホン推奨]『機動戦士ガンダム 閃光のハサウェイ キルケーの魔女』戦場体感PV"
+SUMMARY = """ガンダムシリーズ最新作『機動戦士ガンダム 閃光のハサウェイ キルケーの魔女』大ヒット公開中！
 
 先週より上映がスタートしたラージフォーマットDolby Cinema®（ドルビーシネマ）版に続き、MX4D™、4DX®の上映が決定しました。 
 まるでモビルスーツのコックピットに乗り込んだかのような臨場感で味わう、全感覚で体感する『閃光のハサウェイ』体験を劇場でお楽しみください。 
@@ -28,11 +45,15 @@ U.C.0105、シャアの反乱から12年——。
 ...
 #閃光のハサウェイ #キルケーの魔女 #ガンダム
 """
-url = "https://www.youtube.com/watch?v=QbZE6LhdycY"
+URL = "https://www.youtube.com/watch?v=QbZE6LhdycY"
 
-print(f"Testing for title: {title}")
-test_item(["todos"], title, summary, url)
-test_item(["filmes"], title, summary, url)
-test_item(["gunpla"], title, summary, url)
-test_item(["games"], title, summary, url)
-test_item(["musica"], title, summary, url)
+
+def main():
+    print(f"Testing for title: {TITLE}")
+    for filtros in (["todos"], ["filmes"], ["gunpla"], ["games"],
+                    ["musica"], ["roupas"], ["hardware"]):
+        check_item(filtros, TITLE, SUMMARY, URL)
+
+
+if __name__ == "__main__":
+    main()

@@ -78,7 +78,7 @@ Os links abaixo apontam para arquivos na branch **`main`** no GitHub (evita ambi
 | **Scanner periódico** | Varredura de feeds RSS/Atom/YouTube (configurável via `LOOP_MINUTES`) |
 | **HTML Watcher** | Sites oficiais sem RSS (ex.: Gundam Official) |
 | **Dashboard persistente** | Painel com botões após restart |
-| **Filtros por categoria** | Gunpla, Filmes, Games, Música, Fashion + TUDO |
+| **Filtros por categoria** | Model Kits, Anime & Filmes, Games, Eventos, Merch, Músicas, Roupas, Hardware + TUDO |
 | **Anti-spam / blacklist** | Bloqueia conteúdo não relacionado |
 | **Deduplicação** | `history.json` |
 | **Multi-guild** | Config por servidor |

@@ -23,6 +23,8 @@ from settings import (
     MAX_ENTRIES_PER_FEED,
     MAX_YOUTUBE_ENTRIES_PER_FEED,
     HISTORY_LIMIT,
+    HTML_MONITOR_COOLDOWN_SEC,
+    HTML_MONITOR_COOLDOWN_HOURS,
 )
 from utils.storage import p, load_json_safe, save_json_safe, load_config_cached
 from core.stats import stats
@@ -211,10 +213,33 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
             log.info("🔎 Verificando sites oficiais (HTML Watcher)...")
             html_updates, new_html_state = await check_official_sites(state["html_monitor"])
             state["html_monitor"] = new_html_state
-            
+
+            # Cooldown por site: o hash muda a cada ciclo em portais com banner/ranking
+            # rotativo, o que gerava um "🔄 Update" por hora sem notícia nova. Estas
+            # atualizações não têm link único, então não passam pelo dedup/history dos
+            # feeds — o cooldown é o que impede a repostagem.
+            html_posted_at = state.setdefault("html_monitor_posted", {})
+            now_ts = time.time()
+
             for update in html_updates:
+                site_url = update.get("link", "")
+                if HTML_MONITOR_COOLDOWN_SEC > 0 and site_url:
+                    try:
+                        last_ts = float(html_posted_at.get(site_url, 0))
+                    except (TypeError, ValueError):
+                        last_ts = 0.0
+                    if last_ts and (now_ts - last_ts) < HTML_MONITOR_COOLDOWN_SEC:
+                        restante = (HTML_MONITOR_COOLDOWN_SEC - (now_ts - last_ts)) / 3600
+                        scan_verbose(
+                            log,
+                            f"🔕 [HTML COOLDOWN] {site_url} avisado há menos de "
+                            f"{HTML_MONITOR_COOLDOWN_HOURS:.0f}h (faltam {restante:.1f}h).",
+                        )
+                        continue
+
                 # Trata atualizações de HTML como entradas de feed para processamento uniforme
                 # check_official_sites já retorna dicts compatíveis com create_embed
+                html_sent = False
                 html_embeds_by_lang: Dict[str, Any] = {}
                 for gid, gdata in config.items():
                     channel_id = gdata.get("channel_id")
@@ -235,8 +260,14 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         embed = html_embeds_by_lang[target_lang]
                         await channel.send(embed=embed)
                         sent_count += 1
+                        html_sent = True
                     except Exception as e:
                         log.error(f"Error sending HTML update to guild {gid}: {e}")
+
+                # Só arma o cooldown se o aviso de facto saiu para alguma guild —
+                # senão um item barrado pelo filtro bloquearia o site por 24h.
+                if html_sent and site_url:
+                    html_posted_at[site_url] = now_ts
 
         # Cleanup and Save
         # Corta o history aos últimos HISTORY_LIMIT e alinha o dedup à mesma janela,

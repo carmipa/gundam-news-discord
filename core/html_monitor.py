@@ -95,7 +95,24 @@ async def fetch_page_hash(client: httpx.AsyncClient, url: str) -> tuple[str, str
 
 
 def _html_monitor_urls_from_sources(sources: Dict[str, Any]) -> List[str]:
-    """Legacy official_sites_reference_(not_rss) + official_sites (lista de dicts ou strings)."""
+    """
+    Extrai as URLs a vigiar de official_sites_reference_(not_rss) + official_sites.
+
+    PROPÓSITO DE NEGÓCIO:
+        Define quais sites oficiais entram na ronda do HTML Watcher a cada varredura.
+
+    INVARIANTES DO DOMÍNIO:
+        - Respeita "enabled": false, igual ao carregador de feeds RSS. Sem isto,
+          uma fonte desativada por estar morta (domínio em NXDOMAIN, TLS quebrado)
+          continuaria a ser batida a cada ciclo, poluindo o log com avisos que já
+          foram diagnosticados.
+        - Aceita tanto strings soltas quanto dicts com "url" (formato legado).
+        - Preserva a ordem de declaração e remove duplicados entre os dois blocos.
+
+    COMPORTAMENTO EM CASO DE FALHA:
+        Não levanta exceção. Blocos ausentes ou de tipo inesperado são ignorados;
+        no limite devolve lista vazia e `check_official_sites` sai sem fazer rede.
+    """
     out: List[str] = []
     for block in (
         sources.get("official_sites_reference_(not_rss)", []),
@@ -107,6 +124,8 @@ def _html_monitor_urls_from_sources(sources: Dict[str, Any]) -> List[str]:
             if isinstance(item, str) and item.startswith("http"):
                 out.append(item.strip())
             elif isinstance(item, dict) and item.get("url"):
+                if item.get("enabled") is False:
+                    continue
                 u = item["url"]
                 if isinstance(u, str) and u.startswith("http"):
                     out.append(u.strip())

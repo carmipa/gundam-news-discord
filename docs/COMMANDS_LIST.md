@@ -14,7 +14,7 @@ Lista rápida do que **cada comando faz**. Para detalhes, sintaxe e exemplos, ve
 | Comando | O que faz |
 |--------|-----------|
 | `/set_canal` | Define o canal de texto onde o bot envia notícias (ou usa o canal atual). |
-| `/dashboard` | Abre o painel interativo para configurar filtros (Gunpla, Filmes, Games, etc.) e idioma. |
+| `/dashboard` | Abre o painel interativo para configurar filtros (Model Kits, Anime & Filmes, Games, Eventos, Merch, Músicas, Roupas, Hardware) e idioma. |
 | `/setlang` | Define o idioma do bot para o servidor (pt_BR, en_US, es_ES, it_IT, ja_JP). |
 | `/forcecheck` | Força uma varredura imediata de todos os feeds (não espera o ciclo automático). |
 | `/clean_state` | Limpa partes do `state.json` (dedup, cache HTTP, hashes HTML ou tudo), com backup e confirmação. |

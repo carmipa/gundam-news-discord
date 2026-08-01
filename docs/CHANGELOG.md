@@ -6,12 +6,34 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 
 ## [Unreleased]
 
+### Segurança
+
+- **`.env` deixou de entrar na imagem Docker** — o `.dockerignore` não o excluía e o `COPY . .` gravava `DISCORD_TOKEN`, `CLOUDFLARE_PROXY_SECRET` e a senha do dashboard numa layer legível por `docker history`/`save`. O Compose já o injetava em runtime via `env_file`; nunca foi preciso na imagem.
+- **Sanitizador de logs deixou de destruir o diagnóstico** — o padrão `([a-zA-Z0-9_-]{20,})` truncava **qualquer** sequência longa para 8 caracteres, sem proteger nada que as regras de rótulo já não cobrissem. Domínios viravam `unicorn-....jp`, `TLSV1_ALERT_INTERNAL_ERROR` virava `TLSV1_AL...` e IDs de canal do YouTube ficavam ilegíveis. Substituído por 5 padrões ancorados (rótulo `token=`/`secret=`, `Authorization: Bearer/Bot`, forma estrutural do token do Discord, webhook e segredo em query string).
+
+### Adicionado
+
+- **Categorias de filtro: Músicas & Trilhas 🎵, Roupas & Vestuário 👕 e Hardware & PC 💻** — a última cobre as edições Gundam de placas-mãe, GPUs, SSDs, gabinetes e periféricos, que saem esporadicamente e antes não tinham como ser assinadas isoladamente.
+- **Keywords em japonês passaram a funcionar nas categorias** — kana e kanji contam como `\w`, então o `\b` nunca casava no meio de uma frase (`アニメ主題歌決定`). Keywords CJK passaram a ser casadas por substring, como já acontecia nos hints do portão Gundam.
+- **Throttle por host no fetcher** — lock e espaçamento mínimo por domínio (`REDDIT_MIN_INTERVAL_SEC`), com a retentativa de 429 guiada por `Retry-After`/`x-ratelimit-reset` em vez do backoff fixo.
+- **Cooldown do HTML Monitor** (`HTML_MONITOR_COOLDOWN_HOURS`, padrão 24h) — avisos de site oficial não passam por dedup nem history, então portais com banner rotativo postavam "🔄 Update" de hora em hora sem notícia nova.
+- **`user_agent` por fonte** em `sources.json`, e `enabled: false` passou a ser respeitado também pelo HTML Monitor.
+- **`translation_cache.json` virou volume** no Compose — sem isso o ficheiro morria a cada `up --build` e a varredura seguinte re-scrapava o Google em rajada.
+
 ### Corrigido
 
+- **Filtros legados silenciosamente mortos** — `config.json` de servidores anteriores à renomeação guardava `gunpla`, `filmes` e `musica`, que não existiam no `CAT_MAP`. `CAT_MAP.get(nome, [])` devolvia lista vazia e o filtro rejeitava tudo **sem nenhum log**. Medido na produção: 4 guilds afetadas, 2 delas com canal ativo recebendo zero notícias. Agora `gunpla` e `filmes` são traduzidos na leitura (e o config migra no primeiro save do painel) e `musica` virou categoria de pleno direito.
+- **Fonte de rate limit do Reddit mal diagnosticada** — o log dizia `(via proxy: True)` mesmo com `CLOUDFLARE_PROXY_URL` vazio, porque reportava a *intenção* e não o roteamento real. A causa verdadeira é o orçamento por IP do Reddit. O log passou a reportar o que de facto acontece.
+- **Fronteira de keywords numéricas** — `\b00\b` casava `12:00`, porque `:` conta como fronteira de palavra. Keywords só de dígitos passaram a usar fronteira estrita, que também exclui `2000` e `300`; keywords de texto mantêm o `\b` clássico.
+- **Fontes mortas em `sources.json`** — `gundamnews.org` e `unicorn-gundam-statue.jp` desativados com motivo registado; `gundampodcast.com` → Pinecast; `schizophonic9.com` → `schizophonic9-2.com`; Kimi the Builder passou a ter o WordPress.com como canónico; Natalie mantida com `user_agent` próprio.
+- **Suíte de testes voltou a correr por inteiro** — `test_filters_regex.py` não coletava (importava `is_trusted_gundam_source`, que nunca existiu) e `test_gundam_logic_manual.py` chamava `sys.exit(1)` no import, derrubando o pytest com `INTERNALERROR`. Também corrigidos `test_user_news.py` (função `test_item` coletada como teste com fixtures inexistentes), `test_readme_exists` (procurava `readme.md` minúsculo, falhando em Linux) e `test_aiohttp_timeout_usage` (inspecionava `run_scan_once`, mas o timeout mudou para `fetch_feed`). De 58 testes verdes com 2 ficheiros mortos para **110 verdes, zero falhas, sem exclusões**.
 - **Arranque do container** — `core/scanner/notifier.py` importava `Optional` e `aiohttp.ClientSession` nas anotações sem import explícito, gerando `NameError` e restart em loop no Docker.
 
 ### Documentação
 
+- **`CONFIGURATION.md` descrevia um schema morto** — ensinava a configurar `feed_url_fallbacks`, `feed_fetch_overrides`, `extra_headers` e `unstable` como blocos de topo do `sources.json`. Nenhum deles é lido por código algum desde a modularização do fetcher: quem seguisse a doc configuraria coisas que não fazem nada, em silêncio. Reescrito para o formato real (opções dentro do objeto de cada fonte) com aviso de migração.
+- **`DASHBOARD_AND_FILTERS.md` reescrito** — listava categorias que não existiam com esses nomes e confundia `BLACKLIST` com `NEGATIVE_KEYWORDS`. Agora traz as 9 categorias reais com a chave de `config.json` de cada uma, as regras de casamento por tipo de keyword (texto, numérica, japonês), as duas listas de bloqueio com os valores extraídos do código e o passo a passo para adicionar categorias.
+- **`SOURCES_VERIFICATION.md`** — nova secção sobre como decidir se uma fonte morreu (reproduzir a falha **fora** do servidor antes de desativar, que é o que separa fonte morta de bloqueio de IP) e a tabela da auditoria de 2026-08-01.
 - **Arquitetura** — Documentação alinhada ao pacote `core/scanner/` (engine, fetcher, processor, notifier): coleta principal via **RSS/Atom/YouTube (syndication)**; HTML Monitor para sites sem feed; Open Graph apenas como enriquecimento de thumbnail.
 - **Estrutura do projeto**, **SOURCES_VERIFICATION**, READMEs EN/ES/IT/JP: referências atualizadas de `core/scanner.py` → `core/scanner/`.
 

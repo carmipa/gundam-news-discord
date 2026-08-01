@@ -22,14 +22,28 @@ class TestHttpTimeoutConfig:
         assert timeout_sec <= 10, "Timeout deve ser no máximo 10 segundos para manter disponibilidade."
 
     def test_aiohttp_timeout_usage(self):
-        """Garante que aiohttp.ClientTimeout(total=HTTP_TIMEOUT) é usado no scanner."""
-        from core.scanner import run_scan_once
+        """Garante que o timeout é aplicado em quem faz o pedido HTTP.
+
+        A asserção olhava o código de `run_scan_once`, mas o refactor `01ba2c9`
+        moveu a construção do ClientTimeout para `fetch_feed`, em
+        core/scanner/fetcher.py. O teste passou a falhar sem que nada estivesse
+        de facto errado — invariante certa, sítio errado.
+        """
         import inspect
-        source = inspect.getsource(run_scan_once)
-        assert "ClientTimeout" in source or "timeout" in source.lower(), (
-            "Scanner deve usar timeout no cliente HTTP."
+        from core.scanner.fetcher import fetch_feed, _fetch_feed_url
+
+        origem = inspect.getsource(fetch_feed)
+        assert "ClientTimeout" in origem, (
+            "fetch_feed deve construir um aiohttp.ClientTimeout."
         )
-        from settings import HTTP_TIMEOUT
+        assert "FEED_HTTP_TIMEOUT_MAX_SEC" in origem, (
+            "O timeout por fonte deve ser limitado pelo teto de settings."
+        )
+        # E o timeout tem de chegar ao pedido em si, não só ser calculado.
+        assert "timeout=timeout" in inspect.getsource(_fetch_feed_url), (
+            "O GET deve receber o timeout construído."
+        )
+
         t = aiohttp.ClientTimeout(total=HTTP_TIMEOUT)
         assert t.total == HTTP_TIMEOUT
 

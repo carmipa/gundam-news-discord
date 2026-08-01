@@ -65,22 +65,27 @@
 ```
 
 **Funcionalidades:**
-- 🎛️ Configura filtros por categoria (Gunpla, Filmes, Games, etc.)
+- 🎛️ Configura filtros por categoria (Model Kits, Anime & Filmes, Games, etc.)
 - 🌐 Seleciona idioma (🇺🇸 🇧🇷 🇪🇸 🇮🇹 🇯🇵)
 - 📌 Visualiza filtros ativos
 - 🔄 Reseta configurações
 - ⚙️ Configura o canal automaticamente
 
 **Botões Disponíveis:**
-- 🌟 **TUDO** - Liga/desliga todas as categorias
-- 🤖 **Gunpla** - Kits, P-Bandai, Ver.Ka
-- 🎬 **Filmes** - Anime, trailers, séries
-- 🎮 **Games** - Jogos Gundam
-- 🎵 **Música** - OST, álbuns
-- 👕 **Fashion** - Roupas e merchandise
+- 🤖 **TUDO** - Liga/desliga todas as categorias
+- 🛠️ **Model Kits & Gunpla** - Kits, HG/MG/RG/PG, Ver.Ka, P-Bandai
+- 🎬 **Anime & Filmes** - Anime, filmes, séries, trailers, streaming
+- 🎮 **Games** - Jogos Gundam (GBO2, Breaker, UC Engage)
+- 📍 **Eventos & Estátuas** - Gundam Base, estátuas, exposições
+- 🧸 **Merch & Figuras** - Figuras, Robot Spirits, Metal Build
+- 🎵 **Músicas & Trilhas** - OST, temas de abertura/encerramento, singles
+- 👕 **Roupas & Vestuário** - Strict-G, camisetas, moletons, colabs
+- 💻 **Hardware & PC** - Edições Gundam de placas, GPUs, SSDs, periféricos
 - 🌐 **Idioma** - Seleção de idioma
 - 📌 **Ver filtros** - Lista filtros ativos
 - 🔄 **Reset** - Limpa todos os filtros
+
+> Detalhe de cada categoria, keywords e nomes legados: [Dashboard e filtros](https://github.com/carmipa/gundam-news-discord/blob/main/docs/DASHBOARD_AND_FILTERS.md).
 
 **Nota:** O painel é **persistente** - funciona mesmo após restart do bot!
 

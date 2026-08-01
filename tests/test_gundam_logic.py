@@ -29,7 +29,11 @@ MOCK_CONFIG = {
     ("New HG 1/144 Zaku II Release", "Premium Bandai exclusive model kit", True),
     
     # CASO 4: Falsos Positivos (00 em horários vs série)
-    ("News at 12:00", "No gundam terms here", False),
+    # O resumo NÃO pode citar "gundam": o portão de relevância olha título+resumo
+    # juntos, e a versão antiga deste caso ("No gundam terms here") passava no
+    # portão pela própria palavra que dizia não existir — o teste contradizia-se.
+    # A verificação de "00" vs "12:00" vive em test_contains_any_00_edge_case.
+    ("News at 12:00", "No mecha terms here", False),
     ("Gundam 00 Movie", "The world is changing", True),
     
     # CASO 5: Termos CJK (Japonês)

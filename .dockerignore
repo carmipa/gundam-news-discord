@@ -1,3 +1,11 @@
+# Segredos — NUNCA na imagem.
+# O compose injeta o .env em runtime (env_file); copiá-lo no build gravaria
+# DISCORD_TOKEN / CLOUDFLARE_PROXY_SECRET / senha do dashboard numa layer,
+# legível por qualquer um com acesso à imagem (docker history / save).
+.env
+.env.*
+!.env.example
+
 # Git
 .git
 .gitignore
@@ -35,6 +43,7 @@ logs/
 config.json
 history.json
 state.json
+translation_cache.json
 
 # Documentação
 README.md

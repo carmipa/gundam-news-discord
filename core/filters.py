@@ -50,28 +50,77 @@ BLACKLIST = [
     "giveaway", "deal of the day", "stock market", "celebrity", "politics"
 ]
 
-# Categorization for the user dashboard
+# Categorização exposta no dashboard. Cada categoria é um recorte do universo
+# Mobile Suit Gundam — kits, anime/filmes, games, eventos, merch, música e roupas.
+# Todas são avaliadas DEPOIS do portão que exige um termo Gundam no conteúdo, por
+# isso podem conter palavras genéricas ("kit", "album", "cap") sem gerar ruído.
+# Termos em japonês são casados por substring (ver _contains_any).
 CAT_MAP = {
     "model_kits": [
-        "gunpla", "hg", "mg", "rg", "pg", "eg", "model kit", "plamo", "option parts",
-        "expansion set", "ver.ka", "master grade", "high grade", "real grade"
+        "gunpla", "hg", "mg", "rg", "pg", "eg", "model kit", "kit", "plamo",
+        "option parts", "expansion set", "ver.ka", "master grade", "high grade",
+        "real grade", "perfect grade", "entry grade", "full mechanics",
+        "ガンプラ", "プラモデル", "キット",
     ],
     "anime_movies": [
         "anime", "movie", "series", "episode", "streaming", "netflix", "crunchyroll",
-        "trailer", "teaser", "cast", "blu-ray", "dvd", "music", "song", "ost", "soundtrack"
+        "trailer", "teaser", "cast", "blu-ray", "dvd", "music", "song", "ost", "soundtrack",
+        "filme", "série", "temporada", "episódio", "dublado", "legendado", "estreia",
+        # 劇場/公開/上映/予告 cobrem o vocabulário real de estreia e sessão nos
+        # comunicados japoneses — sem eles, um PV de filme como o de Hathaway
+        # passava no portão Gundam e depois não caía em nenhuma categoria.
+        "劇場版", "劇場", "アニメ", "映画", "配信", "最終回", "放送",
+        "公開", "上映", "予告", "本編", "第1話",
     ],
     "games": [
         "game", "mobile game", "gundam evolution", "gbo2", "uc engage", "breaker",
-        "platform", "update", "patch notes", "steam", "ps5", "nintendo"
+        "platform", "update", "patch notes", "steam", "ps5", "nintendo", "gameplay",
+        "dlc", "beta", "jogo", "ゲーム", "アプリ",
     ],
     "eventos": [
         "event", "exhibition", "gundam base", "statue", "yokohama", "shizuoka",
-        "convention", "tamashii features", "hobby show"
+        "convention", "tamashii features", "hobby show", "evento", "exposição",
+        "イベント", "展示", "開催",
     ],
     "merchandise": [
         "figure", "robot spirits", "metal build", "shfiguarts", "clothing",
-        "apparel", "strict-g", "lifestyle", "accessory"
-    ]
+        "apparel", "strict-g", "lifestyle", "accessory", "goods", "collectible",
+        "figura", "colecionável", "グッズ", "フィギュア",
+        # merchandise é o guarda-chuva: também apanha roupas e hardware.
+        "t-shirt", "hoodie", "motherboard", "graphics card", "gpu", "ssd",
+    ],
+    # Música: trilhas, temas de abertura/encerramento, singles e shows. As keywords
+    # musicais continuam também em anime_movies (superconjunto histórico), então
+    # quem escolhe "Anime & Filmes" não perde cobertura ao ganhar esta categoria.
+    "musica": [
+        "music", "song", "ost", "soundtrack", "theme song", "opening theme",
+        "ending theme", "single", "album", "concert", "live tour", "band",
+        "composer", "score", "musica", "música", "trilha sonora", "cantora",
+        "cantor", "主題歌", "サントラ", "音楽", "劇伴", "挿入歌", "ライブ",
+    ],
+    # Roupas e vestuário — a linha Strict-G e as colaborações de moda. Os termos
+    # também vivem em merchandise, que continua a ser o guarda-chuva mais amplo.
+    "roupas": [
+        "clothing", "apparel", "t-shirt", "tshirt", "shirt", "hoodie", "jacket",
+        "outerwear", "cap", "hat", "sneakers", "shoes", "uniform", "cosplay",
+        "strict-g", "collab", "roupa", "camiseta", "moletom", "jaqueta", "boné",
+        "vestuário", "アパレル", "Tシャツ", "服",
+    ],
+    # Hardware de PC em edição Gundam: raro, mas sai — placas ASUS ROG Strix,
+    # GPUs Zotac, gabinetes Cooler Master, SSDs, teclados e periféricos temáticos.
+    # Por serem lançamentos esporádicos, valem categoria própria: quem só quer
+    # isto não precisa de assinar merchandise inteiro e ser soterrado de figuras.
+    # Evitadas de propósito palavras que são unidade de medida ("gigabyte") ou
+    # demasiado curtas/ambíguas ("ram", "pc") — o portão Gundam não chega para
+    # segurar esse tipo de ruído.
+    "hardware": [
+        "motherboard", "graphics card", "gpu", "video card", "ssd", "keyboard",
+        "mouse", "mousepad", "pc case", "power supply", "monitor", "headset",
+        "laptop", "cooler", "gaming pc", "peripheral", "asus rog", "rog strix",
+        "zotac", "cooler master", "msi gaming", "placa-mãe", "placa de vídeo",
+        "teclado", "gabinete", "periférico", "マザーボード", "グラフィックボード",
+        "キーボード", "ゲーミングpc", "自作pc",
+    ],
 }
 
 # Source-specific strict filters (Regex)
@@ -80,6 +129,8 @@ SPECIAL_SOURCE_RULES = {
     "hobby.dengeki.com": r"(?i)(ガンダム|ガンプラ|バンダイ)"
 }
 
+# Ordem importa: o dashboard põe os 5 primeiros na linha 0 e o resto na linha 1
+# (Discord permite 5 botões por linha, 5 linhas; idiomas ficam na 2 e controles na 3).
 FILTER_OPTIONS = {
     "todos": ("TUDO", "🤖"),
     "model_kits": ("Model Kits & Gunpla", "🛠️"),
@@ -87,15 +138,94 @@ FILTER_OPTIONS = {
     "games": ("Games", "🎮"),
     "eventos": ("Eventos & Estátuas", "📍"),
     "merchandise": ("Merch & Figuras", "🧸"),
+    "musica": ("Músicas & Trilhas", "🎵"),
+    "roupas": ("Roupas & Vestuário", "👕"),
+    "hardware": ("Hardware & PC", "💻"),
+}
+
+# Nomes de categoria antigos que ainda vivem em config.json de servidores que
+# escolheram os filtros antes da renomeação para as chaves de FILTER_OPTIONS.
+#
+# Sem este mapa, `CAT_MAP.get("gunpla", [])` devolve lista vazia e match_intel
+# rejeita TUDO em silêncio. Medido na produção em 2026-08-01: 4 guilds filtravam
+# só por nomes legados (2 delas com canal ativo, recebendo zero notícias desde a
+# renomeação) e 1 tinha cobertura parcial (`["filmes", "games"]` — só "games"
+# funcionava). Nenhum log denunciava: filtro sem keywords é indistinguível de
+# "nada casou".
+#
+# "musica" NÃO está aqui — deixou de ser nome órfão e virou categoria própria.
+LEGACY_FILTER_ALIASES = {
+    "gunpla": "model_kits",
+    "filmes": "anime_movies",
 }
 
 # =========================================================
 # HELPER FUNCTIONS
 # =========================================================
 
+def normalize_filters(filters: Any) -> List[str]:
+    """
+    Traduz nomes de filtro legados para as chaves atuais de FILTER_OPTIONS.
+
+    PROPÓSITO DE NEGÓCIO:
+        O dashboard desenha um botão por chave de FILTER_OPTIONS e pinta de verde
+        as que estão no config.json. Uma guild que guardou "gunpla" via de ver
+        "Model Kits & Gunpla" apagado apesar de o filtro funcionar — e ao carregar
+        no botão gravava um segundo nome para a mesma categoria. Normalizar na
+        leitura mantém o painel fiel e migra o config no primeiro save.
+
+    INVARIANTES DO DOMÍNIO:
+        - Preserva a ordem de escolha e remove duplicados criados pela tradução
+          (["gunpla", "model_kits"] colapsa para ["model_kits"]).
+        - Nomes desconhecidos passam intactos: não é a função que decide o que é
+          válido, e descartar aqui esconderia erro de configuração.
+        - Entradas não-string são descartadas.
+
+    COMPORTAMENTO EM CASO DE FALHA:
+        Nunca levanta. Entrada None, string solta ou de tipo errado devolve [].
+    """
+    if not isinstance(filters, list):
+        return []
+    saida = [
+        LEGACY_FILTER_ALIASES.get(f, f)
+        for f in filters
+        if isinstance(f, str) and f.strip()
+    ]
+    return list(dict.fromkeys(saida))
+
+
+def _has_cjk(text: str) -> bool:
+    """True se o texto tem kana, kanji ou pontuação/latino de largura total."""
+    return any(
+        "　" <= ch <= "鿿" or "＀" <= ch <= "￯"
+        for ch in text
+    )
+
+
 def _contains_any(text: str, keywords: List[str]) -> bool:
     """
-    Checks if any keyword is present in the text using flexible Regex.
+    Verifica se alguma keyword aparece no texto, respeitando fronteiras de palavra.
+
+    PROPÓSITO DE NEGÓCIO:
+        É o motor de decisão de todos os filtros: define se uma notícia é sobre
+        Gundam e a que categoria pertence. Um falso positivo aqui vira spam em 21
+        servidores; um falso negativo faz a notícia nunca ser publicada.
+
+    INVARIANTES DO DOMÍNIO:
+        - Casa palavra inteira, não substring: "wing" não pode casar "drawing".
+        - Aceita plural simples ("gundams" casa a keyword "gundam").
+        - Keywords NUMÉRICAS ("00", de Gundam 00) não podem casar dentro de
+          horários nem de números maiores. `\\b00\\b` casaria "12:00", porque o
+          ":" conta como fronteira de palavra — daí a fronteira estrita, que
+          também rejeita "." (versões) e dígitos vizinhos ("2000", "300").
+          Keywords de texto mantêm o `\\b` clássico: apertar a fronteira delas
+          quebraria casos legítimos como "Novidade:Gundam".
+        - Comparação sempre case-insensitive.
+
+    COMPORTAMENTO EM CASO DE FALHA:
+        Lista de keywords vazia ou None devolve False (nunca levanta). Keywords
+        são escapadas com re.escape, então caracteres especiais são literais e
+        não conseguem quebrar o regex.
     """
     if not keywords:
         return False
@@ -103,7 +233,17 @@ def _contains_any(text: str, keywords: List[str]) -> bool:
     patterns = []
     for k in keywords:
         escaped = re.escape(k)
-        patterns.append(r'\b' + escaped + r's?\b')
+        if _has_cjk(k):
+            # Japonês não separa palavras com espaço e kana/kanji contam como \w,
+            # então \b nunca casa no meio de uma frase ("アニメ主題歌決定").
+            # Substring é o único critério que funciona — mesma razão de GUNDAM_JP_HINTS.
+            patterns.append(escaped)
+        elif k.isdigit():
+            # ":" e "." colam o número a horários (12:00) e versões (1.00);
+            # \w cobre os dígitos vizinhos de "2000" e "300".
+            patterns.append(r'(?<![\w:.])' + escaped + r'(?![\w:.])')
+        else:
+            patterns.append(r'\b' + escaped + r's?\b')
 
     pattern_str = r'(?:' + '|'.join(patterns) + r')'
     return bool(re.search(pattern_str, text, re.IGNORECASE))
@@ -168,12 +308,13 @@ def match_intel(
                 if not re.search(strict_pattern, content):
                     return False
 
-    # 4. Filter categories
+    # 4. Filter categories (resolvendo nomes legados antes de consultar o CAT_MAP)
     if "todos" in filters:
         return True
 
     for f in filters:
-        kws = CAT_MAP.get(f, [])
+        categoria = LEGACY_FILTER_ALIASES.get(f, f)
+        kws = CAT_MAP.get(categoria, [])
         if kws and _contains_any(content, kws):
             return True
 

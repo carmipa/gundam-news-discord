@@ -122,41 +122,73 @@ def validate_url(url: str, allowed_domains: Optional[List[str]] = None) -> Tuple
     return True, None
 
 
+# Padrões ancorados de segredo. Todos exigem um rótulo (`token=`, `Bearer …`) ou a
+# forma estrutural do próprio segredo — nunca "qualquer string longa", que destruiria
+# URLs, IDs de canal do YouTube e nomes de erro de SSL nos logs de diagnóstico.
+_SECRET_PATTERNS: List[Tuple[str, str]] = [
+    # chave=valor / chave: valor (token, password, secret, api_key, proxy_secret…)
+    (r'(?i)\b((?:discord[_-]?)?(?:token|password|passwd|secret|api[_-]?key|auth)'
+     r'|x[_-]proxy[_-]secret)\b\s*[:=]\s*\S+', r'\1=[REDACTED]'),
+    # Authorization: Bearer/Bot <valor>
+    (r'(?i)\b(bearer|bot|basic)\s+[A-Za-z0-9._~+/=-]{8,}', r'\1 [REDACTED]'),
+    # Token de bot do Discord: <id_base64>.<timestamp>.<hmac>
+    (r'\b[A-Za-z0-9_-]{23,28}\.[A-Za-z0-9_-]{6}\.[A-Za-z0-9_-]{27,}\b', '[REDACTED_DISCORD_TOKEN]'),
+    # Webhook do Discord (o token vai no fim da URL)
+    (r'(?i)(https://(?:\w+\.)?discord(?:app)?\.com/api/webhooks/\d+/)\S+', r'\1[REDACTED]'),
+    # Segredo do proxy passado como query string
+    (r'(?i)([?&](?:secret|token|key|apikey|access[_-]?token)=)[^&\s]+', r'\1[REDACTED]'),
+]
+
+
 def sanitize_log_message(message: str, sensitive_patterns: Optional[List[str]] = None) -> str:
     """
-    Remove informações sensíveis de mensagens de log.
-    
+    Mascara segredos em mensagens de log antes de irem para o console e o bot.log.
+
+    PROPÓSITO DE NEGÓCIO:
+        Os logs do bot são lidos via `docker compose logs` e ficam em disco no VPS.
+        Uma linha de log que vaze o DISCORD_TOKEN entrega o controle do bot em 21
+        servidores; um X-Proxy-Secret vazado transforma o Worker do Cloudflare em
+        open proxy de terceiros. Esta função é o último ponto antes da escrita.
+
+    INVARIANTES DO DOMÍNIO:
+        - Só mascara o que é comprovadamente segredo: valor de um rótulo conhecido
+          (`token=`, `Bearer …`, `?secret=`) ou a forma estrutural de um token do
+          Discord/webhook. NUNCA mascara por heurística de comprimento.
+        - Dado de diagnóstico é preservado intacto: URLs completas, domínios,
+          IDs de canal do YouTube, nomes de erro de SSL, hashes de commit. Truncar
+          isso quebra a capacidade de diagnosticar falhas de fonte em produção.
+        - É idempotente: aplicar duas vezes (o filtro roda no handler de arquivo e
+          no de console sobre o mesmo LogRecord) produz o mesmo resultado.
+
+    COMPORTAMENTO EM CASO DE FALHA:
+        Nunca levanta exceção — logar não pode derrubar a aplicação. Entrada vazia
+        ou None retorna "". Se um padrão customizado em `sensitive_patterns` for um
+        regex inválido, esse padrão é ignorado e os demais continuam sendo aplicados.
+
     Args:
-        message: Mensagem de log original
-        sensitive_patterns: Lista opcional de padrões regex para mascarar
-    
+        message: Mensagem de log original.
+        sensitive_patterns: Regexes extras a mascarar por completo (opcional).
+
     Returns:
-        Mensagem sanitizada
+        Mensagem com os segredos substituídos por [REDACTED].
     """
     if not message:
         return ""
-    
-    # Padrões padrão de informações sensíveis
-    default_patterns = [
-        (r'(?i)(token|password|secret|key|api[_-]?key)\s*[:=]\s*([^\s]+)', r'\1: [REDACTED]'),
-        (r'(?i)(discord[_-]?token)\s*[:=]\s*([^\s]+)', r'\1: [REDACTED]'),
-        (r'([a-zA-Z0-9_-]{20,})', lambda m: m.group(0)[:8] + "..." if len(m.group(0)) > 20 else m.group(0)),  # Tokens longos
-    ]
-    
+
     sanitized = message
-    
-    # Aplica padrões padrão
-    for pattern, replacement in default_patterns:
-        if callable(replacement):
+    for pattern, replacement in _SECRET_PATTERNS:
+        try:
             sanitized = re.sub(pattern, replacement, sanitized)
-        else:
-            sanitized = re.sub(pattern, replacement, sanitized)
-    
-    # Aplica padrões customizados se fornecidos
+        except re.error:
+            continue
+
     if sensitive_patterns:
         for pattern in sensitive_patterns:
-            sanitized = re.sub(pattern, "[REDACTED]", sanitized, flags=re.IGNORECASE)
-    
+            try:
+                sanitized = re.sub(pattern, "[REDACTED]", sanitized, flags=re.IGNORECASE)
+            except re.error:
+                continue
+
     return sanitized
 
 

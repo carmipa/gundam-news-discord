@@ -76,7 +76,18 @@ def test_sources_urls_are_valid():
 
 
 def test_readme_exists():
-    """Smoke test: verifica que README existe."""
+    """Smoke test: verifica que o README existe.
+
+    Procurava "readme.md" minúsculo relativo ao cwd: passava no Windows (sistema
+    de ficheiros case-insensitive) e falhava no container Linux, onde o ficheiro
+    é README.md. Agora resolve a partir do próprio ficheiro de teste e aceita
+    qualquer capitalização.
+    """
     import os
-    assert os.path.exists("readme.md"), "readme.md deve existir"
+    raiz = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    encontrados = [
+        n for n in os.listdir(raiz)
+        if n.lower() == "readme.md" and os.path.isfile(os.path.join(raiz, n))
+    ]
+    assert encontrados, f"README.md deve existir na raiz do projeto ({raiz})"
 

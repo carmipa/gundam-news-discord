@@ -1,7 +1,7 @@
 {
   "meta": {
-    "version": "3.1",
-    "generated": "2026-07-12",
+    "version": "3.2",
+    "generated": "2026-08-01",
     "description": "Base consolidada Mafty — fusão completa das versões anteriores. Estrutura enriquecida com name, category, language e region em todos os feeds.",
     "total_rss": 30,
     "total_reddit": 8,
@@ -9,6 +9,7 @@
     "total_tracker": 6,
     "total_official_sites": 122,
     "notes": [
+      "2026-08-01: auditoria de fontes mortas (todas reproduzidas fora do VPS, não é bloqueio de IP). gundamnews.org desativado (TLS quebrado no servidor: TLSV1_ALERT_INTERNAL_ERROR em TLS 1.2 e 1.3, apex e www). natalie.mu mantida com user_agent de biblioteca HTTP (devolve 405 para UA de navegador). Mobile Suit Breakdown → feed real no Pinecast. Schizophonic9 → blog migrou para schizophonic9-2.com (FC2, feed em ?xml). Kimi the Builder → canônico passa a ser o WordPress.com. Unicorn Gundam Statue removido (domínio em NXDOMAIN; estátua encerra exibição em ago/2026).",
       "2026-07-12: +RSS Zeonic-Republic, Mobile Suit Breakdown, Schizophonic9; +Reddit r/GBO2, r/AdvancedGunpla; +YouTube Mecha Gaikotsu, ZakuAurelius, Kakarot197, Studio G; +official Dalong.net.",
       "YouTube: nomes dos canais precisam ser verificados manualmente via channel_id.",
       "kusakusa.wordpress.com marcado como unstable — usar timeout estendido.",
@@ -61,7 +62,9 @@
       "name": "Gundam News",
       "url": "https://gundamnews.org/feed",
       "category": "news",
-      "language": "en"
+      "language": "en",
+      "enabled": false,
+      "disabled_reason": "2026-08-01: TLS do servidor quebrado (TLSV1_ALERT_INTERNAL_ERROR em TLS 1.2 e 1.3, apex e www; http:// redireciona para o https quebrado). Falha para qualquer cliente, não é bloqueio de IP. Reativar quando o handshake voltar. Cobertura equivalente enquanto isso: Google News — Gundam (EN) e GunJap."
     },
     {
       "name": "Gunpla 101",
@@ -87,13 +90,10 @@
     },
     {
       "name": "Kimi the Builder Blog",
-      "url": "https://kimithebuilderblog.com/feed/",
+      "url": "https://kimithebuilderblog.wordpress.com/feed/",
       "category": "gunpla",
       "language": "en",
-      "fallbacks": [
-        "https://kimithebuilderblog.com/feed/rss/",
-        "https://kimithebuilderblog.wordpress.com/feed/"
-      ]
+      "notes": "kimithebuilderblog.com/feed/ passou a redirecionar para /404.html — o WordPress.com virou o canônico, evitando 2 requisições perdidas por ciclo."
     },
     {
       "name": "Kusakusa WordPress",
@@ -108,7 +108,9 @@
       "name": "Natalie Comic",
       "url": "https://natalie.mu/comic/feed/news",
       "category": "news",
-      "language": "ja"
+      "language": "ja",
+      "user_agent": "MaftyIntelBot/1.0 (+https://github.com/carmipa/gundam-news-discord) Python/3.10 aiohttp/3.9.5",
+      "notes": "O WAF da Natalie devolve 405 para UA de navegador e 200 para UA de biblioteca HTTP (curl/Wget/Python). O feed nunca esteve morto — era o UA."
     },
     {
       "name": "Saint-ism",
@@ -204,15 +206,20 @@
     },
     {
       "name": "Mobile Suit Breakdown",
-      "url": "https://gundampodcast.com/feed/podcast",
+      "url": "https://pinecast.com/feed/gundam-podcast",
       "category": "community",
-      "language": "en"
+      "language": "en",
+      "notes": "gundampodcast.com é só a vitrine (Squarespace, sem RSS). O feed real do podcast é servido pelo Pinecast."
     },
     {
       "name": "Schizophonic9",
-      "url": "http://schizophonic9.com/index.rdf",
+      "url": "https://schizophonic9-2.com/?xml",
       "category": "gunpla",
-      "language": "ja"
+      "language": "ja",
+      "fallbacks": [
+        "https://schizophonic9.blog103.fc2.com/?xml"
+      ],
+      "notes": "schizophonic9.com/index.rdf morreu (404). O blog migrou para schizophonic9-2.com, hospedado no FC2 — feed em ?xml."
     }
   ],
   "reddit_feeds": [
@@ -676,7 +683,9 @@
     {
       "name": "Gundam News",
       "url": "https://gundamnews.org/",
-      "region": "global"
+      "region": "global",
+      "enabled": false,
+      "disabled_reason": "2026-08-01: mesmo TLS quebrado do feed (TLSV1_ALERT_INTERNAL_ERROR). Reativar junto com o RSS."
     },
     {
       "name": "Gundam Place Store",
@@ -1056,7 +1065,9 @@
     {
       "name": "Unicorn Gundam Statue (EN)",
       "url": "https://www.unicorn-gundam-statue.jp/en/",
-      "region": "jp"
+      "region": "jp",
+      "enabled": false,
+      "disabled_reason": "2026-08-01: domínio em NXDOMAIN (confirmado também via 8.8.8.8). A estátua de Odaiba encerra a exibição no fim de ago/2026 e o site oficial saiu do ar. Notícias remanescentes chegam pelos feeds Google News de gundam-official.com."
     },
     {
       "name": "USA Gundam Store",

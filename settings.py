@@ -70,20 +70,34 @@ def _parse_feed_inter_retry_delays() -> list[float]:
 
 FEED_FETCH_INTER_RETRY_DELAYS = _parse_feed_inter_retry_delays()
 
-# User-Agent para pedidos RSS/Atom (identificável; evita mascarar como crawler de terceiros)
-FEED_USER_AGENT = os.getenv(
-    "FEED_USER_AGENT",
-    "MaftyIntelBot/1.0 (+https://github.com/carmipa/gundam-news-discord)",
-).strip() or "MaftyIntelBot/1.0 (+https://github.com/carmipa/gundam-news-discord)"
+# User-Agent identificável (bot honesto). Fontes que aceitam/exigem UA de biblioteca
+# HTTP — a Natalie devolve 405 para UA de navegador — usam este via "user_agent" no
+# sources.json. O sufixo Python/aiohttp é o que faz o WAF da Natalie liberar.
+_FEED_UA_DEFAULT = (
+    "MaftyIntelBot/1.0 (+https://github.com/carmipa/gundam-news-discord) "
+    "Python/3.10 aiohttp/3.9.5"
+)
+FEED_USER_AGENT = os.getenv("FEED_USER_AGENT", _FEED_UA_DEFAULT).strip() or _FEED_UA_DEFAULT
 
-# Teto (s) para http_timeout_sec por feed em sources.json → feed_fetch_overrides
+# UA de navegador: padrão para feeds, porque a maioria dos portais de hobby JP
+# bloqueia crawlers. Sobreponível por fonte com "user_agent" no sources.json.
+_FEED_BROWSER_UA_DEFAULT = (
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+    "(KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36"
+)
+FEED_BROWSER_USER_AGENT = (
+    os.getenv("FEED_BROWSER_USER_AGENT", _FEED_BROWSER_UA_DEFAULT).strip()
+    or _FEED_BROWSER_UA_DEFAULT
+)
+
+# Teto (s) para "http_timeout_sec" declarado dentro de cada fonte em sources.json
 try:
     FEED_HTTP_TIMEOUT_MAX_SEC = int(os.getenv("FEED_HTTP_TIMEOUT_MAX_SEC", "120"))
 except ValueError:
     FEED_HTTP_TIMEOUT_MAX_SEC = 120
 FEED_HTTP_TIMEOUT_MAX_SEC = max(HTTP_TIMEOUT, FEED_HTTP_TIMEOUT_MAX_SEC)
 
-# Teto (s) para first_request_delay_sec em feed_fetch_overrides (Nyaa/Youtube podem precisar 60s+)
+# Teto (s) para "first_request_delay_sec" por fonte (Nyaa/YouTube podem precisar 60s+)
 try:
     FEED_FIRST_DELAY_MAX_SEC = float(os.getenv("FEED_FIRST_DELAY_MAX_SEC", "120"))
 except ValueError:
@@ -130,6 +144,39 @@ try:
 except ValueError:
     HISTORY_LIMIT = 2000
 HISTORY_LIMIT = max(100, min(HISTORY_LIMIT, 100000))
+
+# Intervalo mínimo (s) entre requisições ao Reddit.
+#
+# Medido no VPS em 2026-08-01: o Reddit devolve `x-ratelimit-remaining: 0.0` com
+# `x-ratelimit-reset: 6` a clientes anónimos — orçamento por IP, não bloqueio de bot.
+# Com os 8 feeds a saírem quase em paralelo (semáforo 3), 7 voltavam 429 todo ciclo.
+#
+# O limite NÃO é um intervalo fixo — é um balde partilhado e ruidoso para IPs de
+# datacenter. Taxas de sucesso medidas, 8 feeds sequenciais: 8s → 2/5, 20s → 3/8,
+# 35s → 5/8. Espaçar mais não resolve; 12s com retentativa guiada pelo
+# `x-ratelimit-reset` deu o mesmo 5/8 que 35s e gasta menos tempo de parede.
+#
+# A cobertura completa não vem de um ciclo, vem do conjunto deles: os feeds que
+# falham são refeitos na varredura seguinte e o dedup impede repostagem, com a
+# janela de `is_recent` (7 dias) a cobrir a recolha atrasada. Para 100% por ciclo a
+# via é a API OAuth do Reddit (60 req/min autenticadas), não mais espera.
+# Env: REDDIT_MIN_INTERVAL_SEC.
+try:
+    REDDIT_MIN_INTERVAL_SEC = float(os.getenv("REDDIT_MIN_INTERVAL_SEC", "12"))
+except ValueError:
+    REDDIT_MIN_INTERVAL_SEC = 12.0
+REDDIT_MIN_INTERVAL_SEC = max(0.0, min(REDDIT_MIN_INTERVAL_SEC, 120.0))
+
+# HTML Monitor: intervalo mínimo (h) entre dois avisos do MESMO site.
+# Sem isto, portais que mudam a cada ciclo (gundam-base.net, gundam-gcg.com) geram
+# um post "🔄 Update" por hora sem notícia nova — o hash muda, mas o conteúdo
+# relevante não. 0 desliga o cooldown (comportamento antigo). Env: HTML_MONITOR_COOLDOWN_HOURS.
+try:
+    HTML_MONITOR_COOLDOWN_HOURS = float(os.getenv("HTML_MONITOR_COOLDOWN_HOURS", "24"))
+except ValueError:
+    HTML_MONITOR_COOLDOWN_HOURS = 24.0
+HTML_MONITOR_COOLDOWN_HOURS = max(0.0, min(HTML_MONITOR_COOLDOWN_HOURS, 720.0))
+HTML_MONITOR_COOLDOWN_SEC = HTML_MONITOR_COOLDOWN_HOURS * 3600.0
 
 # Proxy do Cloudflare Worker para evitar bloqueios de IP (opcional)
 # Exemplo: https://meu-worker.meu-subdominio.workers.dev/?url=
