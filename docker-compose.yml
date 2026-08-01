@@ -13,9 +13,14 @@ services:
     env_file:
       - .env
 
-    # Web dashboard: host:container. Se 8080 no VPS estiver ocupada, defina HOST_WEB_PORT no .env (ex.: 8081)
+    # Web dashboard: bind:host:container.
+    # O bind default é 127.0.0.1 — o dashboard NÃO deve ficar exposto à internet.
+    # Dentro do container o servidor escuta em 0.0.0.0 (e avisa no log); é esta
+    # publicação que decide quem alcança a porta. Para expor de propósito, defina
+    # HOST_WEB_BIND=0.0.0.0 no .env e ponha um proxy com TLS e auth à frente.
+    # Se 8080 estiver ocupada no host, defina HOST_WEB_PORT (ex.: 8081).
     ports:
-      - "${HOST_WEB_PORT:-8080}:${WEB_PORT:-8080}"
+      - "${HOST_WEB_BIND:-127.0.0.1}:${HOST_WEB_PORT:-8080}:${WEB_PORT:-8080}"
 
     # Volumes para persistir dados
     volumes:

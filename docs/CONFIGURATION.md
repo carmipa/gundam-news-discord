@@ -46,6 +46,7 @@ WEB_AUTH_TOKEN=seu_token_secreto_aqui  # Recomendado para produção
 WEB_HOST=127.0.0.1  # 127.0.0.1 = apenas localhost, 0.0.0.0 = todos os IPs
 WEB_PORT=8080
 HOST_WEB_PORT=8080  # só Docker Compose: porta no host; muda se 8080 no VPS estiver ocupada
+HOST_WEB_BIND=127.0.0.1  # só Docker Compose: interface do host. 0.0.0.0 expõe à internet
 
 # Proxy Cloudflare Worker (Opcional). Se ficar vazio, TODOS os pedidos vão
 # diretos — inclusive os que pedem proxy via "use_proxy".

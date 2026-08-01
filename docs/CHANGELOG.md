@@ -9,6 +9,7 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 ### Segurança
 
 - **`.env` deixou de entrar na imagem Docker** — o `.dockerignore` não o excluía e o `COPY . .` gravava `DISCORD_TOKEN`, `CLOUDFLARE_PROXY_SECRET` e a senha do dashboard numa layer legível por `docker history`/`save`. O Compose já o injetava em runtime via `env_file`; nunca foi preciso na imagem.
+- **Dashboard web deixou de ser publicado em todas as interfaces** — o Compose publicava `"${HOST_WEB_PORT}:${WEB_PORT}"`, que o Docker liga a `0.0.0.0`. Na VPS isto estava corrigido à mão, num `docker-compose.yml` alterado localmente que nunca voltou ao repositório — ou seja, qualquer deploy novo a partir do repo nascia com o dashboard exposto. O bind passou a ser `${HOST_WEB_BIND:-127.0.0.1}`, seguro por omissão e sobreponível para quem tiver proxy com TLS à frente.
 - **Sanitizador de logs deixou de destruir o diagnóstico** — o padrão `([a-zA-Z0-9_-]{20,})` truncava **qualquer** sequência longa para 8 caracteres, sem proteger nada que as regras de rótulo já não cobrissem. Domínios viravam `unicorn-....jp`, `TLSV1_ALERT_INTERNAL_ERROR` virava `TLSV1_AL...` e IDs de canal do YouTube ficavam ilegíveis. Substituído por 5 padrões ancorados (rótulo `token=`/`secret=`, `Authorization: Bearer/Bot`, forma estrutural do token do Discord, webhook e segredo em query string).
 
 ### Adicionado
