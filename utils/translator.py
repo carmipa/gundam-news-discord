@@ -233,11 +233,30 @@ async def translate_to_target(text: str, target_lang: str) -> str:
     if not text:
         return ""
 
-    # Verifica cache
+    # Verifica cache — VALIDANDO o que sai dele.
+    #
+    # A validação no caminho de rede não bastava: entradas contaminadas de antes
+    # da correção continuavam a ser servidas daqui, sem sequer tocar a rede.
+    # Medido em produção em 2026-08-30, logo após a primeira correção: 741 das
+    # 2000 entradas do cache persistido eram páginas de erro do Google. A cada
+    # varredura, essas notícias voltavam a sair com lixo — e o dedup já as tinha
+    # marcado como entregues.
+    #
+    # Entrada suja é DESCARTADA aqui, não só ignorada: assim o cache limpa-se
+    # sozinho à medida que as notícias reaparecem, sem precisar de intervenção.
     cache_key = f"{target_lang}:{text}"
     if cache_key in _translation_cache:
+        em_cache = _translation_cache[cache_key]
+        if _parece_pagina_de_erro(em_cache, text):
+            del _translation_cache[cache_key]
+            stats.traducoes_rejeitadas += 1
+            log.warning(
+                "🈯 Entrada de cache contaminada descartada (era página de erro); "
+                f"publicando o ORIGINAL. alvo={target_lang}"
+            )
+            return text
         _translation_cache.move_to_end(cache_key)
-        return _translation_cache[cache_key]
+        return em_cache
 
     try:
         # Mapeia códigos internos (pt_BR) para códigos Google (pt)

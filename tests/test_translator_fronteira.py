@@ -168,3 +168,60 @@ class TestCalibracao:
         assert _parece_pagina_de_erro(PAGINA_DE_ERRO, "Gundam news") is True, (
             "a validação atual TEM de reprovar o que a antiga aprovava"
         )
+
+class TestCacheContaminado:
+    """A validação no caminho de rede não basta — o cache é lido ANTES dela.
+
+    Medido em produção em 2026-08-30, logo após a primeira correção: 741 das
+    2000 entradas do cache persistido eram páginas de erro, de antes da
+    validação existir. Continuavam a ser servidas sem sequer tocar a rede, e o
+    dedup já tinha marcado essas notícias como entregues. Corrigir só a escrita
+    deixava o defeito vivo para todo o passivo já gravado.
+    """
+
+    def setup_method(self):
+        _translation_cache.clear()
+        stats.traducoes_rejeitadas = 0
+
+    def test_entrada_contaminada_no_cache_devolve_o_ORIGINAL(self, monkeypatch):
+        import utils.translator as tr
+
+        _translation_cache["pt_BR:Gundam news"] = PAGINA_DE_ERRO
+
+        def _explode(*a, **k):
+            raise AssertionError("não pode tocar a rede: a resposta está em cache")
+
+        monkeypatch.setattr(tr, "GoogleTranslator", _explode)
+        assert asyncio.run(translate_to_target("Gundam news", "pt_BR")) == "Gundam news"
+
+    def test_entrada_contaminada_e_DESCARTADA_do_cache(self, monkeypatch):
+        import utils.translator as tr
+
+        _translation_cache["pt_BR:Gundam news"] = PAGINA_DE_ERRO
+        monkeypatch.setattr(tr, "GoogleTranslator", lambda *a, **k: None)
+        asyncio.run(translate_to_target("Gundam news", "pt_BR"))
+        assert "pt_BR:Gundam news" not in _translation_cache, (
+            "descartar deixa o cache limpar-se sozinho conforme as notícias reaparecem"
+        )
+
+    def test_entrada_boa_no_cache_e_servida_intacta(self, monkeypatch):
+        # Controle negativo: se tudo fosse descartado, o teste acima passaria por
+        # o cache nunca servir nada — e não por a validação funcionar.
+        import utils.translator as tr
+
+        _translation_cache["pt_BR:Gundam news"] = "Notícias Gundam"
+
+        def _explode(*a, **k):
+            raise AssertionError("não pode tocar a rede: a resposta está em cache")
+
+        monkeypatch.setattr(tr, "GoogleTranslator", _explode)
+        assert asyncio.run(translate_to_target("Gundam news", "pt_BR")) == "Notícias Gundam"
+        assert "pt_BR:Gundam news" in _translation_cache
+
+    def test_descarte_e_contabilizado(self, monkeypatch):
+        import utils.translator as tr
+
+        _translation_cache["pt_BR:Gundam news"] = PAGINA_DE_ERRO
+        monkeypatch.setattr(tr, "GoogleTranslator", lambda *a, **k: None)
+        asyncio.run(translate_to_target("Gundam news", "pt_BR"))
+        assert stats.traducoes_rejeitadas == 1
