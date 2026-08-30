@@ -6,6 +6,33 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 
 ## [Unreleased]
 
+## Auditoria de manutenção — 2026-08-30
+
+Varredura das 9 classes de defeito do procedimento de manutenção de bots.
+Baseline da suíte: 125 testes. Depois: 194, zero falha, flake8 e pip-audit limpos.
+
+### Segurança
+
+- **Dependências fixadas com `==` em vez de `>=`** — com `>=`, qualquer rebuild puxa a versão mais recente de cada pacote e uma release comprometida entra em produção sem ninguém decidir nada. Não é hipótese: o `deep-translator` teve a conta do PyPI tomada por phishing em 2022 (PYSEC-2022-252) e a release maliciosa roubava **variáveis de ambiente no momento do install** — e neste bot o ambiente carrega o `DISCORD_TOKEN`. Verificado em 2026-08-30: as releases maliciosas (1.11.2, 1.11.3) foram retiradas do PyPI, a imagem tem a 1.11.4 legítima e nenhum ficheiro do pacote instalado toca `os.environ`, `subprocess` ou download. O alerta fica marcado no pacote e **não tem versão de correção** — aceite conscientemente, com o pin a impedir que um comprometimento futuro entre sozinho.
+
+### Corrigido
+
+- **Tradução: página de erro do serviço publicada como notícia** (classe 3.1). O `deep_translator` não levanta quando o Google responde com página de erro — devolve o corpo dela como se fosse a tradução, e nenhum `try/except` apanha isso, porque o adaptador mente *dentro* do contrato. A validação era `if trad:`, que só rejeita vazio. O lixo era publicado como título **e** resumo, **gravado no cache persistente em disco** (sobrevivendo ao restart) e o link marcado como entregue no dedup — a notícia verdadeira nunca mais sairia. Havia ainda um segundo defeito no mesmo caminho: com `trad = None`, o `return trad` devolvia `None` apesar da assinatura declarar `-> str`. Agora a saída é validada contra assinaturas de página de erro, só entra no cache o que passa, e o retorno é sempre `str` — na dúvida, o original.
+- **Arranque: acessório derrubando a varredura** (classe 3.3). `await start_web_server()` era o passo 0 do `on_ready`, sem proteção. Exceção em handler de evento do discord.py é apenas registada — e tudo depois dela deixa de correr, incluindo o `start_scheduler` do passo 3. O resultado é o pior modo de falha possível: bot online, respondendo a comandos, que **nunca varre**, sem erro visível. E o cenário é alcançável: `_startup_done` só é marcado no fim do handler, portanto uma falha intermédia faz a reconexão seguinte reexecutar tudo e bater em `OSError(EADDRINUSE)` na porta já aberta — bot mudo permanentemente até restart. O web server e o preparo de views/canais (que grava config em disco e podia levantar) passaram a ser isolados.
+- **Event loop preso pelo parse de HTML** (classe 3.8). `BeautifulSoup` corria dentro das corrotinas do HTML Monitor e do OpenGraph. Medido nesta VPS com 12 páginas reais do catálogo: 2,88s de bloqueio acumulado, pior caso 611ms numa página de 295KB — extrapolado para os ~120 sites vigiados, **~29s de event loop parado por ciclo contra ~41s de intervalo de heartbeat**. Perder o heartbeat faz o Discord derrubar a conexão, e a reconexão redispara o `on_ready` — as duas classes combinam-se. O parse foi movido para `run_in_executor`: bloqueio medido caiu de 3236ms para 113ms (**29x**).
+- **`Invalid Form Body` retentado para sempre.** Medido em produção: `400 Bad Request (error code: 50035)` de hora em hora, durante dias, na mesma guild — 26 ocorrências em 4 semanas. Como a falha de envio não marca o link no dedup, o ciclo seguinte tentava outra vez, indefinidamente. A causa: o resumo é cortado a 2000 caracteres **antes** de traduzir, e a tradução expande — 2000 caracteres de japonês passam largamente os 4096 da descrição. Todos os campos do embed passaram a respeitar os limites da API, incluindo o teto de 6000 da **soma**, que é o modo de falha menos óbvio.
+- **Cache HTTP contando entrega falhada como sucesso** (classe 3.2). O ETag é gravado assim que o corpo chega, muito antes de a notícia sair. Com a entrega a falhar, o cache ficava gravado e a varredura seguinte recebia 304 — nem chegava a ver a notícia que não saiu; com o feed parado, ela nunca mais era tentada. O cache dos feeds com falha de entrega passou a ser descartado antes de gravar o state.
+- **Motivo da rejeição descartado** (classe 3.9). Cinco `except Exception:` nus em `notifier.py` e `processor.py` capturavam a falha e deitavam fora a causa. Passaram a registar o motivo — falha invisível é falha que ninguém corrige.
+- **Três nomes indefinidos (`F821`)** apanhados pelo portão de lint em código que o pytest não exercita: `url` em vez de `link` no notifier e duas referências a `cfg` fora de escopo em `main.py`.
+
+### Adicionado
+
+- **Telemetria de ausência** (classe 3.6). O painel media só sucesso: `feeds_falhos=0` era indistinguível de "o contador nunca foi alimentado". Cada varredura passou a fechar com um **veredito explícito e o motivo** (`OK` / `ATENCAO` / `ANOMALIA`), persistido no `state.json` para sobreviver ao restart. Mede o que **não** aconteceu: fontes que responderam 200 sem nenhuma entrada (o disfarce mais comum de fonte morta), traduções rejeitadas, e ciclos seguidos sem publicar. Catálogo vazio é `ANOMALIA`, nunca `OK` — é a falha que o instrumento existe para apanhar. O zero legítimo é dito com todas as letras, em vez de silêncio.
+- **Guardas calibradas** para cada correção: 69 testes novos (125 → 194), cada regra com controle positivo (tem de acusar) **e** negativo (tem de ficar calada). O caso que separa validação de censura: uma notícia que legitimamente *fala* de "Error 404" tem de passar. A guarda do event loop mede o **atraso do loop**, não "se o parse acontece" — a propriedade certa nunca é *se*, é *onde* e *com que efeito*.
+
+
+## Sessão anterior — 2026-08-01
+
 ### Segurança
 
 - **`.env` deixou de entrar na imagem Docker** — o `.dockerignore` não o excluía e o `COPY . .` gravava `DISCORD_TOKEN`, `CLOUDFLARE_PROXY_SECRET` e a senha do dashboard numa layer legível por `docker history`/`save`. O Compose já o injetava em runtime via `env_file`; nunca foi preciso na imagem.

@@ -27,7 +27,7 @@ from settings import (
     HTML_MONITOR_COOLDOWN_HOURS,
 )
 from utils.storage import p, load_json_safe, save_json_safe, load_config_cached
-from core.stats import stats
+from core.stats import stats, avaliar_varredura, VEREDITO_OK, VEREDITO_ATENCAO
 from core.filters import match_intel
 
 # Novas importacoes modularizadas
@@ -75,8 +75,15 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         connector = aiohttp.TCPConnector(ssl=ssl_ctx)
         
         sent_count = 0
+        # Feeds cuja entrega ao Discord falhou neste ciclo. O ETag/Last-Modified
+        # deles é DESCARTADO no fim: gravado, o ciclo seguinte receberia 304 e
+        # nem sequer veria a notícia que não chegou a sair. "Entreguei lixo" não
+        # pode contar como "entreguei".
+        feeds_com_falha_de_entrega: set = set()
         cache_hits_start = stats.cache_hits_total
         feeds_failed_start = stats.feeds_failed
+        feeds_vazios_start = stats.feeds_vazios
+        traducoes_rejeitadas_start = stats.traducoes_rejeitadas
 
         async with aiohttp.ClientSession(connector=connector) as session:
             semaphore = asyncio.Semaphore(MAX_CONCURRENT_FEEDS)
@@ -204,6 +211,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                             sent_count += 1
                         except Exception as e:
                             log.error(f"Error sending to guild {gid}: {e}")
+                            feeds_com_falha_de_entrega.add(url)
 
                     if posted_anywhere:
                         history_set.add(link)
@@ -272,6 +280,19 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         # Cleanup and Save
         # Corta o history aos últimos HISTORY_LIMIT e alinha o dedup à mesma janela,
         # para o state.json não crescer indefinidamente (auto-poda a cada varredura).
+        # Descarta o cache HTTP dos feeds que tiveram falha de entrega, para que a
+        # varredura seguinte volte a receber 200 (e as entradas) em vez de 304.
+        if feeds_com_falha_de_entrega:
+            descartados = 0
+            for url_falho in feeds_com_falha_de_entrega:
+                if state["http_cache"].pop(url_falho, None) is not None:
+                    descartados += 1
+            if descartados:
+                log.warning(
+                    f"♻️ Cache HTTP descartado de {descartados} feed(s) com falha de "
+                    "entrega, para a notícia poder ser retentada no próximo ciclo."
+                )
+
         save_history(history_list)
         keep_links = set(history_list[-HISTORY_LIMIT:])
         dedup_before, dedup_after = prune_dedup(state["dedup"], keep_links)
@@ -290,10 +311,40 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
 
         cache_hits = stats.cache_hits_total - cache_hits_start
         feeds_failed = stats.feeds_failed - feeds_failed_start
+        feeds_vazios = stats.feeds_vazios - feeds_vazios_start
+        traducoes_rejeitadas = stats.traducoes_rejeitadas - traducoes_rejeitadas_start
+
+        # Ausência de entrega acumulada: um ciclo sem publicar é rotina; a
+        # sequência é que distingue "dia parado" de "bot mudo".
+        if sent_count > 0:
+            stats.ciclos_sem_envio = 0
+        else:
+            stats.ciclos_sem_envio += 1
+
+        veredito = avaliar_varredura(
+            fontes_totais=len(sources),
+            feeds_falhos=feeds_failed,
+            feeds_vazios=feeds_vazios,
+            enviadas=sent_count,
+            cache_hits=cache_hits,
+            traducoes_rejeitadas=traducoes_rejeitadas,
+            ciclos_sem_envio=stats.ciclos_sem_envio,
+        )
+        stats.ultimo_veredito = veredito
+        # Persistido no state para sobreviver ao restart: telemetria que morre com
+        # o processo não serve para diagnosticar o que aconteceu de madrugada.
+        state["ultimo_veredito"] = veredito
+        save_json_safe(state_file, state)
+
         log.info(
             f"✅ Varredura concluída. (enviadas={sent_count}, cache_hits={cache_hits}, "
-            f"feeds_falhos={feeds_failed}, trigger={trigger})"
+            f"feeds_falhos={feeds_failed}, feeds_vazios={feeds_vazios}, "
+            f"traducoes_rejeitadas={traducoes_rejeitadas}, trigger={trigger})"
         )
+        nivel = log.info if veredito["veredito"] == VEREDITO_OK else (
+            log.warning if veredito["veredito"] == VEREDITO_ATENCAO else log.error
+        )
+        nivel(f"🩺 Saúde da varredura: {veredito['veredito']} — " + " | ".join(veredito["motivos"]))
         _log_next_run()
 
 def start_scheduler(bot: discord.Client):

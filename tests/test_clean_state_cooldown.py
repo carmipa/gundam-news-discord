@@ -36,6 +36,7 @@ def state_cheio():
         "http_cache": {"https://feed.com": {"etag": "abc"}},
         "html_monitor": {"https://site.com": "hash1", "https://site2.com": "hash2"},
         "html_monitor_posted": {"https://site.com": 1754000000.0},
+        "ultimo_veredito": {"veredito": "ATENCAO", "motivos": ["exemplo"]},
         "last_cleanup": 1753000000,
         "last_announced_hash": "abc1234",
     }
@@ -83,6 +84,12 @@ class TestMetadadosPreservados:
         assert novo["last_cleanup"] == 1753000000
         assert novo["last_announced_hash"] == "abc1234"
 
+    @pytest.mark.parametrize("tipo", ["dedup", "http_cache", "html_hashes", "tudo"])
+    def test_veredito_da_ultima_varredura_sobrevive(self, tipo):
+        """Diagnóstico não é estado operacional: apagar destrói o porquê da limpeza."""
+        novo, _ = clean_state(state_cheio(), tipo)
+        assert novo["ultimo_veredito"]["veredito"] == "ATENCAO"
+
 
 class TestEstatisticas:
     def test_stats_contam_o_cooldown(self):
@@ -114,7 +121,11 @@ class TestContratoGenerico:
         """
         tratadas = {"dedup", "http_cache", "html_monitor", "html_hashes",
                     "html_monitor_posted"}
-        metadados = {"last_cleanup", "last_announced_hash"}
+        # `ultimo_veredito` é DIAGNÓSTICO, não estado operacional: descreve o que
+        # aconteceu na última varredura. Apagá-lo destruiria justamente o registo
+        # que explica por que a limpeza foi feita — e ele é sobrescrito no ciclo
+        # seguinte de qualquer forma. Preservado, como os outros metadados.
+        metadados = {"last_cleanup", "last_announced_hash", "ultimo_veredito"}
 
         origem = open(os.path.join(_ROOT, "core", "scanner", "engine.py"),
                       encoding="utf-8").read()

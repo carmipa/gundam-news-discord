@@ -1,14 +1,38 @@
-aiohttp>=3.8.0
-aiohttp-jinja2>=1.5
-certifi>=2023.7.22
-deep-translator>=1.11.0
-discord.py>=2.3.0
-feedparser>=6.0.0
-httpx>=0.24.0
-jinja2>=3.1.2
-python-dotenv>=1.0.0
-beautifulsoup4>=4.12.0
-python-dateutil>=2.8.2
-colorama>=0.4.6
-pytest>=7.0.0
-pytest-asyncio>=0.21.0
+# Versões FIXAS, não `>=`.
+#
+# Com `>=`, qualquer rebuild puxa a versão mais recente de cada pacote — e uma
+# release comprometida entra em produção sem ninguém decidir nada. Não é
+# hipótese: o `deep-translator` teve a conta do PyPI tomada por phishing em 2022
+# (PYSEC-2022-252) e a release maliciosa roubava VARIÁVEIS DE AMBIENTE no momento
+# do install. Neste bot o ambiente carrega o DISCORD_TOKEN.
+#
+# As versões abaixo são as que estavam a correr em produção, sem incidente, na
+# auditoria de 2026-08-30. Atualizar é uma decisão deliberada: mexer aqui,
+# rodar a suíte e o `pip-audit`, e só então subir.
+#
+# Auditoria: python -m pip_audit -r requirements.txt
+aiohttp==3.14.3
+aiohttp-jinja2==1.6
+certifi==2026.7.22
+discord.py==2.7.1
+feedparser==6.0.14
+httpx==0.28.1
+jinja2==3.1.6
+python-dotenv==1.2.2
+beautifulsoup4==4.15.0
+python-dateutil==2.9.0.post0
+colorama==0.4.6
+
+# PYSEC-2022-252 fica marcado neste pacote e NÃO tem versão de correção: 1.11.4
+# é a mais recente publicada. Verificado em 2026-08-30 e aceite conscientemente —
+# as releases maliciosas (1.11.2, 1.11.3) foram RETIRADAS do PyPI (só existem
+# 1.11.0, 1.11.1 e 1.11.4), e nenhum ficheiro do pacote instalado toca
+# os.environ, subprocess ou download. O risco residual é o projeto voltar a ser
+# comprometido; o pin acima é o que impede isso de entrar sozinho num rebuild.
+deep-translator==1.11.4
+
+# Só para a suíte de testes. Ficam aqui porque a imagem é a mesma usada para
+# correr os testes em container; o `.dockerignore` já mantém tests/ fora da
+# imagem de produção.
+pytest==9.1.1
+pytest-asyncio==1.4.0

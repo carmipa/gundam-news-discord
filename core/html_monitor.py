@@ -22,6 +22,41 @@ IGNORE_TAGS = ['script', 'style', 'meta', 'noscript', 'iframe', 'svg']
 # Classes/IDs often used for ads or dynamic widgets
 IGNORE_SELECTORS = ['.ad', '.advertisement', '.widget', '#clock', '.timestamp', '.cookie-consent']
 
+def _limpar_e_extrair(content: str) -> tuple[str, str]:
+    """
+    Limpa o HTML e devolve (texto_para_hash, titulo). SÍNCRONA de propósito.
+
+    PROPÓSITO DE NEGÓCIO:
+        Reduz a página ao texto que interessa, para que o hash mude quando o
+        conteúdo muda e não quando um banner rotativo troca de imagem.
+
+    INVARIANTES DO DOMÍNIO:
+        - É CPU-bound e NÃO pode correr no event loop: quem chama executa-a em
+          `run_in_executor`. Ver a medição no chamador.
+        - Título ausente, vazio ou aninhado resolve para "No Title" — nunca None,
+          porque o título vai para o embed do Discord.
+
+    COMPORTAMENTO EM CASO DE FALHA:
+        Erros de parse propagam para o chamador, que já os converte em log e
+        devolve hash vazio (a página é ignorada nesse ciclo, não derruba a ronda).
+    """
+    soup = BeautifulSoup(content, 'html.parser')
+
+    for tag in soup(IGNORE_TAGS):
+        tag.decompose()
+
+    for selector in IGNORE_SELECTORS:
+        for match in soup.select(selector):
+            match.decompose()
+
+    text_content = soup.get_text(separator=' ', strip=True)
+    # get_text() é robusto a <title> vazio/aninhado (soup.title.string pode ser None)
+    title = soup.title.get_text(strip=True) if soup.title else "No Title"
+    if not title:
+        title = "No Title"
+    return text_content, title
+
+
 async def fetch_page_hash(client: httpx.AsyncClient, url: str) -> tuple[str, str, str]:
     """
     Fetches a page, cleans it, and returns (url, title, hash).
@@ -59,31 +94,29 @@ async def fetch_page_hash(client: httpx.AsyncClient, url: str) -> tuple[str, str
             return url, "", ""
         
         content = resp.text
-        
-        # Parse and Clean
-        soup = BeautifulSoup(content, 'html.parser')
-        
-        # Remove noise tags
-        for tag in soup(IGNORE_TAGS):
-            tag.decompose()
-        
-        # Remove noise classes (Safe attempt)
-        for selector in IGNORE_SELECTORS:
-            for match in soup.select(selector):
-                match.decompose()
-        
-        # Get text content only (ignoring HTML structure changes)
-        text_content = soup.get_text(separator=' ', strip=True)
+
+        # Parse em EXECUTOR, nunca no event loop.
+        #
+        # BeautifulSoup é CPU-bound e síncrono: enquanto corre, o event loop não
+        # despacha mais nada — incluindo o heartbeat do gateway do Discord.
+        # Medido nesta VPS em 2026-08-30, sobre 12 páginas reais do catálogo:
+        # 2,88s de bloqueio acumulado, pior caso 611ms numa única página de 295KB.
+        # Extrapolado para os ~120 sites vigiados: ~29s de event loop parado por
+        # ciclo, contra um intervalo de heartbeat de ~41s. Margem estreita demais,
+        # e que encolhe sozinha à medida que o catálogo cresce.
+        #
+        # Perder o heartbeat faz o Discord derrubar a conexão; a reconexão
+        # redispara o `on_ready`, que é exatamente o caminho da outra classe de
+        # defeito tratada hoje. As duas combinam-se.
+        loop = asyncio.get_running_loop()
+        text_content, title = await loop.run_in_executor(
+            None, _limpar_e_extrair, content
+        )
         log.debug(f"🧹 [PARSE HTML] HTML limpo para {url}. Tamanho do texto resultante: {len(text_content)} bytes")
-        
-        # Hash calculation
+
         page_hash = hashlib.sha256(text_content.encode('utf-8')).hexdigest()
-        # get_text() é robusto a <title> vazio/aninhado (soup.title.string pode ser None)
-        title = soup.title.get_text(strip=True) if soup.title else "No Title"
-        if not title:
-            title = "No Title"
         log.debug(f"🔐 [HASH] Hash gerado para {url}: {page_hash[:8]}...")
-        
+
         return url, title, page_hash
 
     except httpx.RequestError as e:

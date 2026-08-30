@@ -1,6 +1,7 @@
 """
 OpenGraph utility - Extracts images from meta tags.
 """
+import asyncio
 import aiohttp
 import logging
 from bs4 import BeautifulSoup
@@ -35,34 +36,50 @@ async def fetch_og_image(url: str, session: aiohttp.ClientSession) -> Optional[s
                 return None
             
             html = await resp.text()
-            soup = BeautifulSoup(html, 'html.parser')
-            
-            # 1. OpenGraph
-            og = soup.find("meta", attrs={"property": "og:image"}) or \
-                 soup.find("meta", attrs={"name": "og:image"}) or \
-                 soup.find("meta", attrs={"property": "og:image:secure_url"})
-            
-            if og and og.get("content"):
-                return og["content"]
-            
-            # 2. Twitter Card
-            tw = soup.find("meta", attrs={"name": "twitter:image"}) or \
-                 soup.find("meta", attrs={"property": "twitter:image"})
-            if tw and tw.get("content"):
-                return tw["content"]
-                
-            # 3. Itemprop
-            ip = soup.find("meta", attrs={"itemprop": "image"})
-            if ip and ip.get("content"):
-                return ip["content"]
-            
-            # 4. Link rel image_src
-            ls = soup.find("link", rel="image_src")
-            if ls and ls.get("href"):
-                return ls["href"]
+            # Parse em executor: BeautifulSoup é CPU-bound e correria no event
+            # loop, atrasando o heartbeat do gateway. Aqui o custo multiplica pelo
+            # número de notícias enviadas no ciclo, não pelo catálogo.
+            loop = asyncio.get_running_loop()
+            return await loop.run_in_executor(None, _extrair_imagem, html)
 
-            return None
-            
     except Exception as e:
         log.debug(f"OG fetch error for {url}: {e}")
         return None
+
+
+def _extrair_imagem(html: str) -> Optional[str]:
+    """
+    Extrai a URL da imagem de destaque do HTML. SÍNCRONA de propósito.
+
+    PROPÓSITO DE NEGÓCIO:
+        Dá ao embed do Discord a miniatura da notícia. É enfeite: a notícia sai
+        na mesma sem ela.
+
+    INVARIANTES DO DOMÍNIO:
+        - É CPU-bound e NÃO corre no event loop; quem chama usa run_in_executor.
+        - Ordem de preferência fixa: OpenGraph > Twitter Card > itemprop >
+          link rel=image_src. A primeira que existir ganha.
+
+    COMPORTAMENTO EM CASO DE FALHA:
+        Devolve None quando nenhuma tag serve. HTML malformado propaga para o
+        chamador, que já converte em None — miniatura ausente nunca impede o envio.
+    """
+    soup = BeautifulSoup(html, 'html.parser')
+
+    og = soup.find("meta", attrs={"property": "og:image"}) or          soup.find("meta", attrs={"name": "og:image"}) or          soup.find("meta", attrs={"property": "og:image:secure_url"})
+    if og and og.get("content"):
+        return og["content"]
+
+    tw = soup.find("meta", attrs={"name": "twitter:image"}) or          soup.find("meta", attrs={"property": "twitter:image"})
+    if tw and tw.get("content"):
+        return tw["content"]
+
+    ip = soup.find("meta", attrs={"itemprop": "image"})
+    if ip and ip.get("content"):
+        return ip["content"]
+
+    ls = soup.find("link", rel="image_src")
+    if ls and ls.get("href"):
+        return ls["href"]
+
+    return None

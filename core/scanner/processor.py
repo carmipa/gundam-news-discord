@@ -70,7 +70,10 @@ def sanitize_link(link: str) -> str:
         new_query = '&'.join(cleaned_pairs)
         
         return urlunparse((parsed.scheme, parsed.netloc, parsed.path, parsed.params, new_query, parsed.fragment))
-    except Exception:
+    except Exception as e:
+        # Link não parseável volta intacto: melhor publicar com parâmetros de
+        # rastreio do que perder a notícia. O motivo fica no log.
+        log.debug(f"Falha ao sanitizar link {link!r}: {type(e).__name__}: {e}")
         return link
 
 def parse_entry_dt(entry: Any) -> Optional[datetime]:
@@ -81,8 +84,11 @@ def parse_entry_dt(entry: Any) -> Optional[datetime]:
         
         st = getattr(entry, "published_parsed", None) or getattr(entry, "updated_parsed", None)
         if st: return datetime(*st[:6], tzinfo=timezone.utc)
-    except Exception:
-        pass
+    except Exception as e:
+        # Data ilegível vira None, e `is_recent(None)` deixa a notícia passar —
+        # a decisão é deliberada (melhor publicar do que descartar por causa de
+        # um campo de data mal formado), mas precisa ser visível.
+        log.debug(f"Data da entrada ilegível: {type(e).__name__}: {e}")
     return None
 
 def is_recent(entry_dt: Optional[datetime], days_limit: int = 7) -> bool:

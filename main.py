@@ -57,6 +57,70 @@ logging.getLogger("httpcore").setLevel(logging.WARNING)
 # SETUP DO BOT
 # =========================================================
 
+def _preparar_views_e_canais(bot) -> dict:
+    """
+    Registra as views persistentes e limpa canais que deixaram de existir.
+
+    PROPÓSITO DE NEGÓCIO:
+        Faz o painel de filtros voltar a responder depois de um restart e evita
+        que o bot tente publicar num canal apagado a cada varredura.
+
+    INVARIANTES DO DOMÍNIO:
+        - É ACESSÓRIO: nada aqui pode impedir o scheduler de arrancar. Quem chama
+          é responsável por não deixar a exceção subir ao handler de evento.
+        - Uma guild com id inválido não interrompe o registro das outras.
+        - O config só é gravado quando algo mudou de facto.
+
+    COMPORTAMENTO EM CASO DE FALHA:
+        Falhas por guild são registadas e o laço continua. Falha na gravação do
+        config propaga para o chamador, que a converte em log e segue.
+
+    Returns:
+        O config carregado — o anúncio de versão precisa dele para saber a que
+        canais escrever. Devolve {} se o ficheiro não for um dict.
+    """
+    cfg = load_config_cached({})
+    if isinstance(cfg, dict):
+        for gid in cfg.keys():
+            try:
+                bot.add_view(FilterDashboard(int(gid)))
+                log.info(f"View persistente registrada para guild {gid}")
+            except ValueError as e:
+                log.error(f"Erro ao converter guild_id '{gid}' para inteiro: {e}")
+            except Exception as e:
+                log.error(f"Erro ao registrar view persistente para guild {gid}: {type(e).__name__}: {e}", exc_info=True)
+
+        # Valida canais configurados: avisa se algum canal não existe (ex.: foi deletado)
+        cfg_changed = False
+        for gid, gdata in list(cfg.items()):
+            if not isinstance(gdata, dict): continue
+            channel_id = gdata.get("channel_id")
+            if not channel_id: continue
+            try:
+                ch = bot.get_channel(int(channel_id))
+                if ch is None:
+                    guild_name = ""
+                    try:
+                        g = bot.get_guild(int(gid))
+                        if g:
+                            guild_name = f" (servidor: {g.name})"
+                    except (ValueError, TypeError):
+                        pass
+                    log.warning(
+                        f"⚠️ Canal configurado não encontrado ao iniciar: channel_id {channel_id}, Guild {gid}{guild_name}. "
+                        "Removendo do config para evitar falhas."
+                    )
+                    gdata["channel_id"] = None
+                    cfg_changed = True
+            except (ValueError, TypeError):
+                pass
+                
+        if cfg_changed:
+            save_config_safe(cfg)
+
+    return cfg if isinstance(cfg, dict) else {}
+
+
 async def main():
     # Intents
     intents = discord.Intents.default()
@@ -126,49 +190,47 @@ async def main():
         log.info(f"✅ Bot conectado como: {bot.user} (ID: {bot.user.id})")
         log.info(f"📊 Servidores conectados: {len(bot.guilds)}")
 
-        # 0. Iniciar Web Server (Fase 10)
-        # Host e porta agora vêm de variáveis de ambiente (padrão: 127.0.0.1:8080)
-        await start_web_server()
+        # 0. Iniciar Web Server (Fase 10) — ACESSÓRIO, nunca pode derrubar o resto.
+        #
+        # Exceção levantada dentro de um handler de evento do discord.py é apenas
+        # REGISTADA por ele: tudo o que viria depois neste on_ready deixa de correr.
+        # Como o scheduler (passo 3) vem depois, uma falha aqui produz o pior modo
+        # possível — bot online, respondendo a comandos, que NUNCA varre.
+        #
+        # E o cenário é alcançável: `_startup_done` só é marcado no fim deste
+        # handler, portanto uma falha em qualquer passo intermédio faz a próxima
+        # reconexão reexecutar o on_ready — e aí `site.start()` encontra a porta já
+        # aberta pela tentativa anterior e levanta OSError(EADDRINUSE), tornando o
+        # bot permanentemente mudo até alguém reiniciar o contêiner.
+        #
+        # O dashboard é conveniência; a varredura é a função do bot. Se um dos dois
+        # tiver de cair, é o dashboard.
+        try:
+            # Host e porta vêm de variáveis de ambiente (padrão: 127.0.0.1:8080)
+            await start_web_server()
+        except OSError as e:
+            log.error(
+                f"❌ Web Dashboard não subiu ({type(e).__name__}: {e}). "
+                "O bot CONTINUA: varredura e comandos não dependem dele."
+            )
+        except Exception as e:
+            log.exception(
+                f"❌ Web Dashboard falhou de forma inesperada ({type(e).__name__}: {e}). "
+                "O bot CONTINUA: varredura e comandos não dependem dele."
+            )
 
-        # 1. Carregar Views Persistentes
-        cfg = load_config_cached({})
-        if isinstance(cfg, dict):
-            for gid in cfg.keys():
-                try:
-                    bot.add_view(FilterDashboard(int(gid)))
-                    log.info(f"View persistente registrada para guild {gid}")
-                except ValueError as e:
-                    log.error(f"Erro ao converter guild_id '{gid}' para inteiro: {e}")
-                except Exception as e:
-                    log.error(f"Erro ao registrar view persistente para guild {gid}: {type(e).__name__}: {e}", exc_info=True)
-
-            # Valida canais configurados: avisa se algum canal não existe (ex.: foi deletado)
-            cfg_changed = False
-            for gid, gdata in list(cfg.items()):
-                if not isinstance(gdata, dict): continue
-                channel_id = gdata.get("channel_id")
-                if not channel_id: continue
-                try:
-                    ch = bot.get_channel(int(channel_id))
-                    if ch is None:
-                        guild_name = ""
-                        try:
-                            g = bot.get_guild(int(gid))
-                            if g:
-                                guild_name = f" (servidor: {g.name})"
-                        except (ValueError, TypeError):
-                            pass
-                        log.warning(
-                            f"⚠️ Canal configurado não encontrado ao iniciar: channel_id {channel_id}, Guild {gid}{guild_name}. "
-                            "Removendo do config para evitar falhas."
-                        )
-                        gdata["channel_id"] = None
-                        cfg_changed = True
-                except (ValueError, TypeError):
-                    pass
-                    
-            if cfg_changed:
-                save_config_safe(cfg)
+        # 1. Carregar Views Persistentes — ACESSÓRIO.
+        # Envolvido porque `save_config_safe` (fim do bloco) escreve em disco e
+        # pode levantar; sem esta rede, disco cheio aqui impede o scheduler do
+        # passo 3 de arrancar e o bot fica online sem varrer.
+        cfg = {}
+        try:
+            cfg = _preparar_views_e_canais(bot)
+        except Exception as e:
+            log.exception(
+                f"❌ Falha ao preparar views/canais ({type(e).__name__}: {e}). "
+                "O bot CONTINUA: a varredura não depende disto."
+            )
 
         # 2. Sync Comandos (Slash)
         try:

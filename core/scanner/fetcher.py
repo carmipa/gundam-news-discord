@@ -339,6 +339,13 @@ async def _fetch_feed_url(
                     scan_verbose(log, f"🎯 [FEED PRONTO] {entries_count} item(ns) em {url}")
                     if is_youtube:
                         log.info(f"🎥 [YOUTUBE FEED] {entries_count} entrada(s) no Atom — {url}")
+                    if entries_count == 0:
+                        # 200 com zero entradas NÃO é fonte saudável sem novidade:
+                        # é o disfarce mais comum de fonte morta (feed que virou
+                        # HTML, endpoint que passou a devolver envelope vazio).
+                        # Sem este contador, a diferença é invisível no resumo.
+                        stats.feeds_vazios += 1
+                        log.warning(f"📭 Feed respondeu 200 sem nenhuma entrada: {url}")
                     return _OK, entries
             finally:
                 # Liberta o host mesmo em exceção/timeout: um slot preso travaria
