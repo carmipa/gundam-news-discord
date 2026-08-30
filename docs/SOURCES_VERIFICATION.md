@@ -155,3 +155,110 @@ python tests/test_sources.py
 ```
 
 e confira `verification_results.txt` e o resumo no console.
+
+---
+
+## 🛰️ A sonda de fontes — `scripts/probe_sources.py`
+
+Responde, com evidência colável, se cada fonte do catálogo **ainda rende
+notícia**. Fonte morta em silêncio é a falha mais cara deste tipo de bot: ela
+responde 200, devolve zero entradas ou conteúdo congelado, e ninguém nota —
+porque "0 notícias hoje" parece um dia calmo.
+
+```bash
+python scripts/probe_sources.py --feeds                 # os 64 feeds
+python scripts/probe_sources.py --sites                 # os ~120 official_sites
+python scripts/probe_sources.py --catalogo --json /tmp/sonda.json
+python scripts/probe_sources.py https://exemplo.com/feed
+```
+
+### Três estados de saída, nunca dois
+
+| saída | significado |
+|-------|-------------|
+| `0` | PASSOU — todas as fontes sondadas estão saudáveis |
+| `1` | REPROVOU — pelo menos uma está doente |
+| `2` | **NÃO VERIFICOU** — calibração falhou ou não havia alvo. **Não é aprovação.** |
+
+O terceiro estado não é firula: sem ele, "não achei nada" e "não tinha como
+achar" parecem a mesma coisa.
+
+### Por que ela usa o caminho real do bot
+
+Sonda com cliente HTTP próprio mede outra coisa e aprova o que a produção
+recusa. Esta chama o `fetch_feed` e o `fetch_page_hash` **deste** bot — o mesmo
+`validate_url`, o mesmo `user_agent` por fonte (a Natalie devolve 405 a UA de
+navegador), os mesmos fallbacks, o mesmo throttle e o mesmo parser.
+
+O `http_cache` vai **vazio de propósito**: com o cache real, fonte saudável
+responderia 304 e a sonda não veria entrada nenhuma — leitura indistinguível de
+fonte morta.
+
+### Dois critérios, porque o catálogo tem duas naturezas
+
+| tipo | critério de saúde |
+|------|-------------------|
+| feed (RSS/YouTube/Reddit/tracker) | HTTP 200 · ≥1 entrada · item mais recente com < 180 dias |
+| `official_sites` (HTML Monitor) | HTTP 200 · rende texto para o hash |
+
+Medir os ~120 sites institucionais com critério de feed produziria **120 falhas
+falsas**. Num bot irmão esse engano foi cometido com 29 sites.
+
+### Calibração — a sonda não emite veredito antes de provar que sabe dizer NÃO
+
+Antes de qualquer resultado, a sonda corre um controle positivo (feed estável,
+que **tem** de passar) e um negativo (`channel_id` sintaticamente válido e
+inexistente, que **tem** de reprovar). Se qualquer um sair do esperado, ela devolve
+`2` e não emite veredito sobre o catálogo.
+
+Isto pagou-se na primeira execução: o controle positivo reprovou o Anime News
+Network, um feed saudável. O feed estava bem — o `parse_entry_dt` é que estava
+partido, tentando `isoparse` (só ISO 8601) no formato RFC 822, que é o **padrão do
+RSS**. A janela de recência estava desligada para quase todo o catálogo, e
+ninguém tinha notado.
+
+### ⚠️ A sonda contamina o que mede — use com parcimónia
+
+Três sondagens seguidas do catálogo completo **esgotaram o orçamento do YouTube
+para o IP do servidor**, e os feeds passaram a devolver `Error 404 (Not Found)!!1`.
+Um canal que minutos antes respondera "SUNRISE Music" passou a dar zero entradas.
+
+Por isso a concorrência é 2 e há pausa entre pedidos. E por isso:
+
+> **Se muitos canais aparecerem mortos de uma vez, espere e repita antes de mexer
+> no catálogo.** Desativar fonte saudável por leitura contaminada é pior que não
+> ter sondado.
+
+### O que ela imprime, e por quê
+
+- **O título que o feed declara**, sempre, ao lado do nome configurado. Fonte
+  trocada responde 200 com itens recentes; só o título denuncia. Foi assim que se
+  descobriu que 12 canais do YouTube tinham nome de posição (`Canal YT – UCPjm`)
+  em vez do nome real — e que alguns nem são fontes Gundam (`Netflix`,
+  `IGN Movie Trailers`).
+- **O volume pós-filtro** — quantas entradas passariam no `match_intel`. Sem isso,
+  admitir fonte nova é palpite: um feed com 100 itens dos quais nenhum é sobre
+  Gundam custa banda e não rende nada.
+
+O aviso de título divergente usa similaridade por trigramas com limiar **0.15**,
+**calibrado contra os 63 pares reais** do catálogo. O critério anterior, por
+substring, acusava 24 de 64 — quase todos falsos, por ordem trocada
+(`Tokyo Toshokan – Gundam` contra `gundam - Tokyo Toshokan`) ou por o título ser
+descritivo. Títulos em alfabetos diferentes nunca são comparados: metade do
+catálogo é japonesa e o `sources.json` guarda o nome em inglês.
+
+### Resultado da primeira auditoria (2026-08-30)
+
+**56 de 64 feeds saudáveis.** As 8 restantes ficaram anotadas em `notes` na
+própria fonte, com a idade medida — o que sai do catálogo é decisão do dono:
+
+| fonte | diagnóstico |
+|-------|-------------|
+| GoodguyDan | congelado há 4897 dias (13 anos), 0 de 4 entradas passam no filtro |
+| Kusakusa WordPress | congelado há 740 dias |
+| BandaiChannel (YT) | congelado há 1953 dias |
+| Studio G (YT) | congelado há 895 dias |
+| MSG Universe (YT) | congelado há 488 dias, mas as 15 entradas passam no filtro |
+| Nyaa – [Judas] Gundam | congelado há 427 dias — o grupo parou de lançar |
+| Kimi the Builder Blog | congelado há 247 dias, as 10 entradas passam no filtro |
+| r/GBO2 | rate limit do Reddit por IP — não é fonte morta |

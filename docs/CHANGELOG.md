@@ -11,6 +11,14 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 Varredura das 9 classes de defeito do procedimento de manutenção de bots.
 Baseline da suíte: 125 testes. Depois: 194, zero falha, flake8 e pip-audit limpos.
 
+
+### Sonda de fontes (segunda parte da auditoria)
+
+- **`scripts/probe_sources.py`** — responde, com evidência colável, se cada fonte ainda rende notícia. Usa o `fetch_feed` e o `fetch_page_hash` **deste** bot, não um cliente HTTP paralelo, com `http_cache` vazio para não confundir 304 com fonte morta. Dois critérios: feeds por entradas e idade, os ~120 `official_sites` por responderem 200 — medi-los com critério de feed daria 120 falhas falsas. Três estados de saída (`0`/`1`/`2`, onde `2` = **não verificou**, que não é aprovação). Primeira auditoria: **56 de 64 feeds saudáveis**, as 8 restantes anotadas na própria fonte com a idade medida.
+- **Filtro de recência voltou a funcionar** — descoberto pelo CONTROLE POSITIVO da sonda, não por leitura de código: ela reprovou o Anime News Network, um feed saudável. O feed estava bem; `parse_entry_dt` tentava `isoparse` no campo de texto primeiro, e `isoparse` só aceita ISO 8601 — levanta em RFC 822, o formato **padrão do RSS**. A exceção era capturada e devolvia `None` **sem nunca chegar ao `published_parsed`** já normalizado pelo feedparser. Como `is_recent(None)` é `True`, a janela de 7 dias estava **desligada para todos os feeds RSS clássicos**.
+- **Nomes reais dos canais do YouTube** — 12 entradas tinham nome de posição (`Canal YT – UCPjm`). A sonda revelou os verdadeiros; alguns nem são fontes Gundam (`Netflix`, `IGN Movie Trailers`).
+- **`fetch_feed` devolve o título do feed**, único sinal capaz de denunciar fonte trocada.
+
 ### Segurança
 
 - **Dependências fixadas com `==` em vez de `>=`** — com `>=`, qualquer rebuild puxa a versão mais recente de cada pacote e uma release comprometida entra em produção sem ninguém decidir nada. Não é hipótese: o `deep-translator` teve a conta do PyPI tomada por phishing em 2022 (PYSEC-2022-252) e a release maliciosa roubava **variáveis de ambiente no momento do install** — e neste bot o ambiente carrega o `DISCORD_TOKEN`. Verificado em 2026-08-30: as releases maliciosas (1.11.2, 1.11.3) foram retiradas do PyPI, a imagem tem a 1.11.4 legítima e nenhum ficheiro do pacote instalado toca `os.environ`, `subprocess` ou download. O alerta fica marcado no pacote e **não tem versão de correção** — aceite conscientemente, com o pin a impedir que um comprometimento futuro entre sozinho.

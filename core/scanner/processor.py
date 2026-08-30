@@ -77,18 +77,53 @@ def sanitize_link(link: str) -> str:
         return link
 
 def parse_entry_dt(entry: Any) -> Optional[datetime]:
-    """Robust date parsing from feed entries."""
-    try:
-        s = getattr(entry, "published", None) or getattr(entry, "updated", None)
-        if s: return dtparser.isoparse(s)
-        
-        st = getattr(entry, "published_parsed", None) or getattr(entry, "updated_parsed", None)
-        if st: return datetime(*st[:6], tzinfo=timezone.utc)
-    except Exception as e:
-        # Data ilegível vira None, e `is_recent(None)` deixa a notícia passar —
-        # a decisão é deliberada (melhor publicar do que descartar por causa de
-        # um campo de data mal formado), mas precisa ser visível.
-        log.debug(f"Data da entrada ilegível: {type(e).__name__}: {e}")
+    """
+    Extrai a data de publicação de uma entrada de feed.
+
+    PROPÓSITO DE NEGÓCIO:
+        Alimenta `is_recent`, que impede o bot de publicar notícia velha como se
+        fosse nova — quando um feed reordena, republica ou muda de servidor.
+
+    INVARIANTES DO DOMÍNIO:
+        - `published_parsed` vem PRIMEIRO. É o campo que o feedparser já
+          normalizou a partir de qualquer formato (RFC 822, ISO 8601, RFC 3339),
+          e é o mais confiável que existe na entrada.
+        - O campo de texto é só reserva, e é lido com o parser TOLERANTE
+          (`dtparser.parse`), não com `isoparse`.
+        - Sempre devolve datetime com fuso (UTC quando a origem não diz), para o
+          chamador nunca comparar aware com naive.
+
+    COMPORTAMENTO EM CASO DE FALHA:
+        Devolve None, e `is_recent(None)` deixa a notícia passar — deliberado:
+        melhor publicar do que descartar por causa de um campo de data mal
+        formado. O motivo fica em log de debug.
+
+    Histórico do defeito (2026-08-30): a versão anterior tentava
+    `dtparser.isoparse` no campo de TEXTO primeiro. `isoparse` aceita apenas ISO
+    8601 e levanta em RFC 822 — que é o formato PADRÃO do RSS. A exceção era
+    capturada e a função devolvia None **sem nunca chegar ao
+    `published_parsed`**, que estava ali, correto, o tempo todo. Resultado: como
+    `is_recent(None)` é True, a janela de 7 dias estava desligada para todos os
+    feeds RSS clássicos, funcionando só nos Atom/YouTube. Foi o controle
+    positivo da sonda de fontes que denunciou.
+    """
+    # 1. O campo já normalizado pelo feedparser.
+    st = getattr(entry, "published_parsed", None) or getattr(entry, "updated_parsed", None)
+    if st:
+        try:
+            return datetime(*st[:6], tzinfo=timezone.utc)
+        except Exception as e:
+            log.debug(f"published_parsed inválido: {type(e).__name__}: {e}")
+
+    # 2. Reserva: o texto cru, com parser tolerante a RFC 822 e ISO 8601.
+    s = getattr(entry, "published", None) or getattr(entry, "updated", None)
+    if s:
+        try:
+            dt = dtparser.parse(s)
+            return dt if dt.tzinfo else dt.replace(tzinfo=timezone.utc)
+        except Exception as e:
+            log.debug(f"Data da entrada ilegível ({s!r}): {type(e).__name__}: {e}")
+
     return None
 
 def is_recent(entry_dt: Optional[datetime], days_limit: int = 7) -> bool:

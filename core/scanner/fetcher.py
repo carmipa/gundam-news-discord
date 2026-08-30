@@ -234,14 +234,19 @@ async def _fetch_feed_url(
     metadata: Dict[str, Any],
     http_cache: dict,
     timeout: aiohttp.ClientTimeout,
-) -> Tuple[str, List[Any]]:
+) -> Tuple[str, List[Any], str]:
     """
     Busca UMA URL de feed com retentativas e evasão.
-    Retorna (outcome, entries): _OK/_NOT_MODIFIED/_FAIL.
+
+    Retorna (outcome, entries, titulo_do_feed): _OK/_NOT_MODIFIED/_FAIL.
+
+    O título declarado pelo próprio feed viaja com o resultado porque é o único
+    sinal que denuncia fonte trocada: um canal ocupado por terceiro responde 200
+    com itens recentes, e só o título mostra que são de outro sítio.
     """
     is_valid, _ = validate_url(url)
     if not is_valid:
-        return _FAIL, []
+        return _FAIL, [], ""
 
     is_youtube = any(d in url for d in ["youtube.com", "youtu.be"])
     quer_proxy = metadata.get("use_proxy", False) or any(d in url for d in _PROXY_CANDIDATE_DOMAINS)
@@ -301,7 +306,7 @@ async def _fetch_feed_url(
                     if resp.status == 304:
                         stats.cache_hits_total += 1
                         scan_verbose(log, f"📦 [CACHE] 304 Not Modified (sem corpo novo): {url}")
-                        return _NOT_MODIFIED, []
+                        return _NOT_MODIFIED, [], ""
 
                     if resp.status >= 400:
                         log.warning(f"HTTP {resp.status} para {url} (via proxy: {via_proxy})")
@@ -325,7 +330,7 @@ async def _fetch_feed_url(
                             await asyncio.sleep(delay)
                             continue
                         scan_verbose(log, f"❌ [ABORT] HTTP {resp.status} sem mais retries: {url}")
-                        return _FAIL, []
+                        return _FAIL, [], ""
 
                     update_cache_state(url, resp.headers, http_cache)
                     scan_verbose(log, f"✅ [HTTP OK] corpo recebido; parse RSS/XML: {url}")
@@ -335,6 +340,9 @@ async def _fetch_feed_url(
                     loop = asyncio.get_running_loop()
                     feed = await loop.run_in_executor(None, feedparser.parse, text)
                     entries = getattr(feed, "entries", [])
+                    titulo_do_feed = str(
+                        getattr(getattr(feed, "feed", None), "title", "") or ""
+                    )
                     entries_count = len(entries)
                     scan_verbose(log, f"🎯 [FEED PRONTO] {entries_count} item(ns) em {url}")
                     if is_youtube:
@@ -346,7 +354,7 @@ async def _fetch_feed_url(
                         # Sem este contador, a diferença é invisível no resumo.
                         stats.feeds_vazios += 1
                         log.warning(f"📭 Feed respondeu 200 sem nenhuma entrada: {url}")
-                    return _OK, entries
+                    return _OK, entries, titulo_do_feed
             finally:
                 # Liberta o host mesmo em exceção/timeout: um slot preso travaria
                 # todos os outros feeds do mesmo domínio até ao fim da varredura.
@@ -365,10 +373,10 @@ async def _fetch_feed_url(
             else:
                 log.error(f"🔥 [FALHA TOTAL] Desistindo de {url} após {FEED_FETCH_MAX_ATTEMPTS} tentativas.")
 
-    return _FAIL, []
+    return _FAIL, [], ""
 
 
-async def fetch_feed(session: aiohttp.ClientSession, source_obj: Dict[str, Any], http_cache: dict) -> Optional[Tuple[str, List[Any]]]:
+async def fetch_feed(session: aiohttp.ClientSession, source_obj: Dict[str, Any], http_cache: dict) -> Optional[Tuple[str, List[Any], str]]:
     """
     Busca e processa um feed: aplica first_request_delay_sec, tenta a URL principal
     e, em caso de falha, os fallbacks configurados. Mantém a URL canônica como chave
@@ -393,9 +401,9 @@ async def fetch_feed(session: aiohttp.ClientSession, source_obj: Dict[str, Any],
     for i, candidate in enumerate(urls_to_try):
         if i > 0:
             scan_verbose(log, f"↩️ [FALLBACK] tentando URL alternativa {i}/{len(urls_to_try) - 1} para {canonical_url}: {candidate}")
-        outcome, entries = await _fetch_feed_url(session, candidate, metadata, http_cache, timeout)
+        outcome, entries, titulo = await _fetch_feed_url(session, candidate, metadata, http_cache, timeout)
         if outcome == _OK:
-            return canonical_url, entries
+            return canonical_url, entries, titulo
         if outcome == _NOT_MODIFIED:
             # 304: nada novo — não tenta fallback nem conta como falha.
             return None

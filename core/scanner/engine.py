@@ -113,7 +113,9 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                     log.error(f"Falha não tratada ao buscar feed: {type(result).__name__}: {result}")
                     continue
                 if not result: continue
-                url, entries = result
+                # O título vem do fetcher para a sonda de fontes o poder comparar
+                # com o nome configurado; aqui só interessa a URL e as entradas.
+                url, entries, _titulo_do_feed = result
                 
                 # Dedup per feed
                 if url not in state["dedup"]: state["dedup"][url] = {}
