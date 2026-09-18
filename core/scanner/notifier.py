@@ -11,7 +11,7 @@ from urllib.parse import urlparse, parse_qs
 from utils.translator import translate_to_target, t
 from utils.html import clean_html
 
-from utils.opengraph import fetch_og_image
+from utils.opengraph import fetch_og_image, imagem_publicavel
 
 log = logging.getLogger("MaftyIntel.scanner")
 
@@ -196,13 +196,24 @@ async def create_embed(bot: discord.Client, entry: Any, target_lang: str, guild_
     if thumbnail_url is _THUMB_UNSET:
         thumbnail_url = await resolve_thumbnail(entry, session)
 
-    if thumbnail_url:
+    # Guarda: URL de imagem invalida faz o Discord recusar o EMBED INTEIRO
+    # (50035) -- a noticia falharia em todas as guilds, nao entraria no dedup e o
+    # ciclo repetiria para sempre. O notifier ja trata as causas de TAMANHO do
+    # 50035; esta linha fecha o vetor de URL (portado do anime-news, 2026-09-18).
+    # Noticia sem imagem e lida; recusada nao existe.
+    imagem_ok = imagem_publicavel(thumbnail_url)
+    if thumbnail_url and not imagem_ok:
+        log.warning(
+            f"[EMBED] Imagem descartada por URL invalida, "
+            f"noticia segue sem ela: {str(thumbnail_url)[:120]}"
+        )
+    if imagem_ok:
         # Em vídeo, imagem maior melhora leitura no Discord.
         is_youtube = any(x in link for x in ["youtube.com", "youtu.be"])
         if is_youtube:
-            embed.set_image(url=thumbnail_url)
+            embed.set_image(url=imagem_ok)
         else:
-            embed.set_thumbnail(url=thumbnail_url)
+            embed.set_thumbnail(url=imagem_ok)
 
     return embed
 

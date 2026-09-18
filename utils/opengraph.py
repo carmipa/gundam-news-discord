@@ -6,6 +6,7 @@ import aiohttp
 import logging
 from bs4 import BeautifulSoup
 from typing import Optional
+from urllib.parse import urlparse
 
 from utils.security import validate_url
 
@@ -83,3 +84,40 @@ def _extrair_imagem(html: str) -> Optional[str]:
         return ls["href"]
 
     return None
+
+
+def imagem_publicavel(url: Optional[str]) -> Optional[str]:
+    """
+    Decide se uma URL de imagem pode ir para o embed do Discord.
+
+    PROPOSITO DE NEGOCIO:
+        Impedir que uma imagem ruim APAGUE a noticia. O Discord recusa o embed
+        inteiro com 400 (error code 50035) quando a URL de imagem e invalida; a
+        noticia falha em todas as guilds, nao entra no dedup e o ciclo seguinte
+        tenta de novo -- para sempre. O notifier ja trata as causas de TAMANHO
+        do 50035 (_limitar/_LIMITE_*); esta guarda fecha o vetor de URL, que
+        estava descoberto (medido em 2026-09-18, portado do anime-news).
+
+    INVARIANTES DO DOMINIO:
+        - So devolve URL absoluta http(s) para host publico (reusa validate_url,
+          o mesmo criterio anti-SSRF do resto do bot -- aqui com contrato de
+          tupla (is_valid, msg), diferente do anime-news que levanta).
+        - Nunca levanta: e chamada no caminho de publicacao.
+        - Devolve None em vez de string vazia, para o chamador ter um teste so.
+
+    COMPORTAMENTO EM CASO DE FALHA:
+        Devolve None; a noticia sai SEM imagem, que e o desfecho seguro. Noticia
+        sem imagem e lida; noticia recusada pela API nao existe.
+    """
+    if not url or not isinstance(url, str):
+        return None
+    limpa = url.strip()
+    if not limpa.startswith(("http://", "https://")):
+        return None
+    ok, _erro = validate_url(limpa)
+    if not ok:
+        log.debug(f"[IMG] URL de imagem descartada: {limpa[:120]} ({_erro})")
+        return None
+    if not urlparse(limpa).netloc:
+        return None
+    return limpa
