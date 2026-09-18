@@ -1,0 +1,14 @@
+# Normalizacao de fim de linha. Ver o commit equivalente do projeto-anime-news:
+# working tree em CRLF (129 ficheiros) vs HEAD em LF, resquicio da migracao do
+# disco G: para F: (2026-09-14). Sem impacto em producao (Dockerfile usa CMD em
+# exec form, nenhum .sh rastreado), mas afogava qualquer diff real. eol=lf e
+# explicito de proposito: sem ele o resultado depende do core.autocrlf local.
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.docx binary
+*.zip binary
