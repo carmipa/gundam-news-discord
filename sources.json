@@ -9,6 +9,7 @@
     "total_tracker": 6,
     "total_official_sites": 122,
     "notes": [
+      "2026-09-25: 3 fontes congeladas sem conteúdo útil DESLIGADAS com enabled:false (GoodguyDan, BandaiChannel, Nyaa [Judas]); as congeladas cujas entradas ainda passam no filtro (Kimi, Kusakusa, MSG Universe, Studio G) ficam. 5 canais ainda com nome de posição renomeados pelo título do próprio feed (GUNDAM CHANNEL, Gunpla Variety, Sawano Hiroyuki, SUNRISE, BANDAI SPIRITS). Canais gerais (Netflix, Netflix Japan, IGN Movie Trailers, What's on Netflix, Qamama) MANTIDOS: trazem trailers e anúncios de Gundam, e o filtro exige termo Gundam no título de vídeo.",
       "2026-08-30: sonda de fontes instalada (scripts/probe_sources.py) e catálogo auditado pelo caminho real do bot. 56 de 64 feeds saudáveis; 7 congelados e 1 com rate limit, todos anotados em 'notes' da própria fonte. 12 canais do YouTube tinham nome de posição ('Canal YT – UCxxxx') em vez do nome real — corrigidos com o título que o próprio feed declara.",
       "2026-08-01: auditoria de fontes mortas (todas reproduzidas fora do VPS, não é bloqueio de IP). gundamnews.org desativado (TLS quebrado no servidor: TLSV1_ALERT_INTERNAL_ERROR em TLS 1.2 e 1.3, apex e www). natalie.mu mantida com user_agent de biblioteca HTTP (devolve 405 para UA de navegador). Mobile Suit Breakdown → feed real no Pinecast. Schizophonic9 → blog migrou para schizophonic9-2.com (FC2, feed em ?xml). Kimi the Builder → canônico passa a ser o WordPress.com. Unicorn Gundam Statue removido (domínio em NXDOMAIN; estátua encerra exibição em ago/2026).",
       "2026-07-12: +RSS Zeonic-Republic, Mobile Suit Breakdown, Schizophonic9; +Reddit r/GBO2, r/AdvancedGunpla; +YouTube Mecha Gaikotsu, ZakuAurelius, Kakarot197, Studio G; +official Dalong.net.",
@@ -57,7 +58,8 @@
       "url": "https://goodguydan.blogspot.com/feeds/posts/default?alt=rss",
       "category": "gunpla",
       "language": "en",
-      "notes": "SONDA 2026-08-30: congelado há 4897 dias (13 anos) e 0 de 4 entradas passam no filtro. Candidato forte a remoção — decisão do Paulo."
+      "enabled": false,
+      "notes": "SONDA 2026-08-30: congelado há 4897 dias (13 anos) e 0 de 4 entradas passam no filtro. DESLIGADO em 2026-09-25 (enabled: false; reversível) por autorização do Paulo."
     },
     {
       "name": "Gundam News",
@@ -276,12 +278,12 @@
   ],
   "youtube_feeds": [
     {
-      "name": "Canal YT – UC7wu",
+      "name": "ガンダムチャンネル (GUNDAM CHANNEL)",
       "channel_id": "UC7wu64jFsV02bbu6UHUd7JA",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UC7wu64jFsV02bbu6UHUd7JA"
     },
     {
-      "name": "Canal YT – UCBw3",
+      "name": "ガンプラバラエティchannel 【Gunpla】",
       "channel_id": "UCBw3rioEDVWdaCl-bxuRmeQ",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCBw3rioEDVWdaCl-bxuRmeQ"
     },
@@ -294,7 +296,8 @@
       "name": "BandaiChannel (バンダイチャンネル公式)",
       "channel_id": "UCS_zFUPZOlLkXLAybjYuCxQ",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCS_zFUPZOlLkXLAybjYuCxQ",
-      "notes": "SONDA 2026-08-30: congelado há 1953 dias (5 anos)."
+      "enabled": false,
+      "notes": "SONDA 2026-08-30: congelado há 1953 dias (5 anos). DESLIGADO em 2026-09-25 (enabled: false; reversível) por autorização do Paulo."
     },
     {
       "name": "IGN Movie Trailers",
@@ -312,7 +315,7 @@
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCamRLcYia0SOlSsIcbbGiag"
     },
     {
-      "name": "Canal YT – UCbJM",
+      "name": "澤野弘之 / SawanoHiroyuki[nZk]",
       "channel_id": "UCbJM_Y06iuUOl3hVPqYcvng",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCbJM_Y06iuUOl3hVPqYcvng"
     },
@@ -332,7 +335,7 @@
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCl2aT0nRejTCQO_LHZAftBw"
     },
     {
-      "name": "Canal YT – UCmDL",
+      "name": "サンライズ SUNRISE Official",
       "channel_id": "UCmDLyFjSutfb1MK7F6cMVSA",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCmDLyFjSutfb1MK7F6cMVSA"
     },
@@ -347,7 +350,7 @@
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCrubey1wynXddSM6xLQYLGQ"
     },
     {
-      "name": "Canal YT – UCuxB",
+      "name": "BANDAI SPIRITS / バンダイスピリッツ",
       "channel_id": "UCuxB1suCoCqAKiljh_0xE4A",
       "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCuxB1suCoCqAKiljh_0xE4A"
     },
@@ -413,8 +416,8 @@
       "name": "Nyaa – [Judas] Gundam",
       "url": "https://nyaa.si/?page=rss&q=%5BJudas%5D+Gundam&c=1_2&f=0",
       "category": "tracker",
-      "enabled": true,
-      "notes": "SONDA 2026-08-30: congelado há 427 dias — o grupo [Judas] parou de lançar Gundam."
+      "enabled": false,
+      "notes": "SONDA 2026-08-30: congelado há 427 dias — o grupo [Judas] parou de lançar Gundam. DESLIGADO em 2026-09-25 (enabled: false; reversível) por autorização do Paulo."
     },
     {
       "name": "Tokyo Toshokan – Gundam",
