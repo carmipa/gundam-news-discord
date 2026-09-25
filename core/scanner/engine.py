@@ -9,7 +9,7 @@ import ssl
 import certifi
 import random
 from datetime import datetime, timedelta
-from typing import Dict, Any, List, Optional, Tuple
+from typing import Dict, Any, List, Optional, Set, Tuple
 
 import discord
 from discord.ext import tasks
@@ -25,6 +25,7 @@ from settings import (
     HISTORY_LIMIT,
     HTML_MONITOR_COOLDOWN_SEC,
     HTML_MONITOR_COOLDOWN_HOURS,
+    MANUAL_SCAN_COOLDOWN_SEC,
 )
 from utils.storage import p, load_json_safe, save_json_safe, load_config_cached
 from core.stats import stats, avaliar_varredura, VEREDITO_OK, VEREDITO_ATENCAO
@@ -41,6 +42,59 @@ from core.html_monitor import check_official_sites
 log = logging.getLogger("MaftyIntel.scanner")
 scan_lock = asyncio.Lock()
 
+PEDIDO_INICIADO = "iniciada"
+PEDIDO_EM_ANDAMENTO = "em_andamento"
+PEDIDO_AGUARDE = "aguarde"
+
+# Instante (time.monotonic) do início da varredura mais recente, de qualquer
+# gatilho. 0.0 = nenhuma ainda neste processo.
+_inicio_ultima_varredura: float = 0.0
+# Referências fortes às tarefas manuais: o event loop só guarda referência fraca,
+# e uma tarefa sem dono pode ser recolhida pelo GC no meio da varredura.
+_tarefas_manuais: Set["asyncio.Task[None]"] = set()
+
+
+def solicitar_varredura_manual(
+    bot: discord.Client, trigger: str, agora: Optional[float] = None
+) -> Tuple[str, int]:
+    """
+    Porta única para varredura pedida por pessoa (comando, botão, painel).
+
+    PROPÓSITO DE NEGÓCIO:
+        A varredura é global — percorre todas as fontes e publica em todas as
+        guilds. Pedido manual serve para "não esperar o próximo ciclo", não para
+        encadear varreduras: cada uma consome o orçamento de rate limit do Reddit,
+        do YouTube e do Google Translate do IP inteiro.
+
+    INVARIANTES DO DOMÍNIO:
+        - Nunca duas varreduras ao mesmo tempo (o `scan_lock` segue valendo).
+        - Entre o início de qualquer varredura e o de uma manual passam pelo menos
+          MANUAL_SCAN_COOLDOWN_SEC segundos, venha o pedido de qualquer guild.
+        - O resultado devolvido diz a verdade: "iniciada" só quando a tarefa foi
+          de fato criada — nunca "concluída" antes de a varredura rodar.
+
+    COMPORTAMENTO EM CASO DE FALHA:
+        Não levanta. Devolve (PEDIDO_EM_ANDAMENTO, 0) se já há varredura,
+        (PEDIDO_AGUARDE, segundos_restantes) dentro do intervalo mínimo, ou
+        (PEDIDO_INICIADO, 0). Erro DENTRO da varredura fica no log do engine.
+    """
+    global _inicio_ultima_varredura
+    agora = time.monotonic() if agora is None else agora
+    if scan_lock.locked():
+        return PEDIDO_EM_ANDAMENTO, 0
+    if MANUAL_SCAN_COOLDOWN_SEC > 0 and _inicio_ultima_varredura:
+        restante = MANUAL_SCAN_COOLDOWN_SEC - (agora - _inicio_ultima_varredura)
+        if restante > 0:
+            log.info(f"Varredura manual recusada (trigger={trigger}): intervalo mínimo, faltam {restante:.0f}s.")
+            return PEDIDO_AGUARDE, int(restante + 0.999)
+    # Marca já aqui, e não só dentro do run_scan_once: dois pedidos no mesmo
+    # instante passariam ambos pela checagem antes de a tarefa pegar o lock.
+    _inicio_ultima_varredura = agora
+    tarefa = asyncio.create_task(run_scan_once(bot, trigger=trigger))
+    _tarefas_manuais.add(tarefa)
+    tarefa.add_done_callback(_tarefas_manuais.discard)
+    return PEDIDO_INICIADO, 0
+
 
 def _log_next_run() -> None:
     """Próximo horário estimado após o fim de uma varredura (alinhado ao intervalo LOOP_MINUTES)."""
@@ -52,11 +106,13 @@ def _log_next_run() -> None:
 
 async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
     """Executes a single scanning cycle."""
+    global _inicio_ultima_varredura
     if scan_lock.locked():
         log.info(f"Scan skipped (already running). Trigger: {trigger}")
         return
 
     async with scan_lock:
+        _inicio_ultima_varredura = time.monotonic()
         log.info(f"🔎 Iniciando varredura de inteligência... (trigger={trigger})")
         config = load_config_cached({})
         if not config: return

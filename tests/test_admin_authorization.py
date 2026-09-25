@@ -26,7 +26,7 @@ class TestAdminAuthorization:
         mock_interaction.followup.send = AsyncMock()
 
         error = app_commands.MissingPermissions(["administrator"])
-        cog = AdminCog(bot=MagicMock(), run_scan_once_func=AsyncMock())
+        cog = AdminCog(bot=MagicMock(), pedir_varredura=MagicMock())
 
         await cog.clean_state_error(mock_interaction, error)
 
@@ -50,7 +50,7 @@ class TestAdminAuthorization:
         mock_interaction.followup.send = AsyncMock()
 
         error = app_commands.MissingPermissions(["administrator"])
-        cog = AdminCog(bot=MagicMock(), run_scan_once_func=AsyncMock())
+        cog = AdminCog(bot=MagicMock(), pedir_varredura=MagicMock())
 
         await cog.forcecheck_error(mock_interaction, error)
 
@@ -70,7 +70,7 @@ class TestAdminAuthorization:
         mock_interaction.response.send_message = AsyncMock()
 
         error = app_commands.MissingPermissions(["administrator"])
-        cog = AdminCog(bot=MagicMock(), run_scan_once_func=AsyncMock())
+        cog = AdminCog(bot=MagicMock(), pedir_varredura=MagicMock())
 
         with patch("bot.cogs.admin.log") as mock_log:
             await cog.clean_state_error(mock_interaction, error)

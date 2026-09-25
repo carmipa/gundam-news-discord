@@ -28,9 +28,9 @@ class TestContextLoadsWithoutDiscord:
         from bot.cogs.admin import AdminCog
         fake_bot = MagicMock()
         fake_scan = AsyncMock()
-        cog = AdminCog(bot=fake_bot, run_scan_once_func=fake_scan)
+        cog = AdminCog(bot=fake_bot, pedir_varredura=fake_scan)
         assert cog.bot is fake_bot
-        assert cog.run_scan_once is fake_scan
+        assert cog.pedir_varredura is fake_scan
 
     def test_import_info_cog_without_bot_connection(self):
         """InfoCog pode ser importado e instanciado com mock de bot."""
@@ -40,19 +40,19 @@ class TestContextLoadsWithoutDiscord:
         assert cog.bot is fake_bot
 
     def test_import_dashboard_cog_without_bot_connection(self):
-        """DashboardCog pode ser importado com mock (requer run_scan_once_func)."""
+        """DashboardCog pode ser importado com mock (requer pedir_varredura)."""
         from bot.cogs.dashboard import DashboardCog
         fake_bot = MagicMock()
         fake_scan = AsyncMock()
-        cog = DashboardCog(fake_bot, run_scan_once_func=fake_scan)
+        cog = DashboardCog(fake_bot, pedir_varredura=fake_scan)
         assert cog.bot is fake_bot
-        assert cog.run_scan_once is fake_scan
+        assert cog.pedir_varredura is fake_scan
 
     def test_import_status_cog_without_bot_connection(self):
-        """StatusCog pode ser importado com mock (requer run_scan_once)."""
+        """StatusCog pode ser importado com mock (requer pedir_varredura)."""
         from bot.cogs.status import StatusCog
         fake_bot = MagicMock()
-        cog = StatusCog(fake_bot, run_scan_once_func=AsyncMock())
+        cog = StatusCog(fake_bot, pedir_varredura=MagicMock())
         assert cog.bot is fake_bot
 
     def test_settings_loads_without_discord_token(self):
@@ -76,7 +76,7 @@ class TestCommandLogicWithMockedInteraction:
         mock_interaction.response.send_message = AsyncMock()
         mock_interaction.followup.send = AsyncMock()
 
-        cog = AdminCog(bot=MagicMock(), run_scan_once_func=AsyncMock())
+        cog = AdminCog(bot=MagicMock(), pedir_varredura=MagicMock())
         error = app_commands.MissingPermissions(["administrator"])
 
         await cog.clean_state_error(mock_interaction, error)

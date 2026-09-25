@@ -167,6 +167,17 @@ except ValueError:
     REDDIT_MIN_INTERVAL_SEC = 12.0
 REDDIT_MIN_INTERVAL_SEC = max(0.0, min(REDDIT_MIN_INTERVAL_SEC, 120.0))
 
+# Intervalo mínimo (s) entre o início de uma varredura e uma varredura MANUAL
+# (/now, /forcecheck, botão "Verificar Agora", /dashboard). A varredura é global:
+# sem este teto, cliques seguidos em qualquer guild disparavam varreduras
+# completas em sequência, gastando o orçamento de rate limit do Reddit e do
+# Google Translate do IP inteiro. 0 desliga. Env: MANUAL_SCAN_COOLDOWN_SEC.
+try:
+    MANUAL_SCAN_COOLDOWN_SEC = float(os.getenv("MANUAL_SCAN_COOLDOWN_SEC", "600"))
+except ValueError:
+    MANUAL_SCAN_COOLDOWN_SEC = 600.0
+MANUAL_SCAN_COOLDOWN_SEC = max(0.0, min(MANUAL_SCAN_COOLDOWN_SEC, 86400.0))
+
 # HTML Monitor: intervalo mínimo (h) entre dois avisos do MESMO site.
 # Sem isto, portais que mudam a cada ciclo (gundam-base.net, gundam-gcg.com) geram
 # um post "🔄 Update" por hora sem notícia nova — o hash muda, mas o conteúdo

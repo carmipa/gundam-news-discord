@@ -8,6 +8,7 @@ import logging
 
 from bot.views.filter_dashboard import FilterDashboard
 from utils.storage import load_config_cached, save_config_safe
+from bot.varredura_manual import texto_do_pedido
 
 log = logging.getLogger("MaftyIntel")
 
@@ -15,9 +16,9 @@ log = logging.getLogger("MaftyIntel")
 class DashboardCog(commands.Cog):
     """Cog com comando dashboard."""
     
-    def __init__(self, bot, run_scan_once_func):
+    def __init__(self, bot, pedir_varredura):
         self.bot = bot
-        self.run_scan_once = run_scan_once_func
+        self.pedir_varredura = pedir_varredura
     
     @app_commands.command(name="dashboard", description="Abre o painel Mafty.")
     @app_commands.checks.has_permissions(administrator=True)
@@ -70,15 +71,13 @@ class DashboardCog(commands.Cog):
                 ephemeral=True
             )
             return
-        # Confirma ao usuário
+        # Pede a varredura pela porta única do engine e diz ao usuário o que de
+        # fato aconteceu (iniciada, em andamento ou aguardando o intervalo).
+        resultado, segundos = self.pedir_varredura("dashboard")
         await interaction.followup.send(
-            f"✅ Dashboard criado! Canal configurado: <#{channel_id}>\nIniciando primeira varredura em segundo plano...",
+            f"✅ Dashboard criado! Canal configurado: <#{channel_id}>\n{texto_do_pedido(resultado, segundos)}",
             ephemeral=True
         )
-        
-        # Dispara varredura em background
-        import asyncio
-        asyncio.create_task(self.run_scan_once(trigger="dashboard"))
     
     @app_commands.command(name="set_canal", description="Define o canal onde o bot enviará notícias.")
     @app_commands.describe(canal="Canal de texto para notícias (opcional: usa o atual)")
@@ -276,12 +275,12 @@ class DashboardCog(commands.Cog):
         log.exception("Erro no comando /dashboard", exc_info=error)
 
 
-async def setup(bot, run_scan_once_func):
+async def setup(bot, pedir_varredura):
     """
     Setup function para carregar o cog.
     
     Args:
         bot: Instância do bot Discord
-        run_scan_once_func: Função de scan a ser injetada
+        pedir_varredura: porta de varredura manual, trigger -> (resultado, segundos)
     """
-    await bot.add_cog(DashboardCog(bot, run_scan_once_func))
+    await bot.add_cog(DashboardCog(bot, pedir_varredura))

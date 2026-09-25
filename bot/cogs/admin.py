@@ -1,5 +1,8 @@
 """
 Admin cog - Administrative commands (/forcecheck, /clean_state, /server_log).
+
+/forcecheck é da guild (Administrador). /clean_state e /server_log mexem no que é
+de TODAS as guilds — o dedup global e o log do processo — e são do dono do bot.
 """
 import io
 import discord
@@ -10,6 +13,14 @@ import os
 from datetime import datetime
 
 from utils.storage import p, load_json_safe, save_json_safe, create_backup, get_state_stats, clean_state
+from bot.permissoes import (
+    SomenteDonoDoBot,
+    somente_dono,
+    responder_recusa,
+    MENSAGEM_SOMENTE_DONO,
+    MENSAGEM_SOMENTE_ADMIN,
+)
+from bot.varredura_manual import texto_do_pedido
 
 log = logging.getLogger("MaftyIntel")
 
@@ -61,18 +72,17 @@ def _build_log_message(header: str, content: str) -> str:
 class AdminCog(commands.Cog):
     """Cog com comandos administrativos."""
     
-    def __init__(self, bot, run_scan_once_func):
+    def __init__(self, bot, pedir_varredura):
         self.bot = bot
-        self.run_scan_once = run_scan_once_func
+        self.pedir_varredura = pedir_varredura
     
     @app_commands.command(name="forcecheck", description="Força varredura imediata de feeds.")
     @app_commands.checks.has_permissions(administrator=True)
     async def forcecheck(self, interaction: discord.Interaction):
         """Força uma varredura imediata sem abrir o dashboard."""
         try:
-            await interaction.response.send_message("⏳ Varredura forçada iniciada em segundo plano. Pode demorar devido à quantidade de notícias. Acompanhe o canal!", ephemeral=True)
-            import asyncio
-            asyncio.create_task(self.run_scan_once(trigger="forcecheck"))
+            resultado, segundos = self.pedir_varredura("forcecheck")
+            await interaction.response.send_message(texto_do_pedido(resultado, segundos), ephemeral=True)
         except Exception as e:
             log.exception(f"❌ Erro crítico em /forcecheck: {e}")
             try:
@@ -119,7 +129,7 @@ class AdminCog(commands.Cog):
         app_commands.Choice(name="Não (só mostrar o que seria feito)", value="não"),
         app_commands.Choice(name="Sim (executar limpeza)", value="sim"),
     ])
-    @app_commands.checks.has_permissions(administrator=True)
+    @somente_dono()
     async def clean_state_cmd(
         self, 
         interaction: discord.Interaction, 
@@ -128,7 +138,22 @@ class AdminCog(commands.Cog):
     ):
         """
         Limpa partes específicas do state.json.
-        Requer confirmação explícita: escolha "Sim" para executar.
+
+        PROPÓSITO DE NEGÓCIO:
+            Recuperação operacional (cache HTTP preso, monitor HTML desalinhado).
+            O state é ÚNICO para todas as guilds: limpar o dedup faz o bot
+            repostar em todos os servidores, por isso o comando é do dono do bot.
+
+        INVARIANTES DO DOMÍNIO:
+            - Só o dono do bot executa (check `somente_dono`, falha fechada).
+            - Duas etapas: sem "Sim" explícito, só mostra o preview.
+            - Backup antes de gravar; sem backup, nada é alterado.
+            - Roda sob `scan_lock`: nunca colide com uma varredura em curso.
+
+        COMPORTAMENTO EM CASO DE FALHA:
+            Tipo inválido responde com o erro (InvalidCleanTypeError); falha de
+            backup cancela a limpeza; qualquer outra exceção é logada e o usuário
+            recebe o tipo do erro, sem estado parcialmente gravado.
         """
         await interaction.response.defer(ephemeral=True)
         
@@ -257,7 +282,7 @@ class AdminCog(commands.Cog):
             # Log de auditoria
             log.info(
                 f"[AUDIT] STATE_CLEANED | User: {interaction.user} (ID: {interaction.user.id}) | "
-                f"Guild: {interaction.guild.id} | Type: {tipo} | "
+                f"Guild: {guild_id} | Type: {tipo} | "
                 f"Backup: {os.path.basename(backup_path)} | "
                 f"Before: dedup={stats_before['dedup_total_links']} links, "
                 f"http_cache={stats_before['http_cache_urls']} URLs, "
@@ -326,6 +351,9 @@ class AdminCog(commands.Cog):
     @clean_state_cmd.error
     async def clean_state_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
         """Trata erros do comando /clean_state."""
+        if isinstance(error, SomenteDonoDoBot):
+            await responder_recusa(interaction, MENSAGEM_SOMENTE_DONO)
+            return
         if isinstance(error, app_commands.MissingPermissions):
             msg = "❌ Você precisa ter **Administrador** para usar este comando."
             
@@ -361,12 +389,27 @@ class AdminCog(commands.Cog):
 
     @app_commands.command(
         name="server_log",
-        description="Exibe as últimas linhas do log do servidor. Botão Atualizar renova. (Admin)"
+        description="Exibe as últimas linhas do log do bot. Botão Atualizar renova. (Dono do bot)"
     )
     @app_commands.describe(linhas="Número de linhas (10-100, padrão 50)")
-    @app_commands.checks.has_permissions(administrator=True)
+    @somente_dono()
     async def server_log(self, interaction: discord.Interaction, linhas: int = 50):
-        """Envia as últimas N linhas do logs/bot.log (mesmo log que roda no servidor/docker) e botão Atualizar."""
+        """
+        Envia as últimas N linhas do logs/bot.log, com botão Atualizar.
+
+        PROPÓSITO DE NEGÓCIO:
+            Diagnóstico sem acesso ao servidor. O log é do PROCESSO e traz usuários,
+            IDs e canais de TODAS as guilds — por isso é do dono do bot, não do
+            administrador de uma guild.
+
+        INVARIANTES DO DOMÍNIO:
+            - Só o dono do bot lê (check `somente_dono`, falha fechada).
+            - Resposta sempre efêmera; nunca publicada no canal.
+
+        COMPORTAMENTO EM CASO DE FALHA:
+            Arquivo ausente ou ilegível responde com o motivo em texto; nenhuma
+            exceção de leitura chega ao usuário como "interação falhou".
+        """
         await interaction.response.defer(ephemeral=True)
         linhas = max(10, min(100, linhas))
         filepath = LOG_FILE_PATH
@@ -391,14 +434,8 @@ class AdminCog(commands.Cog):
     @server_log.error
     async def server_log_error(self, interaction: discord.Interaction, error: app_commands.AppCommandError):
         """Trata erros do /server_log."""
-        if isinstance(error, app_commands.MissingPermissions):
-            try:
-                await interaction.response.send_message(
-                    "❌ Você precisa de **Administrador** para ver o log do servidor.",
-                    ephemeral=True
-                )
-            except Exception as e:
-                log.warning(f"⚠️ Falha silenciosa ao notificar erro de permissão ao administrador: {e}")
+        if isinstance(error, SomenteDonoDoBot):
+            await responder_recusa(interaction, MENSAGEM_SOMENTE_DONO)
             return
         log.exception("Erro no comando /server_log", exc_info=error)
         try:
@@ -417,9 +454,26 @@ class _LogRefreshView(discord.ui.View):
         super().__init__(timeout=timeout)
         self.linhas = linhas
 
+    async def interaction_check(self, interaction: discord.Interaction) -> bool:
+        """O botão lê o mesmo log global do comando: vale a mesma restrição ao dono."""
+        try:
+            if await interaction.client.is_owner(interaction.user):
+                return True
+        except Exception as e:
+            log.error(f"Não foi possível verificar o dono no botão Atualizar ({type(e).__name__}: {e}).")
+        await responder_recusa(interaction, MENSAGEM_SOMENTE_DONO)
+        return False
+
     @discord.ui.button(label="Atualizar", emoji="🔄", style=discord.ButtonStyle.secondary)
     async def refresh(self, interaction: discord.Interaction, _button: discord.ui.Button):
-        await interaction.response.defer_update()
+        """
+        Reescreve a mesma mensagem efêmera com o final atual do log.
+
+        A mensagem é efêmera: só a própria interação consegue editá-la, por isso a
+        resposta é `response.edit_message`. A versão anterior chamava
+        `response.defer_update()`, que não existe no discord.py 2.x — AttributeError
+        fora do try, e o usuário via "Esta interação falhou" em todo clique.
+        """
         try:
             content = _read_log_tail(LOG_FILE_PATH, n_lines=self.linhas)
             header = f"📋 **Log do servidor** (últimas {self.linhas} linhas) — atualizado.\n"
@@ -428,7 +482,7 @@ class _LogRefreshView(discord.ui.View):
             else:
                 msg = _build_log_message(header, content)
             msg = msg[:DISCORD_MAX_MESSAGE_LENGTH]
-            await interaction.message.edit(content=msg, view=self)
+            await interaction.response.edit_message(content=msg, view=self)
         except Exception as e:
             log.exception("Erro ao atualizar log no botão Atualizar: %s", e)
             try:
@@ -440,12 +494,12 @@ class _LogRefreshView(discord.ui.View):
                 log.warning(f"⚠️ Falha silenciosa ao notificar erro de atualização da view: {e}")
 
 
-async def setup(bot, run_scan_once_func):
+async def setup(bot, pedir_varredura):
     """
     Setup function para carregar o cog.
     
     Args:
         bot: Instância do bot Discord
-        run_scan_once_func: Função de scan a ser injetada
+        pedir_varredura: porta de varredura manual, trigger -> (resultado, segundos)
     """
-    await bot.add_cog(AdminCog(bot, run_scan_once_func))
+    await bot.add_cog(AdminCog(bot, pedir_varredura))

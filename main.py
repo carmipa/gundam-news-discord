@@ -17,7 +17,7 @@ from discord.ext import commands
 from settings import TOKEN, COMMAND_PREFIX, LOG_LEVEL, SCAN_VERBOSE
 from utils.storage import p, load_json_safe, load_config_cached, save_config_safe, save_json_safe
 from bot.views.filter_dashboard import FilterDashboard
-from core.scanner import start_scheduler, run_scan_once
+from core.scanner import start_scheduler, solicitar_varredura_manual
 from web.server import start_web_server  # Novo web server
 from utils.git_info import get_git_changes, get_current_hash, get_commits_since
 
@@ -322,10 +322,10 @@ async def main():
     # CARREGAR COGS
     # =========================================================
     
-    # Função wrapper para injetar o bot no run_scan_once
-    # Isso permite que os comandos chamem o scan manualmente
-    async def bound_scan(trigger="manual"):
-        await run_scan_once(bot, trigger)
+    # Porta única de varredura manual para os cogs: aplica o intervalo mínimo e a
+    # não-sobreposição do engine e devolve (resultado, segundos) para a resposta.
+    def pedir_varredura(trigger: str = "manual"):
+        return solicitar_varredura_manual(bot, trigger)
 
     try:
         # Carrega extensões normais (que têm setup(bot))
@@ -341,9 +341,9 @@ async def main():
         from bot.cogs.admin import setup as setup_admin
         from bot.cogs.dashboard import setup as setup_dashboard
         
-        await setup_status(bot, bound_scan)
-        await setup_admin(bot, bound_scan)
-        await setup_dashboard(bot, bound_scan)
+        await setup_status(bot, pedir_varredura)
+        await setup_admin(bot, pedir_varredura)
+        await setup_dashboard(bot, pedir_varredura)
         
         log.info("🧩 Cogs carregados com sucesso.")
     except Exception as e:
