@@ -31,8 +31,6 @@ colorama==0.4.6
 # comprometido; o pin acima é o que impede isso de entrar sozinho num rebuild.
 deep-translator==1.11.4
 
-# Só para a suíte de testes. Ficam aqui porque a imagem é a mesma usada para
-# correr os testes em container; o `.dockerignore` já mantém tests/ fora da
-# imagem de produção.
-pytest==9.1.1
-pytest-asyncio==1.4.0
+# Ferramentas de teste e lint ficam em requirements-dev.txt: a imagem de
+# produção não as instala (antes entravam, com a justificativa de rodar testes
+# no contêiner — mas o .dockerignore já tirava tests/ da imagem).

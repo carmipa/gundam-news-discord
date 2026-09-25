@@ -1,0 +1,7 @@
+# Suíte de testes, lint e auditoria de dependências (CI e máquina de dev).
+# A imagem de produção instala só requirements.txt.
+-r requirements.txt
+pytest==9.1.1
+pytest-asyncio==1.4.0
+flake8==7.4.1
+pip-audit==2.10.1

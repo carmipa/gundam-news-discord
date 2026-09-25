@@ -54,9 +54,19 @@ class TestHttpResilienceWhenApiDoesNotRespond:
     @pytest.mark.asyncio
     async def test_client_raises_timeout_when_server_hangs(self):
         """Cliente com timeout deve levantar TimeoutError quando o servidor não responde."""
-        # Servidor local que aceita conexão mas nunca envia resposta
+        # Servidor local que aceita conexão mas nunca envia resposta.
+        #
+        # O handler espera um evento e FECHA o writer ao sair. A versão anterior
+        # dormia 100s sem fechar: a partir do Python 3.12, `wait_closed()` espera
+        # as conexões abertas, e a suíte travava para sempre neste teste (medido
+        # em 2026-09-25: parado aqui até o timeout externo). No 3.10 passava.
+        liberar = asyncio.Event()
+
         async def no_response_server(reader, writer):
-            await asyncio.sleep(100)
+            try:
+                await liberar.wait()
+            finally:
+                writer.close()
 
         server = await asyncio.start_server(no_response_server, "127.0.0.1", 0)
         port = server.sockets[0].getsockname()[1]
@@ -68,5 +78,6 @@ class TestHttpResilienceWhenApiDoesNotRespond:
                 with pytest.raises((asyncio.TimeoutError, aiohttp.ServerTimeoutError, aiohttp.ClientError, OSError)):
                     await session.get(url)
         finally:
+            liberar.set()
             server.close()
-            await server.wait_closed()
+            await asyncio.wait_for(server.wait_closed(), timeout=10)

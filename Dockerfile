@@ -1,4 +1,7 @@
-FROM python:3.10-slim
+# Python 3.12: o 3.10 sai de suporte em outubro de 2026 (fim das correções de
+# segurança). A suíte passa no 3.12 desde 2026-09-25, quando foi corrigido o teste
+# que travava nele (wait_closed com conexão aberta).
+FROM python:3.12-slim
 
 # Metadata
 LABEL maintainer="Paulo André Carminati"
@@ -18,22 +21,37 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 
-# Copia requirements primeiro (melhor cache de layers)
+# Copia requirements primeiro (melhor cache de layers). Só produção: pytest,
+# flake8 e pip-audit ficam em requirements-dev.txt, fora da imagem.
 COPY requirements.txt .
 
 # Instala dependências Python
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copia código do bot
-# Copia todo o código do projeto
-COPY . .
+# Usuário sem privilégio: o processo carrega o DISCORD_TOKEN, e uma falha
+# explorável no bot não deve valer root dentro do contêiner.
+#
+# UID 1000 fixo porque os arquivos de estado são montados do host: no deploy,
+# `chown 1000:1000` neles (ver docs/DEPLOY.md). Se esquecido, o bot RECUSA
+# arrancar com mensagem clara (verificar_gravacao) em vez de rodar sem gravar
+# o dedup e repostar tudo a cada ciclo.
+RUN useradd --uid 1000 --create-home --shell /usr/sbin/nologin mafty
 
-# Cria diretórios para dados persistentes (serão volumes)
-RUN mkdir -p /app/data /app/logs
+# Copia o código do projeto
+COPY --chown=mafty:mafty . .
 
-# Healthcheck (verifica se bot está rodando e se config existe)
-HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 \
-    CMD python -c "import os; exit(0 if os.path.exists('/app/config.json') else 1)"
+# /app também: a gravação atômica cria o temporário ao lado do arquivo de
+# estado. Com /app de root (WORKDIR), nenhuma gravação passaria.
+# Diretórios de dados persistentes (volumes)
+RUN mkdir -p /app/data /app/logs && chown mafty:mafty /app && chown -R mafty:mafty /app/data /app/logs
+
+USER mafty
+
+# Healthcheck: o bot grava um batimento a cada 60s enquanto está conectado ao
+# Discord; sem batimento há mais de 3 min, o contêiner fica `unhealthy`.
+# (Antes só conferia se /app/config.json existia — verdadeiro com o bot mudo.)
+HEALTHCHECK --interval=60s --timeout=10s --start-period=120s --retries=3 \
+    CMD ["python", "healthcheck.py"]
 
 # Comando de execução
 CMD ["python", "-u", "main.py"]

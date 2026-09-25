@@ -70,3 +70,16 @@ LICENSE
 # Cópias íntegras e backups (volume em runtime)
 data/
 backups/
+
+# Material fora do runtime do bot (não entra na imagem)
+vid/
+*.mp4
+*.docx
+scratch/
+analysis/
+docs/
+cloudflare-worker/
+yt_channels.txt
+source_report.txt
+requirements-dev.txt
+.pytest_cache/

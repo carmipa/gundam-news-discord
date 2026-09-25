@@ -112,6 +112,25 @@ chmod 600 .env
 
 ### Passo 4: Iniciar Bot
 
+O contêiner roda como o usuário **`mafty` (UID 1000)**, não como root. Os arquivos
+de estado são montados do host e precisam existir como ARQUIVO (se faltarem, o
+Docker cria um diretório no lugar) e pertencer a esse UID:
+
+```bash
+cd /opt/gundam-news-discord
+for f in config.json state.json translation_cache.json; do
+  [ -f "$f" ] || echo '{}' > "$f"
+done
+[ -f history.json ] || echo '[]' > history.json
+mkdir -p logs data
+sudo chown -R 1000:1000 config.json state.json history.json translation_cache.json logs data
+```
+
+Se o dono estiver errado, o bot **recusa arrancar** (sai com código 78) e o log
+diz exatamente qual arquivo: `⛔ Estado não gravável: sem permissão de escrita em
+'/app/state.json' (uid 1000)`. Isso é de propósito — rodar sem conseguir gravar o
+dedup faria o bot repostar tudo a cada ciclo.
+
 ```bash
 # Build da imagem Docker
 docker-compose build
@@ -164,6 +183,13 @@ docker-compose logs -f
 | `docker-compose logs --tail=100` | Últimas 100 linhas |
 
 ### Atualizações
+
+> **Atualização de 2026-09-25 (Python 3.12, usuário sem root, volume `./data`):**
+> antes do primeiro `up --build` depois dela, rode o bloco de `chown` do Passo 4.
+> `./data` guarda a última cópia íntegra de cada JSON de estado
+> (`data/ultimo-bom/`) e os backups do `/clean_state` (`data/backups/`). O
+> healthcheck passou a refletir a conexão com o Discord: `docker compose ps`
+> mostra `unhealthy` se o bot ficar 3 min sem bater.
 
 ```bash
 # Atualizar código do GitHub

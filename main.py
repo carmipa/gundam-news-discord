@@ -12,10 +12,11 @@ import logging
 import asyncio
 from datetime import datetime
 import discord
-from discord.ext import commands
+from discord.ext import commands, tasks
 
 from settings import TOKEN, COMMAND_PREFIX, LOG_LEVEL, SCAN_VERBOSE
-from utils.storage import p, load_json_safe, save_json_safe
+from utils.storage import p, load_json_safe, save_json_safe, verificar_gravacao, caminho_ultimo_bom
+from utils.heartbeat import registrar_batimento
 from bot.canais import _preparar_views_e_canais, desvincular_canal_apagado
 from core.scanner import start_scheduler, solicitar_varredura_manual
 from web.server import start_web_server  # Novo web server
@@ -57,6 +58,9 @@ logging.getLogger("httpcore").setLevel(logging.WARNING)
 # SETUP DO BOT
 # =========================================================
 
+ARQUIVOS_DE_ESTADO = ("config.json", "state.json", "history.json", "translation_cache.json")
+
+
 async def main():
     # Intents
     intents = discord.Intents.default()
@@ -65,6 +69,10 @@ async def main():
 
     # Bot Instance
     bot = commands.Bot(command_prefix=COMMAND_PREFIX, intents=intents)
+
+    @tasks.loop(seconds=60)
+    async def batimento():
+        registrar_batimento(bot.is_ready() and not bot.is_closed())
 
     # =========================================================
     # EVENTOS
@@ -193,6 +201,11 @@ async def main():
         # 3. Iniciar Loop de Scanner
         start_scheduler(bot)
 
+        # 3b. Batimento para o HEALTHCHECK do contêiner: só bate conectado, e
+        # para de bater se o event loop travar.
+        if not batimento.is_running():
+            batimento.start()
+
         # 4. Anúncio de Versão (Git Check)
         try:
             current_hash = get_current_hash()
@@ -296,6 +309,20 @@ async def main():
     # =========================================================
     # START
     # =========================================================
+    # Falha fechada: sem conseguir gravar o próprio estado, o bot publicaria e
+    # nunca registraria o dedup — repostando tudo a cada ciclo.
+    problemas = verificar_gravacao(
+        [p(n) for n in ARQUIVOS_DE_ESTADO] + [caminho_ultimo_bom(p("state.json"))]
+    )
+    if problemas:
+        for problema in problemas:
+            log.critical(f"⛔ Estado não gravável: {problema}")
+        log.critical(
+            "⛔ Bot NÃO iniciado. Ajuste o dono/permissão dos arquivos montados "
+            "(ex.: chown 1000:1000 no host) e suba de novo."
+        )
+        raise SystemExit(78)
+
     await bot.start(TOKEN)
 
 

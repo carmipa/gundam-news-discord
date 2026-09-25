@@ -11,7 +11,7 @@ import logging
 import shutil
 import tempfile
 from datetime import datetime
-from typing import Any, Dict, Tuple, Optional
+from typing import Any, Dict, List, Tuple, Optional
 
 from utils.exceptions import InvalidCleanTypeError
 
@@ -243,6 +243,46 @@ def save_json_safe(filepath: str, data: Any) -> bool:
     except Exception as e:
         log.error(f"Falha inesperada ao salvar '{filepath}': {type(e).__name__}: {e}", exc_info=True)
     return False
+
+
+def verificar_gravacao(arquivos: List[str]) -> List[str]:
+    """
+    Confere, ANTES de conectar, que o bot consegue gravar o próprio estado.
+
+    PROPÓSITO DE NEGÓCIO:
+        `save_json_safe` não levanta: registra o erro e segue. Sem permissão de
+        escrita, o bot publicaria normalmente e nunca gravaria o dedup — e
+        repostaria tudo a cada ciclo. É o que aconteceria ao trocar o usuário do
+        contêiner sem ajustar o dono dos arquivos montados.
+
+    INVARIANTES DO DOMÍNIO:
+        - Arquivo existente precisa ser gravável; ausente, o ancestral mais
+          próximo que existe precisa ser (é onde ele será criado).
+        - O diretório do arquivo também: a gravação atômica cria o temporário
+          ao lado dele.
+        - Caminho que é DIRETÓRIO é erro: é o que o Docker cria quando o arquivo
+          montado não existe no host (`history.json_dir_backup`, 2026-08).
+
+    COMPORTAMENTO EM CASO DE FALHA:
+        Não levanta; devolve a lista de problemas (vazia = tudo gravável).
+        Quem chama decide parar — o main recusa arrancar (falha fechada).
+    """
+    problemas: List[str] = []
+    for caminho in arquivos:
+        if os.path.isdir(caminho):
+            problemas.append(f"'{caminho}' é um DIRETÓRIO (arquivo ausente no host antes do bind mount?)")
+            continue
+        alvo = os.path.abspath(caminho)
+        # Ausente: vale o ancestral mais próximo que existe (data/ultimo-bom é
+        # criado na primeira gravação).
+        while not os.path.exists(alvo) and os.path.dirname(alvo) != alvo:
+            alvo = os.path.dirname(alvo)
+        # O diretório também: a gravação atômica cria o temporário ao lado.
+        pasta = alvo if os.path.isdir(alvo) else os.path.dirname(alvo)
+        for item in dict.fromkeys((alvo, pasta)):
+            if not os.access(item, os.W_OK):
+                problemas.append(f"sem permissão de escrita em '{item}' (uid {getattr(os, 'getuid', lambda: '?')()})")
+    return problemas
 
 
 def create_backup(filepath: str, backup_dir: str = os.path.join("data", "backups")) -> Optional[str]:
