@@ -32,24 +32,75 @@ BLOCKED_DOMAINS = [
 ALLOWED_SCHEMES = ["http", "https"]
 
 
+_PARTE_IPV4_LEGADA = re.compile(r"^(0x[0-9a-f]+|[0-9]+)$", re.IGNORECASE)
+
+
+def _ipv4_legado(host: str) -> Optional[ipaddress.IPv4Address]:
+    """
+    Interpreta as formas de IPv4 que `inet_aton` e os resolvedores aceitam mas
+    `ipaddress` não: `127.1`, `2130706433`, `0x7f.0.0.1`, `0177.0.0.1`.
+
+    Cada parte pode ser decimal, octal (zero à esquerda) ou hexadecimal; a
+    última preenche os bytes que faltam. Devolve None se não for IPv4 nessa forma.
+    """
+    partes = host.split(".")
+    if not 1 <= len(partes) <= 4 or not all(_PARTE_IPV4_LEGADA.match(x) for x in partes):
+        return None
+    try:
+        numeros = [
+            int(x, 16) if x.lower().startswith("0x")
+            else int(x, 8) if len(x) > 1 and x.startswith("0")
+            else int(x)
+            for x in partes
+        ]
+    except ValueError:
+        return None
+    *iniciais, ultima = numeros
+    if any(n > 255 for n in iniciais) or ultima >= 256 ** (4 - len(iniciais)):
+        return None
+    valor = 0
+    for n in iniciais:
+        valor = (valor << 8) | n
+    valor = (valor << (8 * (4 - len(iniciais)))) | ultima
+    return ipaddress.IPv4Address(valor)
+
+
+def _ip_do_host(host: str):
+    """IP representado por `host` em qualquer grafia aceita pela rede, ou None."""
+    try:
+        return ipaddress.ip_address(host)
+    except ValueError:
+        return _ipv4_legado(host)
+
+
 def is_private_ip(ip: str) -> bool:
     """
-    Verifica se um IP é privado/local.
-    
-    Args:
-        ip: Endereço IP (IPv4 ou IPv6)
-    
-    Returns:
-        True se o IP for privado/local
+    Verifica se um endereço aponta para rede NÃO pública.
+
+    PROPÓSITO DE NEGÓCIO:
+        Barreira anti-SSRF: um link vindo de feed de terceiro não pode fazer o
+        bot requisitar o próprio host, a rede do Docker ou o metadata de nuvem.
+
+    INVARIANTES DO DOMÍNIO:
+        - "Privado" = qualquer endereço que não seja global: loopback, RFC1918,
+          link-local (169.254/16, metadata), CGNAT (100.64/10), 0.0.0.0,
+          reservado, multicast, ULA IPv6 (fc00::/7).
+        - IPv6 que embute IPv4 (`::ffff:127.0.0.1`) é julgado pelo IPv4.
+        - Aceita as grafias numéricas legadas (`127.1`, `2130706433`, hex, octal).
+
+    COMPORTAMENTO EM CASO DE FALHA:
+        Texto que não é IP em nenhuma grafia devolve False (é nome de domínio,
+        julgado em `validate_url`). Nunca levanta.
     """
-    try:
-        ip_obj = ipaddress.ip_address(ip)
-        for network in PRIVATE_IP_RANGES:
-            if ip_obj in network:
-                return True
+    ip_obj = _ip_do_host(ip)
+    if ip_obj is None:
         return False
-    except ValueError:
-        return False
+    mapeado = getattr(ip_obj, "ipv4_mapped", None)
+    if mapeado is not None:
+        ip_obj = mapeado
+    if any(ip_obj in rede for rede in PRIVATE_IP_RANGES if rede.version == ip_obj.version):
+        return True
+    return not ip_obj.is_global
 
 
 def validate_url(url: str, allowed_domains: Optional[List[str]] = None) -> Tuple[bool, Optional[str]]:
@@ -87,20 +138,27 @@ def validate_url(url: str, allowed_domains: Optional[List[str]] = None) -> Tuple
     if not parsed.netloc:
         return False, "URL deve conter um domínio ou IP válido"
     
-    # Remove porta para validação
-    netloc_without_port = parsed.netloc.split(":")[0]
-    
-    # Verifica domínios bloqueados
-    if netloc_without_port.lower() in BLOCKED_DOMAINS:
-        return False, f"Domínio '{netloc_without_port}' não permitido (domínio local)"
-    
-    # Verifica se é IP privado
+    # Host real, como o cliente HTTP vai usar: sem credenciais (`user@`), sem
+    # porta e sem colchetes de IPv6. `netloc.split(":")[0]` devolvia "x@127.0.0.1"
+    # para `http://x@127.0.0.1:8080/` e "[" para `http://[::1]/` — os dois
+    # passavam pela checagem de IP privado.
     try:
-        if is_private_ip(netloc_without_port):
-            return False, f"IP privado/local '{netloc_without_port}' não permitido (anti-SSRF)"
-    except ValueError:
-        # Não é um IP válido, pode ser um domínio
-        pass
+        netloc_without_port = (parsed.hostname or "").rstrip(".").lower()
+    except ValueError as e:
+        return False, f"Host inválido na URL: {e}"
+    if not netloc_without_port:
+        return False, "URL deve conter um domínio ou IP válido"
+
+    # Verifica domínios bloqueados
+    if (
+        netloc_without_port in BLOCKED_DOMAINS
+        or netloc_without_port.endswith((".localhost", ".local", ".internal"))
+    ):
+        return False, f"Domínio '{netloc_without_port}' não permitido (domínio local)"
+
+    # Verifica se é IP não público, em qualquer grafia numérica
+    if is_private_ip(netloc_without_port):
+        return False, f"IP privado/local '{netloc_without_port}' não permitido (anti-SSRF)"
     
     # Se há whitelist de domínios, valida contra ela
     if allowed_domains:
