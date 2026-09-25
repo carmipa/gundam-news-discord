@@ -34,15 +34,23 @@ class TestPruneDedup:
 
         assert before == 3
         assert after == 1
-        assert dedup == {"https://feed1.com": {"https://a.com/1": ["123"]}}
+        assert dedup == {
+            "https://feed1.com": {"https://a.com/1": ["123"]},
+            "https://feed2.com": {},
+        }
 
-    def test_empty_feed_is_removed(self):
-        """Feed que fica sem links é removido por completo."""
+    def test_feed_que_fica_vazio_continua_marcado_como_visto(self):
+        """
+        A chave do feed é a marca de "já visto" que desliga o cold start.
+
+        Antes ela era apagada quando o feed ficava sem links; no ciclo seguinte
+        o feed voltava como novo e publicava itens velhos ignorando a janela.
+        """
         dedup = {"https://feed.com": {"https://x.com/1": []}}
         before, after = prune_dedup(dedup, keep_links=set())
 
         assert (before, after) == (1, 0)
-        assert dedup == {}
+        assert dedup == {"https://feed.com": {}}
 
     def test_keeps_posted_links_in_window(self):
         """Links dentro da janela permanecem intactos (proteção anti-repost)."""

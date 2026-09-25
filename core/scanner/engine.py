@@ -2,6 +2,7 @@
 Engine module - The main orchestration logic for the scanning process.
 """
 import asyncio
+import copy
 import logging
 import time
 import aiohttp
@@ -32,7 +33,7 @@ from core.stats import stats, avaliar_varredura, VEREDITO_OK, VEREDITO_ATENCAO
 from core.filters import match_intel
 
 # Novas importacoes modularizadas
-from .fetcher import load_sources, fetch_feed
+from .fetcher import load_sources, fetch_feed, _fallback_urls
 from .logutil import scan_verbose
 from .processor import load_history, save_history, prune_dedup, sanitize_link, parse_entry_dt, is_recent
 from .notifier import create_embed, resolve_thumbnail
@@ -104,8 +105,74 @@ def _log_next_run() -> None:
         f"(em {LOOP_INTERVAL_STR})..."
     )
 
+def _chaves_de_cache_por_feed(sources: List[Dict[str, Any]]) -> Dict[str, List[str]]:
+    """
+    Mapeia a URL canônica de cada fonte para TODAS as chaves que o fetcher pode
+    ter gravado no cache HTTP: a própria e cada fallback.
+
+    O fetcher grava ETag/Last-Modified com a chave da URL que respondeu. Quando o
+    feed é servido por um fallback e a entrega falha, descartar só a canônica
+    deixava o ETag do fallback: o ciclo seguinte recebia 304 dele e a notícia
+    que não saiu nunca mais era vista.
+    """
+    mapa: Dict[str, List[str]] = {}
+    for src in sources:
+        url = src.get("url")
+        if not url:
+            continue
+        mapa[url] = [url] + _fallback_urls(src.get("metadata", {}) or {})
+    return mapa
+
+
+def _persistir_progresso(state_file: str, state: Dict[str, Any], history_list: List[str]) -> None:
+    """
+    Grava o que já foi entregue ANTES de a varredura terminar.
+
+    PROPÓSITO DE NEGÓCIO:
+        Container reiniciado no meio da varredura (deploy, OOM, queda do host)
+        não pode fazer o ciclo seguinte repostar o que já saiu.
+
+    INVARIANTES DO DOMÍNIO:
+        - Grava dedup e history do que foi entregue até aqui.
+        - NÃO grava o cache HTTP deste ciclo: `state["http_cache"]` ainda é o do
+          ciclo anterior (o novo vive à parte até o fim). Gravado agora, os feeds
+          ainda não processados receberiam 304 depois do restart e as notícias
+          deles se perderiam. Com o cache antigo, são rebaixados de novo e o
+          dedup impede a repostagem do que já saiu.
+
+    COMPORTAMENTO EM CASO DE FALHA:
+        Falha de disco é registrada por `save_json_safe` e a varredura segue:
+        a gravação final tenta de novo.
+    """
+    save_history(history_list)
+    save_json_safe(state_file, state)
+
+
 async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
-    """Executes a single scanning cycle."""
+    """
+    Executa um ciclo de varredura: feeds, sites oficiais, entrega e persistência.
+
+    PROPÓSITO DE NEGÓCIO:
+        Levar cada notícia nova a cada guild configurada, uma vez.
+
+    INVARIANTES DO DOMÍNIO:
+        - INV-ENTREGA-01: um link entregue numa guild não é reentregue a ela
+          enquanto estiver na janela do dedup — nem depois de restart no meio do
+          ciclo (`_persistir_progresso`).
+        - INV-ENTREGA-02: falha de envio numa guild não tira dela a notícia
+          porque OUTRA guild recebeu. O link só entra no history quando nenhuma
+          guild elegível falhou; até lá fica no dedup como pendente e é retentado
+          nos ciclos seguintes, dentro da janela de recência.
+        - INV-ENTREGA-03: fora da janela de 7 dias só publica na primeira
+          varredura de um feed nunca visto (a chave do feed no dedup é a marca).
+        - A iteração é sobre uma CÓPIA do config: /dashboard ou /set_canal
+          configurando guild nova durante a varredura não a interrompe mais.
+
+    COMPORTAMENTO EM CASO DE FALHA:
+        Falha isolada de feed, de guild ou de site é logada e o ciclo continua.
+        Config vazio encerra sem gravar nada. Exceção inesperada sobe para o
+        chamador (o loop registra); o progresso já persistido fica.
+    """
     global _inicio_ultima_varredura
     if scan_lock.locked():
         log.info(f"Scan skipped (already running). Trigger: {trigger}")
@@ -114,22 +181,38 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
     async with scan_lock:
         _inicio_ultima_varredura = time.monotonic()
         log.info(f"🔎 Iniciando varredura de inteligência... (trigger={trigger})")
-        config = load_config_cached({})
-        if not config: return
+        config_carregado = load_config_cached({})
+        if not config_carregado or not isinstance(config_carregado, dict):
+            return
+        # Cópia rasa: o dict em cache é o MESMO objeto que /dashboard e /set_canal
+        # alteram. Iterar sobre ele com `await` no meio levantava
+        # "dictionary changed size during iteration" quando uma guild nova era
+        # configurada durante a varredura — antes de gravar o que já tinha saído.
+        config: Dict[str, Any] = dict(config_carregado)
 
         sources = load_sources()
         scan_verbose(log, f"📋 [FILA] {len(sources)} fonte(s) RSS/agregada(s) carregada(s).")
+        chaves_de_cache = _chaves_de_cache_por_feed(sources)
         state_file = p("state.json")
         state = load_json_safe(state_file, {})
         state.setdefault("dedup", {})
         state.setdefault("http_cache", {})
         state.setdefault("html_monitor", {})
-        
+        # Cache HTTP deste ciclo, separado do persistido: só substitui o antigo
+        # no fim (ver `_persistir_progresso`).
+        http_cache_ciclo: Dict[str, Any] = copy.deepcopy(state["http_cache"])
+
         history_list, history_set = load_history()
-        
+        # Links entregues neste ciclo por qualquer feed: o mesmo link em dois
+        # feeds não sai duas vezes na mesma varredura, mesmo sem ir ao history.
+        entregues_no_ciclo: Set[str] = set()
+        # Links com falha de entrega em alguma guild: ficam fora do history e
+        # dentro do dedup, para a retentativa só atingir quem não recebeu.
+        links_pendentes: Set[str] = set()
+
         ssl_ctx = ssl.create_default_context(cafile=certifi.where())
         connector = aiohttp.TCPConnector(ssl=ssl_ctx)
-        
+
         sent_count = 0
         # Feeds cuja entrega ao Discord falhou neste ciclo. O ETag/Last-Modified
         # deles é DESCARTADO no fim: gravado, o ciclo seguinte receberia 304 e
@@ -143,7 +226,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
 
         async with aiohttp.ClientSession(connector=connector) as session:
             semaphore = asyncio.Semaphore(MAX_CONCURRENT_FEEDS)
-            
+
             async def throttled_fetch(src_obj):
                 url_log = src_obj.get("url", "Desconhecida")
                 scan_verbose(
@@ -158,7 +241,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         f"🎲 [JITTER] Aguardando {jitter:.2f}s antes de buscar: {url_log}",
                     )
                     await asyncio.sleep(jitter)
-                    return await fetch_feed(session, src_obj, state["http_cache"])
+                    return await fetch_feed(session, src_obj, http_cache_ciclo)
 
             tasks_list = [throttled_fetch(src) for src in sources]
             results = await asyncio.gather(*tasks_list, return_exceptions=True)
@@ -172,11 +255,14 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                 # O título vem do fetcher para a sonda de fontes o poder comparar
                 # com o nome configurado; aqui só interessa a URL e as entradas.
                 url, entries, _titulo_do_feed = result
-                
-                # Dedup per feed
-                if url not in state["dedup"]: state["dedup"][url] = {}
-                is_cold_start = not state["dedup"][url]
-                
+
+                # Cold start = feed NUNCA visto. É a presença da chave que conta,
+                # não ter links: um feed sem post na janela fica com {} e continua
+                # "visto" (prune_dedup preserva a chave).
+                is_cold_start = url not in state["dedup"]
+                state["dedup"].setdefault(url, {})
+                entregou_neste_feed = False
+
                 is_youtube_feed = ("youtube.com" in url or "youtu.be" in url)
                 max_items = (
                     MAX_YOUTUBE_ENTRIES_PER_FEED
@@ -194,8 +280,9 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                 )
                 for entry in entries[:max_items]:
                     link = sanitize_link(entry.get("link", ""))
-                    if not link or link in history_set: continue
-                    
+                    if not link or link in history_set or link in entregues_no_ciclo:
+                        continue
+
                     # Dedup per guild (new logic)
                     if link in state["dedup"][url] and "LEGACY" in state["dedup"][url][link]:
                         continue
@@ -210,6 +297,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         continue
 
                     posted_anywhere = False
+                    falhou_em_alguma_guild = False
                     if link not in state["dedup"][url]: state["dedup"][url][link] = []
 
                     # Resolve a imagem 1x por notícia e reaproveita o embed por idioma
@@ -219,6 +307,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                     embeds_by_lang: Dict[str, Any] = {}
 
                     for gid, gdata in config.items():
+                        if not isinstance(gdata, dict): continue
                         if gid in state["dedup"][url][link]: continue
 
                         channel_id = gdata.get("channel_id")
@@ -270,13 +359,29 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                         except Exception as e:
                             log.error(f"Error sending to guild {gid}: {e}")
                             feeds_com_falha_de_entrega.add(url)
+                            falhou_em_alguma_guild = True
 
                     if posted_anywhere:
+                        entregues_no_ciclo.add(link)
+                        entregou_neste_feed = True
+                    if falhou_em_alguma_guild:
+                        links_pendentes.add(link)
+                        log.warning(
+                            f"🔁 [PENDENTE] {link} não chegou a todas as guilds; "
+                            "fica fora do history e será retentado no próximo ciclo."
+                        )
+                    elif state["dedup"][url][link]:
+                        # Entregue a todas as guilds elegíveis (agora ou em ciclo
+                        # anterior): pode entrar no history.
                         history_set.add(link)
                         history_list.append(link)
 
+                if entregou_neste_feed:
+                    _persistir_progresso(state_file, state, history_list)
+
             # --- HTML MONITOR (Official Sites) ---
             log.info("🔎 Verificando sites oficiais (HTML Watcher)...")
+            html_anterior = dict(state["html_monitor"])
             html_updates, new_html_state = await check_official_sites(state["html_monitor"])
             state["html_monitor"] = new_html_state
 
@@ -306,8 +411,10 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                 # Trata atualizações de HTML como entradas de feed para processamento uniforme
                 # check_official_sites já retorna dicts compatíveis com create_embed
                 html_sent = False
+                html_tentou = False
                 html_embeds_by_lang: Dict[str, Any] = {}
                 for gid, gdata in config.items():
+                    if not isinstance(gdata, dict): continue
                     channel_id = gdata.get("channel_id")
                     if not channel_id: continue
 
@@ -318,6 +425,7 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                     channel = bot.get_channel(int(channel_id))
                     if not channel: continue
 
+                    html_tentou = True
                     try:
                         target_lang = gdata.get("language", "en_US")
                         # Para sites oficiais, passamos um entry fake; embed reaproveitado por idioma
@@ -334,25 +442,41 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
                 # senão um item barrado pelo filtro bloquearia o site por 24h.
                 if html_sent and site_url:
                     html_posted_at[site_url] = now_ts
+                elif html_tentou and site_url:
+                    # Havia guild para receber e TODAS falharam: o hash novo já
+                    # estava gravado, e a mudança nunca mais seria anunciada.
+                    # Volta o hash anterior para o próximo ciclo detectar de novo.
+                    if site_url in html_anterior:
+                        state["html_monitor"][site_url] = html_anterior[site_url]
+                    else:
+                        state["html_monitor"].pop(site_url, None)
+                    log.warning(
+                        f"🔁 [HTML PENDENTE] Aviso de {site_url} falhou em todas as guilds; "
+                        "hash anterior restaurado para nova tentativa."
+                    )
 
         # Cleanup and Save
-        # Corta o history aos últimos HISTORY_LIMIT e alinha o dedup à mesma janela,
-        # para o state.json não crescer indefinidamente (auto-poda a cada varredura).
-        # Descarta o cache HTTP dos feeds que tiveram falha de entrega, para que a
+        # O cache HTTP deste ciclo substitui o persistido só agora, sem os feeds
+        # que tiveram falha de entrega (e sem os fallbacks deles), para que a
         # varredura seguinte volte a receber 200 (e as entradas) em vez de 304.
         if feeds_com_falha_de_entrega:
             descartados = 0
             for url_falho in feeds_com_falha_de_entrega:
-                if state["http_cache"].pop(url_falho, None) is not None:
-                    descartados += 1
+                for chave in chaves_de_cache.get(url_falho, [url_falho]):
+                    if http_cache_ciclo.pop(chave, None) is not None:
+                        descartados += 1
             if descartados:
                 log.warning(
-                    f"♻️ Cache HTTP descartado de {descartados} feed(s) com falha de "
+                    f"♻️ Cache HTTP descartado de {descartados} URL(s) de feed(s) com falha de "
                     "entrega, para a notícia poder ser retentada no próximo ciclo."
                 )
+        state["http_cache"] = http_cache_ciclo
 
+        # Corta o history aos últimos HISTORY_LIMIT e alinha o dedup à mesma janela,
+        # para o state.json não crescer indefinidamente (auto-poda a cada varredura).
+        # Os pendentes ficam no dedup: é ele que diz quem já recebeu.
         save_history(history_list)
-        keep_links = set(history_list[-HISTORY_LIMIT:])
+        keep_links = set(history_list[-HISTORY_LIMIT:]) | links_pendentes
         dedup_before, dedup_after = prune_dedup(state["dedup"], keep_links)
         if dedup_before != dedup_after:
             log.info(

@@ -27,11 +27,25 @@ def prune_dedup(dedup: Dict[str, Any], keep_links: Set[str]) -> Tuple[int, int]:
     """
     Auto-poda do dedup do state.json para não crescer indefinidamente.
 
-    Mantém apenas os links ainda presentes em `keep_links` (a janela dos últimos
-    HISTORY_LIMIT links enviados, definida pelo history). Assim o dedup acompanha
-    o teto do history.json: links de fato postados continuam protegidos contra
-    repostagem, enquanto o lixo (links vistos mas filtrados, que nunca entram no
-    history) é descartado. Feeds que ficarem sem links são removidos.
+    PROPÓSITO DE NEGÓCIO:
+        Mantém o state.json do tamanho da janela do history, sem perder a
+        proteção contra repostagem do que ainda pode reaparecer num feed.
+
+    INVARIANTES DO DOMÍNIO:
+        - Fica todo link presente em `keep_links` (a janela dos últimos
+          HISTORY_LIMIT enviados, mais as entregas pendentes de retentativa);
+          sai o resto — em especial os vistos-mas-filtrados, que nunca entram
+          no history.
+        - A CHAVE do feed nunca sai por ficar vazia. A presença dela é a marca
+          de "feed já visto", que desliga o cold start. Antes, um feed sem
+          nenhum post na janela era apagado aqui, voltava como "novo" no ciclo
+          seguinte e publicava até 10 itens ignorando a janela de 7 dias — de
+          meses atrás, se fosse o caso. O custo de guardar a chave é um dict
+          vazio por fonte já configurada.
+
+    COMPORTAMENTO EM CASO DE FALHA:
+        Entrada não-dict devolve (0, 0) sem levantar; valor malformado dentro
+        do dedup (não-dict) é removido.
 
     Modifica `dedup` in-place e retorna (total_antes, total_depois).
     """
@@ -48,8 +62,6 @@ def prune_dedup(dedup: Dict[str, Any], keep_links: Set[str]) -> Tuple[int, int]:
         for link in list(links.keys()):
             if link not in keep_links:
                 del links[link]
-        if not links:
-            del dedup[url]
 
     after = sum(len(v) for v in dedup.values() if isinstance(v, dict))
     return before, after

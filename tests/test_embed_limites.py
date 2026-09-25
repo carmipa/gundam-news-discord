@@ -116,38 +116,18 @@ class TestCacheNaoContaEntregaFalhada:
     nunca mais é tentada, e a janela de `is_recent` acaba por descartá-la.
 
     Medido em produção: 26 falhas de entrega em 4 semanas. O gatilho é real.
+
+    Esta classe lia o TEXTO do engine procurando `state["http_cache"].pop(`.
+    Instrumento fraco: prova que a linha existe, não que o cache gravado em
+    disco ficou sem o ETag. Desde 2026-09-25 a prova é por execução do
+    `run_scan_once` real, lendo o state.json gravado, em
+    tests/test_entrega_integridade.py::TestCacheDoFallbackDescartadoNaFalha
+    (URL canônica e fallbacks, com o caso legítimo de entrega bem-sucedida).
     """
 
-    def test_engine_descarta_cache_do_feed_que_falhou(self):
-        import ast
-        import os
+    def test_a_prova_por_execucao_existe(self):
+        from tests import test_entrega_integridade as t
 
-        raiz = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        origem = open(
-            os.path.join(raiz, "core", "scanner", "engine.py"), encoding="utf-8"
-        ).read()
-
-        assert "feeds_com_falha_de_entrega" in origem, (
-            "o engine tem de registar quais feeds tiveram falha de entrega"
-        )
-        assert 'state["http_cache"].pop(' in origem, (
-            "o cache HTTP do feed com falha de entrega tem de ser descartado, "
-            "senão o 304 do ciclo seguinte esconde a notícia que não saiu"
-        )
-        # A remoção tem de acontecer ANTES de o state ser gravado.
-        arvore = ast.parse(origem)
-        assert arvore is not None
-
-    def test_descarte_acontece_antes_de_salvar_o_state(self):
-        import os
-
-        raiz = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        origem = open(
-            os.path.join(raiz, "core", "scanner", "engine.py"), encoding="utf-8"
-        ).read()
-        i_pop = origem.index('state["http_cache"].pop(')
-        i_save = origem.index("save_json_safe(state_file, state)")
-        assert i_pop < i_save, (
-            "o descarte do cache tem de vir antes da gravação do state, "
-            "senão grava-se justamente o que se queria descartar"
-        )
+        nomes = dir(t.TestCacheDoFallbackDescartadoNaFalha)
+        assert "test_falha_de_entrega_descarta_a_url_canonica" in nomes
+        assert "test_falha_de_entrega_descarta_canonica_e_fallback" in nomes
