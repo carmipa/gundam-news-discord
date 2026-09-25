@@ -20,6 +20,13 @@ services:
     ports:
       - "${HOST_WEB_BIND:-127.0.0.1}:${HOST_WEB_PORT:-8080}:${WEB_PORT:-8080}"
 
+    # Rede do proxy (Nginx Proxy Manager, /opt/infra-proxy na VPS): é por ela que
+    # gandambot.carminati.dev.br chega ao dashboard (proxy_pass gundam-news-bot:8080).
+    # `default` continua: é a saída do bot para a internet.
+    networks:
+      - default
+      - nginx-proxy-network
+
     # Volumes para persistir dados
     volumes:
       # Arquivos de configuração e histórico
@@ -73,3 +80,7 @@ services:
           cpus: "0.80"
           memory: 512M
           pids: 256
+
+networks:
+  nginx-proxy-network:
+    external: true
