@@ -15,8 +15,8 @@ import discord
 from discord.ext import commands
 
 from settings import TOKEN, COMMAND_PREFIX, LOG_LEVEL, SCAN_VERBOSE
-from utils.storage import p, load_json_safe, load_config_cached, save_config_safe, save_json_safe
-from bot.views.filter_dashboard import FilterDashboard
+from utils.storage import p, load_json_safe, save_json_safe
+from bot.canais import _preparar_views_e_canais, desvincular_canal_apagado
 from core.scanner import start_scheduler, solicitar_varredura_manual
 from web.server import start_web_server  # Novo web server
 from utils.git_info import get_git_changes, get_current_hash, get_commits_since
@@ -57,70 +57,6 @@ logging.getLogger("httpcore").setLevel(logging.WARNING)
 # SETUP DO BOT
 # =========================================================
 
-def _preparar_views_e_canais(bot) -> dict:
-    """
-    Registra as views persistentes e limpa canais que deixaram de existir.
-
-    PROPÓSITO DE NEGÓCIO:
-        Faz o painel de filtros voltar a responder depois de um restart e evita
-        que o bot tente publicar num canal apagado a cada varredura.
-
-    INVARIANTES DO DOMÍNIO:
-        - É ACESSÓRIO: nada aqui pode impedir o scheduler de arrancar. Quem chama
-          é responsável por não deixar a exceção subir ao handler de evento.
-        - Uma guild com id inválido não interrompe o registro das outras.
-        - O config só é gravado quando algo mudou de facto.
-
-    COMPORTAMENTO EM CASO DE FALHA:
-        Falhas por guild são registadas e o laço continua. Falha na gravação do
-        config propaga para o chamador, que a converte em log e segue.
-
-    Returns:
-        O config carregado — o anúncio de versão precisa dele para saber a que
-        canais escrever. Devolve {} se o ficheiro não for um dict.
-    """
-    cfg = load_config_cached({})
-    if isinstance(cfg, dict):
-        for gid in cfg.keys():
-            try:
-                bot.add_view(FilterDashboard(int(gid)))
-                log.info(f"View persistente registrada para guild {gid}")
-            except ValueError as e:
-                log.error(f"Erro ao converter guild_id '{gid}' para inteiro: {e}")
-            except Exception as e:
-                log.error(f"Erro ao registrar view persistente para guild {gid}: {type(e).__name__}: {e}", exc_info=True)
-
-        # Valida canais configurados: avisa se algum canal não existe (ex.: foi deletado)
-        cfg_changed = False
-        for gid, gdata in list(cfg.items()):
-            if not isinstance(gdata, dict): continue
-            channel_id = gdata.get("channel_id")
-            if not channel_id: continue
-            try:
-                ch = bot.get_channel(int(channel_id))
-                if ch is None:
-                    guild_name = ""
-                    try:
-                        g = bot.get_guild(int(gid))
-                        if g:
-                            guild_name = f" (servidor: {g.name})"
-                    except (ValueError, TypeError):
-                        pass
-                    log.warning(
-                        f"⚠️ Canal configurado não encontrado ao iniciar: channel_id {channel_id}, Guild {gid}{guild_name}. "
-                        "Removendo do config para evitar falhas."
-                    )
-                    gdata["channel_id"] = None
-                    cfg_changed = True
-            except (ValueError, TypeError):
-                pass
-                
-        if cfg_changed:
-            save_config_safe(cfg)
-
-    return cfg if isinstance(cfg, dict) else {}
-
-
 async def main():
     # Intents
     intents = discord.Intents.default()
@@ -155,6 +91,14 @@ async def main():
             f"📌 [{now_str}] Comando: /{command_name} | por {user} (ID: {user.id}) | Guild: {guild_id}"
             + (f" | {opts_str}" if opts_str.strip() else "")
         )
+
+    @bot.event
+    async def on_guild_channel_delete(channel):
+        """Canal apagado é sinal definitivo: desvincula se era o de notícias."""
+        try:
+            desvincular_canal_apagado(channel.guild.id, channel.id)
+        except Exception as e:
+            log.exception(f"Falha ao tratar canal apagado {getattr(channel, 'id', '?')}: {type(e).__name__}: {e}")
 
     @bot.command()
     @commands.is_owner()
@@ -220,9 +164,9 @@ async def main():
             )
 
         # 1. Carregar Views Persistentes — ACESSÓRIO.
-        # Envolvido porque `save_config_safe` (fim do bloco) escreve em disco e
-        # pode levantar; sem esta rede, disco cheio aqui impede o scheduler do
-        # passo 3 de arrancar e o bot fica online sem varrer.
+        # Envolvido porque registrar views e ler o config pode levantar; sem esta
+        # rede, uma falha aqui impede o scheduler do passo 3 de arrancar e o bot
+        # fica online sem varrer.
         cfg = {}
         try:
             cfg = _preparar_views_e_canais(bot)
