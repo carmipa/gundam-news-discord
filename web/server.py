@@ -2,6 +2,7 @@
 Web Server module using aiohttp.
 Integrates directly with the bot loop.
 """
+import hmac
 import logging
 from aiohttp import web
 import aiohttp_jinja2
@@ -88,8 +89,10 @@ def auth_required(handler):
                 headers={"WWW-Authenticate": "Bearer"}
             )
         
-        token = auth_header.replace("Bearer ", "").strip()
-        if token != WEB_AUTH_TOKEN:
+        token = auth_header[len("Bearer "):].strip()
+        # Comparação em tempo constante: `!=` revela, pelo tempo de resposta,
+        # quantos caracteres iniciais do token estão certos.
+        if not hmac.compare_digest(token.encode("utf-8"), WEB_AUTH_TOKEN.encode("utf-8")):
             log.warning(f"⚠️ Tentativa de acesso com token inválido de IP: {request.remote}")
             return web.json_response(
                 {"error": "Invalid token"},

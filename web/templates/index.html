@@ -20,19 +20,47 @@
         .btn:hover { background: #cc0019; }
     </style>
     <script>
+        // Com WEB_AUTH_TOKEN definido, /api/stats exige "Authorization: Bearer".
+        // O token entra UMA vez pelo fragmento da URL (http://host:8080/#token=...):
+        // o fragmento não vai ao servidor nem aos logs de acesso. Fica no
+        // sessionStorage desta aba e sai da barra de endereço.
+        const TOKEN_KEY = 'mafty_web_token';
+        (function capturarToken() {
+            const params = new URLSearchParams(window.location.hash.slice(1));
+            const t = params.get('token');
+            if (t) {
+                try { sessionStorage.setItem(TOKEN_KEY, t); } catch (e) {}
+                history.replaceState(null, '', window.location.pathname + window.location.search);
+            }
+        })();
+
+        function tokenAtual() {
+            try { return sessionStorage.getItem(TOKEN_KEY); } catch (e) { return null; }
+        }
+
         async function updateStats() {
+            const status = document.getElementById('system-status');
             try {
-                const response = await fetch('/api/stats');
+                const headers = {};
+                const t = tokenAtual();
+                if (t) headers['Authorization'] = 'Bearer ' + t;
+                const response = await fetch('/api/stats', { headers });
+                if (response.status === 401 || response.status === 403) {
+                    status.innerHTML = '<span class="status-dot" style="background-color:orange"></span>' +
+                        'Token required: open this page as <code>/#token=YOUR_WEB_AUTH_TOKEN</code>';
+                    return;
+                }
+                if (!response.ok) throw new Error('HTTP ' + response.status);
                 const data = await response.json();
-                
+
                 document.getElementById('uptime').innerText = data.uptime;
                 document.getElementById('scans').innerText = data.scans;
                 document.getElementById('news').innerText = data.news_posted;
                 document.getElementById('cache').innerText = data.cache_hits;
-                document.getElementById('system-status').innerHTML = '<span class="status-dot"></span>Online';
+                status.innerHTML = '<span class="status-dot"></span>Online';
             } catch (e) {
-                console.error("Failed to fetch stats");
-                document.getElementById('system-status').innerHTML = '<span class="status-dot" style="background-color:red"></span>Offline';
+                console.error("Failed to fetch stats", e);
+                status.innerHTML = '<span class="status-dot" style="background-color:red"></span>Offline';
             }
         }
         setInterval(updateStats, 5000);
