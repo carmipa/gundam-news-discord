@@ -1,6 +1,6 @@
 # 🧱 Arquitetura — Gundam News Bot
 
-[![Python](https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white)](https://github.com/carmipa/gundam-news-discord/blob/main/README.md)
+[![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python&logoColor=white)](https://github.com/carmipa/gundam-news-discord/blob/main/README.md)
 [![discord.py](https://img.shields.io/badge/discord.py-2.x-5865F2?logo=discord&logoColor=white)](https://github.com/carmipa/gundam-news-discord/blob/main/README.md)
 [![Docs](https://img.shields.io/badge/Índice-docs-green)](https://github.com/carmipa/gundam-news-discord/blob/main/docs/README.md)
 
@@ -87,7 +87,8 @@ flowchart TB
 | `sources.json` | Lista de feeds (RSS/Atom/YouTube) e sites oficiais para o HTML Watcher. |
 | `state.json` | Dedup por feed, cache HTTP (ETags), hashes HTML, metadados de limpeza. |
 | `history.json` | Lista global de links já enviados (fallback de deduplicação). |
-| `backups/` | Backups de `state.json` gerados pelo `/clean_state`. |
+| `data/backups/` | Backups de `state.json` gerados pelo `/clean_state`. |
+| `data/ultimo-bom/` | Última cópia íntegra de cada JSON de estado; a leitura recupera dela um arquivo truncado. |
 | `logs/bot.log` | Log rotativo da aplicação. |
 
 ```mermaid
@@ -117,7 +118,7 @@ flowchart LR
 | **Scanner** | `core/scanner/` | Pacote modular: `engine.py` (orquestração), `fetcher.py` (RSS/Atom/YouTube via HTTP + feedparser), `processor.py` (dedup, datas, links), `notifier.py` (embeds Discord, Open Graph opcional). **Não** usa scraping de páginas como fonte principal: a entrada é **feed syndication** (RSS/Atom) e **YouTube Data Atom**; sites sem feed continuam no **HTML Monitor** (`core/html_monitor.py`, fetch + hash). |
 | **HTML Monitor** | `core/html_monitor.py` | Monitoramento de sites oficiais (hash de conteúdo). |
 | **Filtros** | `core/filters.py` | Regras de filtragem (GUNDAM_CORE, blacklist, categorias). |
-| **Admin Cog** | `bot/cogs/admin.py` | Comandos `/forcecheck` e `/clean_state`. |
+| **Admin Cog** | `bot/cogs/admin.py` | `/forcecheck` (Administrador); `/clean_state` e `/server_log` (dono do bot). |
 | **Dashboard Cog** | `bot/cogs/dashboard.py` | Comandos `/dashboard` e `/set_canal`. |
 | **Info Cog** | `bot/cogs/info.py` | Comandos `/help`, `/about`, `/ping`, `/feeds`, `/setlang`. |
 | **Status Cog** | `bot/cogs/status.py` | Comandos `/status` e `/now`. |

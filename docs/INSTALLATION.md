@@ -6,7 +6,7 @@
 
 ## Pré-requisitos
 
-- Python 3.10 ou superior
+- Python 3.12 (a mesma versão da imagem Docker e do CI)
 - Token de bot do Discord ([Portal de Desenvolvedores](https://discord.com/developers/applications))
 - Git (para clonar o repositório)
 

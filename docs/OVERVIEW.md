@@ -51,7 +51,7 @@ O bot não se limita a *postar notícias*: ele permite **configurar** quem vê o
 |--------|------|
 | 📊 **Saúde do bot** | `/status` — uptime, scans, cache hits, última varredura. |
 | 📡 **Fontes ativas** | `/feeds` — lista de RSS/YouTube/sites (a partir de `sources.json`). |
-| 📋 **Log do servidor** | `/server_log` — últimas N linhas de `logs/bot.log` + anexo `bot_log.txt`. |
+| 📋 **Log do servidor** | `/server_log` — últimas N linhas de `logs/bot.log` + anexo `bot_log.txt`. Só o dono do bot (o log traz dados de todos os servidores). |
 | ⚠️ **Alertas diferenciados** | Embeds com cores/ícones: LEAK, RUMOR, atualização de sistema, HTML Monitor. |
 | 🚀 **Anúncio de versão** | Mensagem automática (teal, “What changed”) quando há novo deploy. |
 
@@ -66,7 +66,7 @@ O bot não se limita a *postar notícias*: ele permite **configurar** quem vê o
 | Recurso | Como |
 |--------|------|
 | 🔄 **Varredura manual** | `/forcecheck` — dispara um scan imediato sem esperar o agendamento. |
-| 🧹 **Limpeza com backup** | `/clean_state` — limpa `dedup`, `http_cache`, `html_hashes` ou `tudo` em `state.json`, sempre com backup em `backups/` e confirmação. |
+| 🧹 **Limpeza com backup** | `/clean_state` — limpa `dedup`, `http_cache`, `html_hashes` ou `tudo` em `state.json`, sempre com backup em `data/backups/` e confirmação. Só o dono do bot. |
 | 🔃 **Atualizar preview do log** | Botão **Atualizar** na mensagem do `/server_log` — atualiza o texto na mensagem (anexo `.txt` é da primeira resposta). |
 
 **Comandos:** `/forcecheck`, `/clean_state` (+ botão no `/server_log`)
@@ -82,7 +82,7 @@ O bot não se limita a *postar notícias*: ele permite **configurar** quem vê o
 | 📝 **Logs estruturados** | `logs/bot.log` — níveis INFO/WARNING/ERROR, tracebacks. |
 | ⚠️ **Exceções específicas** | `utils/exceptions.py` — GundamIntelError, ConfigError, StorageError, etc. |
 | 📖 **Documentação de erros** | [LOGGING_AND_EXCEPTIONS.md](LOGGING_AND_EXCEPTIONS.md) — níveis de log e uso de exceções. |
-| 💾 **Backups antes de limpeza** | `/clean_state` gera backup em `backups/` antes de alterar `state.json`. |
+| 💾 **Backups antes de limpeza** | `/clean_state` gera backup em `data/backups/` antes de alterar `state.json`. |
 | 🔗 **Histórico de links** | Deduplicação em `history.json` (limpeza controlada via `/clean_state tipo:dedup`). |
 
 | Documento | Descrição |
@@ -161,7 +161,7 @@ flowchart TB
 
 1. **Configurar** — `/set_canal` ou `/dashboard` + `/setlang`.
 2. **Monitorar** — `/status`, `/feeds`; em caso de dúvida, `/server_log` (e baixar o `bot_log.txt` se precisar de histórico).
-3. **Intervir** — `/forcecheck` para forçar scan; `/clean_state` quando precisar limpar cache ou dedup (sempre com backup em `backups/`).
+3. **Intervir** — `/forcecheck` para forçar scan; `/clean_state` quando precisar limpar cache ou dedup (sempre com backup em `data/backups/`; só o dono do bot).
 4. **Auditar** — Logs em `logs/bot.log`, backups em `backups/`, documentação em `docs/`.
 
 ---

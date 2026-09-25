@@ -16,9 +16,17 @@ Lista rápida do que **cada comando faz**. Para detalhes, sintaxe e exemplos, ve
 | `/set_canal` | Define o canal de texto onde o bot envia notícias (ou usa o canal atual). |
 | `/dashboard` | Abre o painel interativo para configurar filtros (Model Kits, Anime & Filmes, Games, Eventos, Merch, Músicas, Roupas, Hardware) e idioma. |
 | `/setlang` | Define o idioma do bot para o servidor (pt_BR, en_US, es_ES, it_IT, ja_JP). |
-| `/forcecheck` | Força uma varredura imediata de todos os feeds (não espera o ciclo automático). |
-| `/clean_state` | Limpa partes do `state.json` (dedup, cache HTTP, hashes HTML ou tudo), com backup e confirmação. |
-| `/server_log` | Exibe as últimas linhas do log do servidor (como no docker). Botão **Atualizar** renova. (Admin) |
+| `/forcecheck` | Pede uma varredura imediata de todos os feeds (respeita o intervalo mínimo entre varreduras, padrão 10 min). |
+| `/now` | Mesmo que `/forcecheck` (o botão “Verificar Agora” do `/status` também exige Administrador). |
+
+## 👑 Comandos do dono do bot
+
+> Afetam **todos os servidores** onde o bot está: só o dono da aplicação no Discord executa.
+
+| Comando | O que faz |
+|--------|-----------|
+| `/clean_state` | Limpa partes do `state.json` (dedup, cache HTTP, hashes HTML ou tudo), com backup e confirmação. O state é único para todos os servidores. |
+| `/server_log` | Exibe as últimas linhas do log do bot (traz usuários e canais de todos os servidores). Botão **Atualizar** renova. |
 
 ---
 
@@ -27,7 +35,6 @@ Lista rápida do que **cada comando faz**. Para detalhes, sintaxe e exemplos, ve
 | Comando | O que faz |
 |--------|-----------|
 | `/status` | Mostra estatísticas: uptime, varreduras, notícias enviadas, cache hits, próxima varredura. |
-| `/now` | Força uma verificação imediata de notícias (botão “Verificar agora” também no `/status`). |
 | `/feeds` | Lista todas as fontes monitoradas (RSS, YouTube, sites oficiais). |
 | `/help` | Mostra o manual de ajuda com todos os comandos. |
 | `/about` | Informações sobre o bot, versão e tecnologias. |

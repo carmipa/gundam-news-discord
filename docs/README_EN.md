@@ -9,7 +9,7 @@
     <img src="https://github.com/carmipa/gundam-news-discord/actions/workflows/python-app.yml/badge.svg" alt="CI Status" />
   </a>
   <img src="https://img.shields.io/badge/Discord-Bot-5865F2?logo=discord&logoColor=white" alt="Discord Bot" />
-  <img src="https://img.shields.io/badge/Python-3.10%2B-blue?logo=python&logoColor=white" alt="Python 3.10+" />
+  <img src="https://img.shields.io/badge/Python-3.12-blue?logo=python&logoColor=white" alt="Python 3.12" />
   <img src="https://img.shields.io/badge/discord.py-2.x-00B0F4?logo=python&logoColor=white" alt="discord.py 2.x" />
   <img src="https://img.shields.io/badge/Status-Production-success" alt="Status" />
   <img src="https://img.shields.io/badge/License-MIT-green" alt="License MIT" />
@@ -173,7 +173,7 @@ The bot features an autonomous maintenance system to prevent infinite cache grow
 
 ### Prerequisites
 
-- Python 3.10 or higher
+- Python 3.12 (same version as the Docker image and CI)
 - Discord Bot Token ([Developer Portal](https://discord.com/developers/applications))
 
 ### Step by Step
@@ -275,8 +275,10 @@ Sites without RSS are placed in a separate array. The bot checks for hash change
 | `/set_canal` | Sets the channel where the bot will send news | `/set_canal [channel:#news]` |
 | `/dashboard` | Opens visual panel to configure filters | `/dashboard` |
 | `/setlang` | Sets bot language for the server | `/setlang language:en_US` |
-| `/forcecheck` | Forces immediate feed scan | `/forcecheck` |
-| `/clean_state` | Cleans parts of state.json (with automatic backup) | `/clean_state type:dedup confirm:yes` |
+| `/forcecheck` | Requests an immediate feed scan (minimum interval between scans, default 10 min) | `/forcecheck` |
+| `/now` | Same as `/forcecheck` (the "Verificar Agora" button in `/status` also requires Administrator) | `/now` |
+| `/clean_state` | **Bot owner only.** Cleans parts of state.json (with automatic backup). The state is shared by every server | `/clean_state type:dedup confirm:yes` |
+| `/server_log` | **Bot owner only.** Last lines of the bot log (contains users and channels of every server) | `/server_log lines:50` |
 
 ### 📊 Informational Commands
 
@@ -288,7 +290,7 @@ Sites without RSS are placed in a separate array. The bot checks for hash change
 | `/ping` | Checks bot latency | `/ping` |
 | `/about` | Bot information | `/about` |
 
-> **🔒 Permission:** Only administrators can use administrative commands.
+> **🔒 Permission:** administrative commands require Administrator; `/clean_state` and `/server_log` affect every server and are restricted to the bot owner.
 
 ### 📖 Usage Examples
 

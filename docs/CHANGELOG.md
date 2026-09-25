@@ -6,6 +6,48 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 
 ## [Unreleased]
 
+## Auditoria — 2026-09-25
+
+Suíte 246 → 335 testes (Python 3.12, Windows e Linux), flake8 fatal limpo,
+pip-audit sem vulnerabilidade nova. Cada correção tem caso doente e caso legítimo
+com o mesmo sinal, e mutação que reprova pela causa investigada.
+
+### Permissões
+- **`/clean_state` e `/server_log` só para o dono do bot.** O state (dedup/history) e o log são únicos para todos os servidores; bastava ser Administrador de UM servidor para zerar o dedup de todos (repostagem em massa) ou ler usuários e canais de todos no log.
+- **`/now` e o botão “Verificar Agora” exigem Administrador**, como o `/forcecheck`. Todos os pedidos manuais passam por uma porta única com intervalo mínimo entre varreduras (`MANUAL_SCAN_COOLDOWN_SEC`, padrão 600 s). O botão dizia “Verificação concluída!” antes de a varredura rodar.
+- **Botão Atualizar do `/server_log`** chamava `defer_update()`, que não existe no discord.py 2.x: falhava em todo clique.
+
+### Entrega (sem repostagem nem perda)
+- Guild configurada durante a varredura derrubava o ciclo (`dictionary changed size during iteration`) antes de gravar — e o que já tinha saído era repostado.
+- Falha de envio numa guild perdia a notícia para ela quando outra guild recebia. Agora o link fica pendente e só a guild que falhou recebe na retentativa.
+- Feed sem post na janela voltava como “novo” e publicava itens de meses ignorando a janela de 7 dias.
+- Falha de entrega descarta também o ETag do fallback que serviu o feed.
+- Monitor HTML: mudança cujo aviso falhou em todas as guilds é detectada de novo.
+- Dedup e history gravados após cada feed com entrega: queda no meio do ciclo não repete o que já saiu.
+
+### Persistência
+- JSON de estado gravado sem truncar (temporário + `os.replace`; com arquivo montado pelo Docker, EBUSY medido, grava no lugar preservando o inode) e recuperado da última cópia íntegra (`data/ultimo-bom/`) quando truncado.
+- O arranque não apaga mais o canal configurado quando ele não está visível (guild indisponível); só o evento de canal apagado o desvincula.
+- Arranque recusa rodar (código 78) se não conseguir gravar o próprio estado.
+
+### Segurança
+- `validate_url` barra endereço interno em qualquer grafia: credenciais na URL, IPv6 entre colchetes, IPv4 abreviado/decimal/octal/hex, CGNAT, IPv4 embutido em IPv6.
+- Dashboard web: a página envia o `WEB_AUTH_TOKEN` (antes recebia 401 para sempre com o token definido); comparação em tempo constante.
+
+### Build e operação
+- Python 3.12 na imagem e no CI (3.10 sai de suporte em outubro de 2026); o teste que travava no 3.12 foi corrigido.
+- Contêiner sem root (UID 1000) — **deploy exige `chown 1000:1000` nos arquivos montados** (docs/DEPLOY.md).
+- HEALTHCHECK por batimento de conexão com o Discord, no lugar de “config.json existe”.
+- `pytest`/`flake8`/`pip-audit` em `requirements-dev.txt`, fora da imagem; `.dockerignore` tira vídeos, docx e material de análise.
+- CI com `pip-audit` que ignora só `PYSEC-2022-252`, por identidade.
+
+### Fontes
+- Desligadas (reversível): GoodguyDan, BandaiChannel, Nyaa [Judas]. Cinco canais do YouTube com nome real.
+
+## Correções de 2026-09-18
+- Validação da URL da imagem antes do embed (vetor de URL do erro 50035).
+- Fim de linha normalizado para LF e fixado em `.gitattributes`.
+
 ## Auditoria de manutenção — 2026-08-30
 
 Varredura das 9 classes de defeito do procedimento de manutenção de bots.

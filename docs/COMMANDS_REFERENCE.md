@@ -122,7 +122,7 @@
 
 ### `/forcecheck`
 
-**Descrição:** Força uma varredura imediata de todos os feeds.
+**Descrição:** Pede uma varredura imediata de todos os feeds. `/now` e o botão “Verificar Agora” do `/status` fazem o mesmo, com a mesma permissão (Administrador).
 
 **Sintaxe:**
 ```
@@ -134,17 +134,18 @@
 - Quando você sabe que saiu uma notícia urgente
 - Não quer esperar o ciclo automático (ex.: 12h)
 
-**Resposta:**
-- ✅ Confirmação quando varredura concluída
-- ❌ Erro se falhar
+**Resposta (diz o que de fato aconteceu):**
+- 🔎 Varredura iniciada em segundo plano — as notícias chegam ao canal configurado.
+- ⏳ Já existe uma varredura em andamento.
+- 🕐 Uma varredura rodou há pouco — informa em quantos minutos a próxima manual fica disponível.
 
-**Nota:** Respeita o lock de varredura - se já houver uma em execução, ignora.
+**Nota:** a varredura é única para todos os servidores. Entre o início de qualquer varredura e o de uma manual passam pelo menos `MANUAL_SCAN_COOLDOWN_SEC` segundos (padrão 600), venha o pedido de qualquer servidor.
 
 ---
 
 ### `/server_log`
 
-**Descrição:** Exibe as últimas linhas do log do servidor (o mesmo que aparece ao rodar o bot, ex.: `docker-compose logs -f`). Apenas administradores.
+**Descrição:** Exibe as últimas linhas do log do bot (o mesmo que aparece em `docker compose logs -f`). **Só o dono do bot**: o log traz usuários, IDs e canais de todos os servidores.
 
 **Sintaxe:**
 ```
@@ -162,13 +163,13 @@
 - 📋 Mensagem com as últimas N linhas em bloco de código `log`.
 - Botão **Atualizar** para recarregar sem rodar o comando de novo.
 
-**Nota:** Requer permissão de **Administrador**. O arquivo lido é `logs/bot.log` (no Docker: volume `./logs:/app/logs`).
+**Nota:** Restrito ao **dono do bot** (o botão Atualizar também). O arquivo lido é `logs/bot.log` (no Docker: volume `./logs:/app/logs`).
 
 ---
 
 ### `/clean_state`
 
-**Descrição:** Limpa partes específicas do `state.json` com backup automático.
+**Descrição:** Limpa partes específicas do `state.json` com backup automático (em `data/backups/`). **Só o dono do bot**: o state é único para todos os servidores, e limpar o dedup faz o bot repostar em todos eles.
 
 > 📘 **Tutorial completo com diagramas:** [TUTORIAL_CLEAN_STATE.md](TUTORIAL_CLEAN_STATE.md)
 
@@ -274,7 +275,7 @@ HTML: 8          HTML: 8
 - ⏳ **Próxima Varredura** - Quando será a próxima (contagem regressiva)
 
 **Botão Adicional:**
-- 🔄 **Verificar Agora** - Executa varredura manual
+- 🔄 **Verificar Agora** - Pede varredura manual (exige Administrador, como `/now`)
 
 **Resposta:** Embed com todas as estatísticas
 
@@ -434,8 +435,9 @@ HTML: 8          HTML: 8
 - ✅ **Ler Histórico de Mensagens** - Opcional
 
 ### Para Usuários:
-- ✅ **Administrador** - Para comandos administrativos
-- ✅ **Nenhuma** - Para comandos informativos
+- 👑 **Dono do bot** - `/clean_state` e `/server_log` (afetam todos os servidores)
+- ✅ **Administrador** - Demais comandos administrativos, incluindo `/now` e `/forcecheck`
+- ✅ **Nenhuma** - Comandos informativos (`/status`, `/feeds`, `/help`, `/about`, `/ping`)
 
 ---
 
