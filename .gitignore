@@ -58,3 +58,6 @@ translation_cache.json
 backups/
 *.backup
 *.bak
+
+# Cópias íntegras dos JSON de estado e backups do /clean_state
+data/

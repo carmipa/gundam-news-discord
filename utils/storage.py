@@ -9,6 +9,7 @@ import os
 import json
 import logging
 import shutil
+import tempfile
 from datetime import datetime
 from typing import Any, Dict, Tuple, Optional
 
@@ -32,29 +33,55 @@ def p(filename: str) -> str:
     return os.path.abspath(filename)
 
 
+def _recuperar_ultimo_bom(filepath: str, motivo: str, default: Any) -> Any:
+    """Lê a última cópia íntegra de `filepath`; sem ela, devolve `default`."""
+    copia = caminho_ultimo_bom(filepath)
+    try:
+        if os.path.exists(copia) and os.path.getsize(copia) > 0:
+            with open(copia, "r", encoding="utf-8") as f:
+                dados = json.load(f)
+            log.error(
+                f"🩹 '{filepath}' {motivo}: RECUPERADO da última cópia íntegra ({copia}). "
+                "Verifique disco e o motivo da interrupção."
+            )
+            return dados
+    except (OSError, json.JSONDecodeError) as e:
+        log.error(f"Cópia de segurança '{copia}' também ilegível: {type(e).__name__}: {e}")
+    log.error(f"'{filepath}' {motivo} e não há cópia íntegra. Usando padrão.")
+    return default
+
+
 def load_json_safe(filepath: str, default: Any) -> Any:
     """
     Carrega JSON sem derrubar o bot se faltar / vazio / corrompido.
-    
-    Args:
-        filepath: Caminho do arquivo JSON
-        default: Valor padrão se falhar
-    
-    Returns:
-        Dados do JSON ou valor padrão
+
+    PROPÓSITO DE NEGÓCIO:
+        Um config.json truncado por queda no meio da gravação deixava o bot mudo
+        em todas as guilds, com um único aviso no log; um state.json truncado
+        fazia repostar tudo. Arquivo danificado é recuperado da última cópia
+        íntegra antes de cair no padrão.
+
+    INVARIANTES DO DOMÍNIO:
+        - Arquivo AUSENTE devolve o padrão (instalação nova é legítima) e não
+          ressuscita cópia antiga.
+        - Arquivo VAZIO ou com JSON inválido tenta `caminho_ultimo_bom` primeiro.
+
+    COMPORTAMENTO EM CASO DE FALHA:
+        Nunca levanta. Devolve os dados, a cópia recuperada (com log ERROR) ou
+        `default` (com log do motivo).
     """
     try:
         if not os.path.exists(filepath):
             log.warning(f"Arquivo '{filepath}' não existe. Usando padrão.")
             return default
         if os.path.getsize(filepath) == 0:
-            log.warning(f"Arquivo '{filepath}' está vazio. Usando padrão.")
-            return default
+            return _recuperar_ultimo_bom(filepath, "está vazio", default)
         with open(filepath, "r", encoding="utf-8") as f:
             return json.load(f)
     except json.JSONDecodeError as e:
-        log.error(f"Erro de sintaxe JSON ao carregar '{filepath}': linha {e.lineno}, coluna {e.colno}. Usando padrão.")
-        return default
+        return _recuperar_ultimo_bom(
+            filepath, f"tem JSON inválido (linha {e.lineno}, coluna {e.colno})", default
+        )
     except PermissionError as e:
         log.error(f"Sem permissão para ler '{filepath}': {e}. Usando padrão.")
         return default
@@ -117,28 +144,115 @@ def save_config_safe(data: Any) -> None:
         invalidate_json_cache(cfg_path)
 
 
-def save_json_safe(filepath: str, data: Any) -> None:
-    """Salva JSON com indentação; em erro, loga e segue."""
+ULTIMO_BOM_SUBDIR = os.path.join("data", "ultimo-bom")
+
+
+def caminho_ultimo_bom(filepath: str) -> str:
+    """
+    Onde fica a última cópia íntegra de `filepath`: `<dir>/data/ultimo-bom/<nome>`.
+
+    No container, `/app/data` é um diretório montado do host (docker-compose),
+    então a cópia sobrevive a restart e a recriação do container. Fica ao lado do
+    arquivo, e não relativa ao diretório de trabalho, para testes com diretório
+    temporário nunca escreverem na árvore do projeto.
+    """
+    pasta = os.path.dirname(os.path.abspath(filepath))
+    return os.path.join(pasta, ULTIMO_BOM_SUBDIR, os.path.basename(filepath))
+
+
+def _gravar_atomico(destino: str, texto: str) -> None:
+    """
+    Grava `texto` em `destino` sem nunca deixá-lo truncado por falta de disco.
+
+    O conteúdo vai inteiro para um temporário no MESMO diretório, com fsync, e só
+    então substitui o destino por `os.replace` (atômico). Se a substituição for
+    recusada — o caso real é o arquivo montado individualmente pelo Docker
+    (`./state.json:/app/state.json`), onde renomear sobre o ponto de montagem dá
+    EBUSY —, o conteúdo já validado é copiado por cima, preservando o inode que a
+    montagem exige. Nesse caminho ainda existe uma janela de milissegundos em que
+    um SIGKILL deixa o destino incompleto; é para ela que existe a cópia em
+    `caminho_ultimo_bom`, que `load_json_safe` usa na leitura.
+
+    Levanta OSError se não conseguir gravar; o temporário nunca fica para trás.
+    """
+    pasta = os.path.dirname(os.path.abspath(destino)) or "."
+    fd, tmp = tempfile.mkstemp(dir=pasta, prefix=f".{os.path.basename(destino)}.", suffix=".tmp")
     try:
-        with open(filepath, "w", encoding="utf-8") as f:
-            json.dump(data, f, indent=2, ensure_ascii=False)
+        with os.fdopen(fd, "w", encoding="utf-8") as f:
+            f.write(texto)
+            f.flush()
+            os.fsync(f.fileno())
+        try:
+            os.replace(tmp, destino)
+            return
+        except OSError as e:
+            log.debug(f"os.replace recusado para '{destino}' ({e}); gravando no lugar.")
+        with open(destino, "w", encoding="utf-8") as f:
+            f.write(texto)
+            f.flush()
+            os.fsync(f.fileno())
+    finally:
+        if os.path.exists(tmp):
+            try:
+                os.remove(tmp)
+            except OSError as e:
+                log.warning(f"Temporário '{tmp}' não removido: {e}")
+
+
+def save_json_safe(filepath: str, data: Any) -> bool:
+    """
+    Salva JSON de estado (config, state, history, cache de tradução).
+
+    PROPÓSITO DE NEGÓCIO:
+        Estes arquivos são a memória do bot: canais de cada guild, o que já foi
+        publicado e onde. Perdê-los deixa o bot mudo (config vazio) ou provoca
+        repostagem em massa (dedup vazio).
+
+    INVARIANTES DO DOMÍNIO:
+        - Serializa ANTES de tocar em disco: dado não serializável nunca trunca
+          o arquivo existente.
+        - Falta de disco na gravação do temporário não altera o destino.
+        - Toda gravação bem-sucedida deixa também a última cópia íntegra em
+          `caminho_ultimo_bom`, gravada primeiro e de forma atômica.
+
+    COMPORTAMENTO EM CASO DE FALHA:
+        Nunca levanta. Devolve False e registra em log o motivo (dado não
+        serializável, permissão, disco). Devolve True quando o destino foi
+        gravado — mesmo que a cópia de segurança tenha falhado (isso é avisado).
+    """
+    try:
+        texto = json.dumps(data, indent=2, ensure_ascii=False)
+    except (TypeError, ValueError) as e:
+        log.error(f"Dados não serializáveis em JSON ao salvar '{filepath}': {e}")
+        return False
+
+    copia = caminho_ultimo_bom(filepath)
+    try:
+        os.makedirs(os.path.dirname(copia), exist_ok=True)
+        _gravar_atomico(copia, texto)
+    except OSError as e:
+        log.warning(f"Cópia de segurança de '{filepath}' não gravada ({type(e).__name__}: {e}).")
+
+    try:
+        _gravar_atomico(filepath, texto)
+        return True
     except PermissionError as e:
         log.error(f"Sem permissão para escrever '{filepath}': {e}")
     except OSError as e:
         log.error(f"Erro de sistema ao salvar '{filepath}': {e}")
-    except TypeError as e:
-        log.error(f"Dados não serializáveis em JSON ao salvar '{filepath}': {e}")
     except Exception as e:
         log.error(f"Falha inesperada ao salvar '{filepath}': {type(e).__name__}: {e}", exc_info=True)
+    return False
 
 
-def create_backup(filepath: str, backup_dir: str = "backups") -> Optional[str]:
+def create_backup(filepath: str, backup_dir: str = os.path.join("data", "backups")) -> Optional[str]:
     """
     Cria um backup do arquivo antes de modificações críticas.
     
     Args:
         filepath: Caminho do arquivo a fazer backup
-        backup_dir: Diretório onde salvar backups
+        backup_dir: Diretório onde salvar backups (padrão data/backups: no
+            container é o diretório montado do host, sobrevive à recriação)
     
     Returns:
         Caminho do arquivo de backup criado ou None se falhar

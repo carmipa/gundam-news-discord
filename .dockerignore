@@ -66,3 +66,7 @@ docker-compose.yml
 # Outros
 icon.png
 LICENSE
+
+# Cópias íntegras e backups (volume em runtime)
+data/
+backups/

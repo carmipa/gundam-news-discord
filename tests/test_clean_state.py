@@ -19,6 +19,13 @@ from utils.storage import (
 from utils.exceptions import InvalidCleanTypeError
 
 
+@pytest.fixture(autouse=True)
+def _isolar_diretorio(tmp_path, monkeypatch):
+    """clean_state grava p("history.json") relativo ao cwd: sem isto, a suíte
+    sobrescrevia o history.json da raiz do projeto (e a cópia de segurança)."""
+    monkeypatch.chdir(tmp_path)
+
+
 class TestStateStats:
     """Testes para get_state_stats."""
     

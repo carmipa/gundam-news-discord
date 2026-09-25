@@ -37,6 +37,14 @@ services:
       # Logs persistentes (opcional)
       - ./logs:/app/logs
 
+      # Última cópia íntegra de cada JSON de estado (data/ultimo-bom) e os
+      # backups do /clean_state (data/backups). Os JSON acima são montados como
+      # ARQUIVO, e renomear por cima de um ponto de montagem dá EBUSY: a gravação
+      # cai para "no lugar", e é desta cópia que a leitura recupera um arquivo
+      # truncado por queda no meio. Sem este volume a cópia existe, mas morre
+      # a cada `up --build`.
+      - ./data:/app/data
+
     # Configuração de logs
     logging:
       driver: "json-file"
