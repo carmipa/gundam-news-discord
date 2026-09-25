@@ -9,7 +9,7 @@ if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
 from core.filters import match_intel
-from core.scanner import parse_entry_dt
+from core.scanner.processor import parse_entry_dt
 
 
 class DummyEntry:

@@ -61,3 +61,7 @@ backups/
 
 # Cópias íntegras dos JSON de estado e backups do /clean_state
 data/
+
+# Saídas de ferramentas manuais
+verification_results.txt
+source_report.txt

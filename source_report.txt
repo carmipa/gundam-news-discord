@@ -1,7 +1,0 @@
-📂 Carregando sources.json...
-
-🔎 --- TESTANDO FEEDS RSS ---
-✅ https://www.animenewsnetwork.com/news/rss.xml?ann-edition=us
-   └── ✅ OK (40 posts, Último: Thu, 19 Feb 2026 09:15:00 -0500)
-
-🛑 Teste interrompido pelo usuário.

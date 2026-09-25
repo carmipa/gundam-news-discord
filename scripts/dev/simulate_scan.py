@@ -10,7 +10,8 @@ PROJECT_ROOT = Path(__file__).resolve().parents[2]
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
 
-from core.scanner import sanitize_link, parse_entry_dt, get_news_metadata
+from core.scanner.processor import sanitize_link, parse_entry_dt
+from core.scanner.notifier import get_news_metadata
 from core.filters import match_intel
 
 SOURCES_FILE = PROJECT_ROOT / "sources.json"
