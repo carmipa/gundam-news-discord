@@ -117,7 +117,21 @@ async def _sondar(url: str, session: aiohttp.ClientSession) -> Optional[Tuple[in
         async with session.get(url, timeout=_TIMEOUT_SONDA, headers={"Range": f"bytes=0-{_BYTES_CABECALHO - 1}"}) as r:
             if r.status not in (200, 206):
                 return None
-            return dimensoes(await r.content.read(_BYTES_CABECALHO))
+            # `read(n)` devolve o que já chegou, ATÉ n — não exatamente n. Em
+            # produção (2026-10-21) o primeiro pedaço tinha 16 KB e o marcador de
+            # tamanho do JPEG estava em 23 KB, depois de 20 KB de EXIF: a imagem
+            # de 1200x1600 virou "tamanho desconhecido" e saiu como miniatura.
+            # Lê em laço até achar as dimensões, o teto ou o fim do corpo.
+            lido = b""
+            while len(lido) < _BYTES_CABECALHO:
+                pedaco = await r.content.read(_BYTES_CABECALHO - len(lido))
+                if not pedaco:
+                    break
+                lido += pedaco
+                tamanho = dimensoes(lido)
+                if tamanho:
+                    return tamanho
+            return dimensoes(lido)
     except Exception as e:
         log.debug(f"[IMG] Sonda de dimensão falhou para {url[:120]}: {type(e).__name__}: {e}")
         return None

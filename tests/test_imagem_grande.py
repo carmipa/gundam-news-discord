@@ -16,6 +16,7 @@ Casos de fronteira (A1):
 Gabarito (A3) das dimensões: as especificações dos formatos (PNG IHDR, GIF
 logical screen, JPEG SOF0, WebP VP8X), não a saída do parser.
 """
+import asyncio
 import struct
 
 import pytest
@@ -48,6 +49,14 @@ def jpeg(w, h):
     app0 = b"\xff\xe0" + struct.pack(">H", 16) + b"JFIF\x00" + b"\x00" * 9
     sof0 = b"\xff\xc0" + struct.pack(">HBHH", 17, 8, h, w) + b"\x03" + b"\x00" * 9
     return b"\xff\xd8" + app0 + sof0 + b"\xff\xd9"
+
+
+def jpeg_com_exif_grande(w, h, exif=20000):
+    """JPEG cujo marcador de tamanho vem DEPOIS de ~20 KB de EXIF, como o da
+    hobby.watch.impress medido em produção (SOF2 no byte 23282)."""
+    app1 = b"\xff\xe1" + struct.pack(">H", exif + 2) + b"\x00" * exif
+    sof2 = b"\xff\xc2" + struct.pack(">HBHH", 17, 8, h, w) + b"\x03" + b"\x00" * 9
+    return b"\xff\xd8" + app1 + sof2 + b"\xff\xd9"
 
 
 def webp_vp8x(w, h):
@@ -115,6 +124,17 @@ async def servidor():
     }
 
     async def servir(request):
+        if request.path == "/exif-picado.jpg":
+            # Entrega em pedaços de 1 KB: o primeiro read() devolve só o que
+            # chegou, como o servidor real fazia.
+            resp = web.StreamResponse(status=206, headers={"Content-Type": "image/jpeg"})
+            await resp.prepare(request)
+            corpo = jpeg_com_exif_grande(1200, 1600)
+            for i in range(0, len(corpo), 1024):
+                await resp.write(corpo[i:i + 1024])
+                await asyncio.sleep(0)
+            await resp.write_eof()
+            return resp
         corpo = imagens.get(request.path)
         if corpo is None:
             return web.Response(status=404)
@@ -141,6 +161,11 @@ class TestApresentacao:
         srv, s = servidor
         assert await apresentacao_da_imagem(url(srv, "/larga.png"), s) == (url(srv, "/larga.png"), True)
         assert await apresentacao_da_imagem(url(srv, "/corte.jpg"), s) == (url(srv, "/corte.jpg"), False)
+
+    @pytest.mark.asyncio
+    async def test_cabecalho_que_chega_em_pedacos_e_lido_ate_o_fim(self, servidor):
+        srv, s = servidor
+        assert await apresentacao_da_imagem(url(srv, "/exif-picado.jpg"), s) == (url(srv, "/exif-picado.jpg"), True)
 
     @pytest.mark.asyncio
     async def test_fronteira_de_300_px(self, servidor):
