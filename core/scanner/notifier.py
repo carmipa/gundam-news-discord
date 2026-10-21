@@ -12,6 +12,7 @@ from utils.translator import translate_to_target, t
 from utils.html import clean_html
 
 from utils.opengraph import fetch_og_image, imagem_publicavel
+from utils.imagem import apresentacao_da_imagem, eh_link_do_google_news
 
 log = logging.getLogger("MaftyIntel.scanner")
 
@@ -75,6 +76,10 @@ async def resolve_thumbnail(entry: Any, session: Optional[aiohttp.ClientSession]
     Resolve a imagem do item (independente de idioma), então pode ser computada
     UMA vez por notícia e reaproveitada entre servidores/idiomas.
     Ordem: media_thumbnail/itunes → thumb do YouTube → OpenGraph (fallback).
+
+    Google News fica sem OpenGraph: o link é uma página de redirecionamento do
+    Google cujo og:image é o logo do Google News, o mesmo para toda notícia
+    (medido em 2026-10-21). Sem imagem é melhor que um "G" em cada card.
     """
     link = entry.get("link", "") if hasattr(entry, "get") else ""
     thumbnail_url = None
@@ -94,7 +99,7 @@ async def resolve_thumbnail(entry: Any, session: Optional[aiohttp.ClientSession]
         thumbnail_url = _youtube_thumbnail_url(link)
 
     # 3. Smart Fallback (OpenGraph)
-    if not thumbnail_url and session and link and not is_youtube:
+    if not thumbnail_url and session and link and not is_youtube and not eh_link_do_google_news(link):
         log.debug(f"Attempting OG fetch for: {link}")
         thumbnail_url = await fetch_og_image(link, session)
 
@@ -208,12 +213,18 @@ async def create_embed(bot: discord.Client, entry: Any, target_lang: str, guild_
             f"noticia segue sem ela: {str(thumbnail_url)[:120]}"
         )
     if imagem_ok:
-        # Em vídeo, imagem maior melhora leitura no Discord.
+        # Imagem GRANDE sempre que ela aguenta (largura medida >= 300 px), como no
+        # bot de anime; pequena ou de tamanho desconhecido fica miniatura, que
+        # era o comportamento de antes. YouTube: a capa hqdefault é 480x360.
         is_youtube = any(x in link for x in ["youtube.com", "youtu.be"])
         if is_youtube:
             embed.set_image(url=imagem_ok)
         else:
-            embed.set_thumbnail(url=imagem_ok)
+            url_final, grande = await apresentacao_da_imagem(imagem_ok, session)
+            if grande:
+                embed.set_image(url=url_final)
+            else:
+                embed.set_thumbnail(url=url_final)
 
     return embed
 
