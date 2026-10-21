@@ -5,10 +5,11 @@
     "description": "Base consolidada Mafty — fusão completa das versões anteriores. Estrutura enriquecida com name, category, language e region em todos os feeds.",
     "total_rss": 30,
     "total_reddit": 8,
-    "total_youtube": 21,
+    "total_youtube": 22,
     "total_tracker": 6,
     "total_official_sites": 122,
     "notes": [
+      "2026-10-21: +YouTube Bandai Namco Asia (UCx3AqOZh-MtLGJp4apRssow), a pedido do Paulo.",
       "2026-09-25: 3 fontes congeladas sem conteúdo útil DESLIGADAS com enabled:false (GoodguyDan, BandaiChannel, Nyaa [Judas]); as congeladas cujas entradas ainda passam no filtro (Kimi, Kusakusa, MSG Universe, Studio G) ficam. 5 canais ainda com nome de posição renomeados pelo título do próprio feed (GUNDAM CHANNEL, Gunpla Variety, Sawano Hiroyuki, SUNRISE, BANDAI SPIRITS). Canais gerais (Netflix, Netflix Japan, IGN Movie Trailers, What's on Netflix, Qamama) MANTIDOS: trazem trailers e anúncios de Gundam, e o filtro exige termo Gundam no título de vídeo.",
       "2026-08-30: sonda de fontes instalada (scripts/probe_sources.py) e catálogo auditado pelo caminho real do bot. 56 de 64 feeds saudáveis; 7 congelados e 1 com rate limit, todos anotados em 'notes' da própria fonte. 12 canais do YouTube tinham nome de posição ('Canal YT – UCxxxx') em vez do nome real — corrigidos com o título que o próprio feed declara.",
       "2026-08-01: auditoria de fontes mortas (todas reproduzidas fora do VPS, não é bloqueio de IP). gundamnews.org desativado (TLS quebrado no servidor: TLSV1_ALERT_INTERNAL_ERROR em TLS 1.2 e 1.3, apex e www). natalie.mu mantida com user_agent de biblioteca HTTP (devolve 405 para UA de navegador). Mobile Suit Breakdown → feed real no Pinecast. Schizophonic9 → blog migrou para schizophonic9-2.com (FC2, feed em ?xml). Kimi the Builder → canônico passa a ser o WordPress.com. Unicorn Gundam Statue removido (domínio em NXDOMAIN; estátua encerra exibição em ago/2026).",
@@ -277,6 +278,12 @@
     }
   ],
   "youtube_feeds": [
+    {
+      "name": "Bandai Namco Asia",
+      "channel_id": "UCx3AqOZh-MtLGJp4apRssow",
+      "url": "https://www.youtube.com/feeds/videos.xml?channel_id=UCx3AqOZh-MtLGJp4apRssow",
+      "notes": "Adicionado em 2026-10-21 a pedido do Paulo (@BandaiNamcoAsia). Canal geral da Bandai Namco Asia: medido no dia, 3 de 15 vídeos com termo Gundam/Gunpla no título; o filtro de YouTube exige o termo no título (GUNPLA/GUNDAM passam, PREMIUM BANDAI WEEK e Gaoranger não)."
+    },
     {
       "name": "ガンダムチャンネル (GUNDAM CHANNEL)",
       "channel_id": "UC7wu64jFsV02bbu6UHUd7JA",
