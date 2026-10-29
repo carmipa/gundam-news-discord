@@ -223,6 +223,8 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         feeds_failed_start = stats.feeds_failed
         feeds_vazios_start = stats.feeds_vazios
         traducoes_rejeitadas_start = stats.traducoes_rejeitadas
+        traducoes_falhas_servico_start = stats.traducoes_falhas_servico
+        traducoes_suspensas_start = stats.traducoes_suspensas
 
         async with aiohttp.ClientSession(connector=connector) as session:
             semaphore = asyncio.Semaphore(MAX_CONCURRENT_FEEDS)
@@ -495,6 +497,8 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         feeds_failed = stats.feeds_failed - feeds_failed_start
         feeds_vazios = stats.feeds_vazios - feeds_vazios_start
         traducoes_rejeitadas = stats.traducoes_rejeitadas - traducoes_rejeitadas_start
+        traducoes_falhas_servico = stats.traducoes_falhas_servico - traducoes_falhas_servico_start
+        traducoes_suspensas = stats.traducoes_suspensas - traducoes_suspensas_start
 
         # Ausência de entrega acumulada: um ciclo sem publicar é rotina; a
         # sequência é que distingue "dia parado" de "bot mudo".
@@ -511,6 +515,8 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
             cache_hits=cache_hits,
             traducoes_rejeitadas=traducoes_rejeitadas,
             ciclos_sem_envio=stats.ciclos_sem_envio,
+            traducoes_falhas_servico=traducoes_falhas_servico,
+            traducoes_suspensas=traducoes_suspensas,
         )
         stats.ultimo_veredito = veredito
         # Persistido no state para sobreviver ao restart: telemetria que morre com
@@ -521,7 +527,9 @@ async def run_scan_once(bot: discord.Client, trigger: str = "manual") -> None:
         log.info(
             f"✅ Varredura concluída. (enviadas={sent_count}, cache_hits={cache_hits}, "
             f"feeds_falhos={feeds_failed}, feeds_vazios={feeds_vazios}, "
-            f"traducoes_rejeitadas={traducoes_rejeitadas}, trigger={trigger})"
+            f"traducoes_rejeitadas={traducoes_rejeitadas}, "
+            f"traducoes_falhas_servico={traducoes_falhas_servico}, "
+            f"traducoes_suspensas={traducoes_suspensas}, trigger={trigger})"
         )
         nivel = log.info if veredito["veredito"] == VEREDITO_OK else (
             log.warning if veredito["veredito"] == VEREDITO_ATENCAO else log.error

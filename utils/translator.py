@@ -4,9 +4,12 @@ Translator utilities - Localization and Google Translate wrapper.
 import logging
 import asyncio
 import random
+import time
 from collections import OrderedDict
+from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Optional
 from deep_translator import GoogleTranslator
+from deep_translator.exceptions import NotValidLength, NotValidPayload, TooManyRequests
 
 from utils.storage import p, load_json_safe, save_json_safe, load_config_cached
 from core.stats import stats
@@ -121,6 +124,86 @@ _translate_semaphore = asyncio.Semaphore(2)
 _TRANSLATE_JITTER_MIN = 0.2
 _TRANSLATE_JITTER_MAX = 0.7
 
+# Disjuntor do serviço de tradução.
+#
+# Medido em produção de 21/10 a 29/10/2026: 2310 traduções recusadas para 2385
+# envios, quase todas HTTP 429. Não era rajada — o semáforo e o jitter acima já
+# espaçavam os pedidos, e numa varredura típica 10 de 10 tentativas, a 1-2 s uma da
+# outra, voltaram 429. O Google estava recusando o IP da VPS, e o bot insistia: dois
+# pedidos por notícia e por idioma, todos recusados, e como falha não entra no cache
+# a mesma notícia voltava a ser pedida a cada aparição.
+#
+# 429 é o serviço mandando parar: abre o disjuntor na hora. Outras falhas abrem
+# depois de `_FALHAS_ATE_ABRIR` seguidas. Cada reabertura sem um sucesso no meio
+# dobra a pausa, até `_DISJUNTOR_MAX_S`; um sucesso volta tudo ao início.
+_DISJUNTOR_BASE_S = 30 * 60
+_DISJUNTOR_MAX_S = 6 * 3600
+_FALHAS_ATE_ABRIR = 3
+_falhas_seguidas = 0
+_aberturas_seguidas = 0
+_disjuntor_ate = 0.0  # time.monotonic()
+
+
+def _disjuntor_aberto() -> bool:
+    """True enquanto o disjuntor estiver aberto (o serviço não é chamado)."""
+    return time.monotonic() < _disjuntor_ate
+
+
+def _registrar_sucesso_do_servico() -> None:
+    """Uma tradução válida voltou: o serviço respondeu, a escalada recomeça do zero."""
+    global _falhas_seguidas, _aberturas_seguidas
+    if _aberturas_seguidas:
+        log.info(
+            f"🈯 Tradução voltou a funcionar depois de {_aberturas_seguidas} pausa(s) seguida(s)."
+        )
+    _falhas_seguidas = 0
+    _aberturas_seguidas = 0
+
+
+def _registrar_falha_do_servico(limite_do_servico: bool, causa: str) -> None:
+    """
+    Conta a falha e abre o disjuntor quando for o caso.
+
+    PROPÓSITO DE NEGÓCIO:
+        Parar de pedir tradução a um serviço que está recusando o IP. Insistir não
+        traduz nada: só gasta o orçamento do IP e enche o log.
+
+    INVARIANTES DO DOMÍNIO:
+        - HTTP 429 (`TooManyRequests`) abre na hora; outra falha só depois de
+          `_FALHAS_ATE_ABRIR` seguidas.
+        - Falha que chega com o disjuntor JÁ aberto (pedido que estava em voo) não
+          reabre nem dobra a pausa: uma recusa do serviço vale uma abertura.
+        - A pausa nunca passa de `_DISJUNTOR_MAX_S`, para o bot voltar a tentar
+          sozinho quando o bloqueio acabar.
+
+    COMPORTAMENTO EM CASO DE FALHA:
+        Não levanta. Abrir o disjuntor só faz as notícias saírem no idioma
+        original, que é o mesmo destino de uma tradução recusada.
+    """
+    global _falhas_seguidas, _aberturas_seguidas, _disjuntor_ate
+    _falhas_seguidas += 1
+    if not (limite_do_servico or _falhas_seguidas >= _FALHAS_ATE_ABRIR):
+        return
+    if _disjuntor_aberto():
+        return
+    _aberturas_seguidas += 1
+    pausa = min(_DISJUNTOR_BASE_S * 2 ** min(_aberturas_seguidas - 1, 8), _DISJUNTOR_MAX_S)
+    _disjuntor_ate = time.monotonic() + pausa
+    ate = (datetime.now(timezone.utc) + timedelta(seconds=pausa)).strftime("%Y-%m-%d %H:%M UTC")
+    log.error(
+        f"🈯 Tradução pausada por {pausa // 60} min (até {ate}, {_aberturas_seguidas}ª "
+        f"pausa seguida): {causa}. Até lá as notícias saem no idioma original sem chamar "
+        "o serviço."
+    )
+
+
+def _reset_disjuntor() -> None:
+    """Fecha o disjuntor e zera a escalada. Existe para os testes não herdarem estado."""
+    global _falhas_seguidas, _aberturas_seguidas, _disjuntor_ate
+    _falhas_seguidas = 0
+    _aberturas_seguidas = 0
+    _disjuntor_ate = 0.0
+
 
 def _load_translation_cache() -> None:
     """Carrega o cache de tradução do disco (best-effort)."""
@@ -227,8 +310,10 @@ async def translate_to_target(text: str, target_lang: str) -> str:
     COMPORTAMENTO EM CASO DE FALHA:
         Nunca levanta e nunca devolve None. Exceção do adaptador, resposta vazia
         ou página de erro resultam no texto original devolvido intacto, com
-        WARNING no log (degradação visível, não silenciosa) e o contador
-        `traducoes_rejeitadas` incrementado para a telemetria.
+        WARNING no log (degradação visível, não silenciosa). Cada causa tem o seu
+        contador para a telemetria: `traducoes_rejeitadas` (página de erro),
+        `traducoes_falhas_servico` (exceção ou recusa do serviço) e
+        `traducoes_suspensas` (disjuntor aberto: o serviço nem foi chamado).
     """
     if not text:
         return ""
@@ -271,6 +356,11 @@ async def translate_to_target(text: str, target_lang: str) -> str:
 
         loop = asyncio.get_running_loop()
         async with _translate_semaphore:
+            # Conferido DEPOIS da fila do semáforo: quem esperava enquanto outro
+            # pedido abriu o disjuntor não pode sair chamando o serviço mesmo assim.
+            if _disjuntor_aberto():
+                stats.traducoes_suspensas += 1
+                return text
             await asyncio.sleep(random.uniform(_TRANSLATE_JITTER_MIN, _TRANSLATE_JITTER_MAX))
             trad = await loop.run_in_executor(
                 None,
@@ -286,19 +376,35 @@ async def translate_to_target(text: str, target_lang: str) -> str:
                 "🈯 Tradução rejeitada (resposta parece página de erro do serviço); "
                 f"publicando o ORIGINAL. alvo={target_lang} amostra={amostra!r}"
             )
+            _registrar_falha_do_servico(False, "resposta com página de erro")
             return text
 
+        _registrar_sucesso_do_servico()
         _translation_cache[cache_key] = trad
         _translation_cache.move_to_end(cache_key)
         if len(_translation_cache) > _TRANSLATION_CACHE_MAX:
             _translation_cache.popitem(last=False)
 
         return trad
+    except (NotValidLength, NotValidPayload) as e:
+        # Recusa LOCAL do deep_translator (texto com 5000+ caracteres, payload
+        # inválido), antes de qualquer pedido. Não é falha do serviço: contá-la no
+        # disjuntor deixaria uma única notícia anormal pausar a tradução de todos.
+        # A mensagem da exceção carrega o texto inteiro; vai para o log só o tamanho.
+        log.warning(
+            f"🈯 Texto não enviado ao tradutor ({type(e).__name__}, {len(text)} caracteres); "
+            "publicando o original."
+        )
+        return text
     except Exception as e:
-        stats.traducoes_rejeitadas += 1
+        stats.traducoes_falhas_servico += 1
+        limite = isinstance(e, TooManyRequests)
+        # A mensagem do TooManyRequests é fixa no deep_translator ("5 requests per
+        # second"), não vem do Google: ele só a levanta quando a resposta é HTTP 429.
+        causa = ("TooManyRequests: HTTP 429 do serviço (pedidos recusados)" if limite
+                 else f"{type(e).__name__}: {str(e)[:200]}")
         # WARNING, não debug: degradação silenciosa é o que faz a falha existir e
         # ser invisível. O bot segue publicando o original, mas o motivo fica no log.
-        log.warning(
-            f"🈯 Falha na tradução (publicando o original): {type(e).__name__}: {e}"
-        )
+        log.warning(f"🈯 Falha na tradução (publicando o original): {causa}")
+        _registrar_falha_do_servico(limite, causa)
         return text

@@ -30,6 +30,10 @@ class BotStats:
         self.cache_hits_total = 0
         # Ausência: contadores que só existem para revelar o que NÃO aconteceu.
         self.traducoes_rejeitadas = 0
+        # Separados de `traducoes_rejeitadas` para a causa não se perder: página de
+        # erro, recusa do serviço e pausa do disjuntor pedem ações diferentes.
+        self.traducoes_falhas_servico = 0
+        self.traducoes_suspensas = 0
         self.feeds_vazios = 0
         self.ciclos_sem_envio = 0
         self.ultimo_veredito: Optional[Dict[str, Any]] = None
@@ -72,6 +76,8 @@ def avaliar_varredura(
     cache_hits: int,
     traducoes_rejeitadas: int,
     ciclos_sem_envio: int,
+    traducoes_falhas_servico: int = 0,
+    traducoes_suspensas: int = 0,
 ) -> Dict[str, Any]:
     """
     Fecha uma varredura com veredito e MOTIVO, medindo ausência e não só sucesso.
@@ -92,6 +98,9 @@ def avaliar_varredura(
         - `fontes_totais == 0` é ANOMALIA, nunca OK — catálogo vazio é a falha que
           este instrumento existe para apanhar, e um detector que reporta catálogo
           vazio como saudável tem um buraco exatamente onde devia enxergar.
+        - Cada causa de tradução degradada tem motivo próprio (página de erro,
+          recusa do serviço, disjuntor aberto). Juntar as três num texto só já fez o
+          painel dizer "página de erro" durante nove dias de HTTP 429.
 
     COMPORTAMENTO EM CASO DE FALHA:
         Não levanta. Entradas negativas ou de tipo inesperado são normalizadas
@@ -113,6 +122,8 @@ def avaliar_varredura(
         "cache_hits": _n(cache_hits),
         "traducoes_rejeitadas": _n(traducoes_rejeitadas),
         "ciclos_sem_envio": _n(ciclos_sem_envio),
+        "traducoes_falhas_servico": _n(traducoes_falhas_servico),
+        "traducoes_suspensas": _n(traducoes_suspensas),
     }
     if any(v < 0 for v in valores.values()):
         return {
@@ -159,6 +170,20 @@ def avaliar_varredura(
         motivos.append(
             f"{valores['traducoes_rejeitadas']} tradução(ões) rejeitadas — "
             "o serviço devolveu página de erro; foi publicado o original"
+        )
+        _sobe(VEREDITO_ATENCAO)
+
+    if valores["traducoes_falhas_servico"] > 0:
+        motivos.append(
+            f"{valores['traducoes_falhas_servico']} tradução(ões) recusadas pelo serviço "
+            "(erro ou HTTP 429); foi publicado o original"
+        )
+        _sobe(VEREDITO_ATENCAO)
+
+    if valores["traducoes_suspensas"] > 0:
+        motivos.append(
+            f"{valores['traducoes_suspensas']} tradução(ões) não tentadas — tradução "
+            "pausada depois de recusa do serviço; foi publicado o original"
         )
         _sobe(VEREDITO_ATENCAO)
 
