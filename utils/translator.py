@@ -6,6 +6,7 @@ import asyncio
 import random
 import time
 from collections import OrderedDict
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Optional
 from deep_translator import GoogleTranslator
@@ -123,6 +124,15 @@ _CACHE_FILE = p("translation_cache.json")
 _translate_semaphore = asyncio.Semaphore(2)
 _TRANSLATE_JITTER_MIN = 0.2
 _TRANSLATE_JITTER_MAX = 0.7
+# O deep_translator chama requests.get SEM timeout: uma conexão que para de responder
+# prenderia a vaga do semáforo e a varredura inteira. Passado o prazo, a notícia sai no
+# original e a falha conta para o disjuntor.
+_TRANSLATE_TIMEOUT_S = 15.0
+# A thread de um pedido assim pode ficar presa para sempre (o urllib3 não liga keepalive).
+# Por isso o tradutor tem executor PRÓPRIO, do tamanho do semáforo: preso, ele só esgota a
+# tradução, que já cai no prazo e no disjuntor. No executor padrão as presas acabariam com
+# as vagas do feedparser, do HTML Watcher e do DNS do aiohttp (inclusive o do Discord).
+_executor_traducao = ThreadPoolExecutor(max_workers=2, thread_name_prefix="tradutor")
 
 # Disjuntor do serviço de tradução.
 #
@@ -141,12 +151,15 @@ _DISJUNTOR_MAX_S = 6 * 3600
 _FALHAS_ATE_ABRIR = 3
 _falhas_seguidas = 0
 _aberturas_seguidas = 0
-_disjuntor_ate = 0.0  # time.monotonic()
+_disjuntor_ate = 0.0  # em _agora()
+# Relógio do disjuntor. Os testes trocam ESTE nome, nunca time.monotonic, que é também o
+# relógio do asyncio: congelá-lo para o teste congelaria os prazos do event loop junto.
+_agora = time.monotonic
 
 
 def _disjuntor_aberto() -> bool:
     """True enquanto o disjuntor estiver aberto (o serviço não é chamado)."""
-    return time.monotonic() < _disjuntor_ate
+    return _agora() < _disjuntor_ate
 
 
 def _registrar_sucesso_do_servico() -> None:
@@ -188,7 +201,7 @@ def _registrar_falha_do_servico(limite_do_servico: bool, causa: str) -> None:
         return
     _aberturas_seguidas += 1
     pausa = min(_DISJUNTOR_BASE_S * 2 ** min(_aberturas_seguidas - 1, 8), _DISJUNTOR_MAX_S)
-    _disjuntor_ate = time.monotonic() + pausa
+    _disjuntor_ate = _agora() + pausa
     ate = (datetime.now(timezone.utc) + timedelta(seconds=pausa)).strftime("%Y-%m-%d %H:%M UTC")
     log.error(
         f"🈯 Tradução pausada por {pausa // 60} min (até {ate}, {_aberturas_seguidas}ª "
@@ -362,9 +375,12 @@ async def translate_to_target(text: str, target_lang: str) -> str:
                 stats.traducoes_suspensas += 1
                 return text
             await asyncio.sleep(random.uniform(_TRANSLATE_JITTER_MIN, _TRANSLATE_JITTER_MAX))
-            trad = await loop.run_in_executor(
-                None,
-                lambda: GoogleTranslator(source="auto", target=target).translate(text)
+            trad = await asyncio.wait_for(
+                loop.run_in_executor(
+                    _executor_traducao,
+                    lambda: GoogleTranslator(source="auto", target=target).translate(text)
+                ),
+                timeout=_TRANSLATE_TIMEOUT_S,
             )
 
         # FRONTEIRA: a resposta do adaptador é válida no contrato (é str, não
@@ -401,8 +417,12 @@ async def translate_to_target(text: str, target_lang: str) -> str:
         limite = isinstance(e, TooManyRequests)
         # A mensagem do TooManyRequests é fixa no deep_translator ("5 requests per
         # second"), não vem do Google: ele só a levanta quando a resposta é HTTP 429.
-        causa = ("TooManyRequests: HTTP 429 do serviço (pedidos recusados)" if limite
-                 else f"{type(e).__name__}: {str(e)[:200]}")
+        if limite:
+            causa = "TooManyRequests: HTTP 429 do serviço (pedidos recusados)"
+        elif isinstance(e, asyncio.TimeoutError):
+            causa = f"sem resposta do serviço em {_TRANSLATE_TIMEOUT_S:g} s"
+        else:
+            causa = f"{type(e).__name__}: {str(e)[:200]}"
         # WARNING, não debug: degradação silenciosa é o que faz a falha existir e
         # ser invisível. O bot segue publicando o original, mas o motivo fica no log.
         log.warning(f"🈯 Falha na tradução (publicando o original): {causa}")

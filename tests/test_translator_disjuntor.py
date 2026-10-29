@@ -60,7 +60,7 @@ def ambiente(monkeypatch):
         setattr(stats, campo, 0)
     relogio = Relogio()
     servico = Servico()
-    monkeypatch.setattr(tr.time, "monotonic", relogio)
+    monkeypatch.setattr(tr, "_agora", relogio)
     monkeypatch.setattr(tr, "GoogleTranslator", servico.fabrica)
     monkeypatch.setattr(tr, "_TRANSLATE_JITTER_MIN", 0.0)
     monkeypatch.setattr(tr, "_TRANSLATE_JITTER_MAX", 0.0)
@@ -166,6 +166,42 @@ class TestEntradaRecusadaLocalmente:
             traduzir(texto)
         assert tr._disjuntor_aberto() is True
         assert stats.traducoes_falhas_servico == 3
+
+
+class TestServicoQueNaoResponde:
+    """requests.get do deep_translator não tem timeout: sem prazo, a varredura parava."""
+
+    class _Lento:
+        def __init__(self, *a, **k):
+            pass
+
+        def translate(self, texto):
+            import time as _t
+            _t.sleep(0.6)
+            return "tarde demais"
+
+    def test_servico_mudo_devolve_o_original_no_prazo(self, ambiente, monkeypatch, caplog):
+        import time as _t
+        monkeypatch.setattr(tr, "GoogleTranslator", self._Lento)
+        monkeypatch.setattr(tr, "_TRANSLATE_TIMEOUT_S", 0.05)
+        async def medir():
+            # Medido DENTRO do loop: o asyncio.run espera a thread presa ao encerrar, coisa que o
+            # loop do bot, que nunca encerra, não faz.
+            inicio = _t.perf_counter()
+            saida = await tr.translate_to_target("Gundam news", "pt_BR")
+            return saida, _t.perf_counter() - inicio
+
+        saida, decorrido = asyncio.run(medir())
+        assert saida == "Gundam news"
+        assert decorrido < 0.5, "a espera não pode ir até a resposta do serviço"
+        assert stats.traducoes_falhas_servico == 1
+        assert any("sem resposta do serviço" in r.getMessage() for r in caplog.records)
+        assert "pt_BR:Gundam news" not in tr._translation_cache
+
+    def test_gemeo_servico_rapido_nao_e_cortado(self, ambiente, monkeypatch):
+        monkeypatch.setattr(tr, "_TRANSLATE_TIMEOUT_S", 5.0)
+        assert traduzir("Gundam news") == "Notícias Gundam"
+        assert stats.traducoes_falhas_servico == 0
 
 
 class TestEscalada:
@@ -283,3 +319,23 @@ class TestTelemetriaDaCausa:
     def test_contador_novo_invalido_e_ANOMALIA(self, campo):
         r = self._avaliar(**{campo: "lixo"})
         assert r["veredito"] == "ANOMALIA"
+
+
+class TestExecutorProprio:
+    """Thread presa no tradutor não pode tomar vaga do executor padrão (feeds, DNS, Discord)."""
+
+    def test_traducao_roda_no_executor_do_tradutor(self, ambiente, monkeypatch):
+        import threading
+        nomes = []
+
+        class _Registra:
+            def __init__(self, *a, **k):
+                pass
+
+            def translate(self, texto):
+                nomes.append(threading.current_thread().name)
+                return "Notícias Gundam"
+
+        monkeypatch.setattr(tr, "GoogleTranslator", _Registra)
+        assert traduzir("Gundam news") == "Notícias Gundam"
+        assert nomes and nomes[0].startswith("tradutor"), nomes
